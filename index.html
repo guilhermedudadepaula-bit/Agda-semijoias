@@ -10,7 +10,6 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="AGDA">
   
-  <!-- Ícone personalizado com fundo marrom e letras AGDA em branco -->
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%232A180E'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-weight='bold' font-size='160' fill='%23FFFFFF'%3EAGDA%3C/text%3E%3C/svg%3E">
   
   <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
@@ -38,7 +37,6 @@
 </head>
 <body class="pb-10 flex flex-col min-h-screen">
 
-  <!-- Header -->
   <header class="bg-[#2A180E] text-[#F9F6F0] p-4 shadow-md flex justify-between items-center border-b-2 border-[#D4AF37]">
     <div class="flex items-center gap-2">
       <div class="w-8 h-8 rounded-full bg-[#D4AF37] flex items-center justify-center text-[#2A180E] font-bold">A</div>
@@ -47,13 +45,11 @@
     <span id="mod-label" class="text-xs bg-[#3D2314] px-2 py-1 rounded text-[#EFE6D8] border border-[#D4AF37]">Painel Proprietária</span>
   </header>
 
-  <!-- Barra de Instalação PWA Real -->
-  <div id="banner-instalacao" class="bg-[#3D2314] text-[#F9F6F0] p-3 text-center text-xs flex justify-between items-center px-4 border-b border-[#D4AF37]">
+  <div class="bg-[#3D2314] text-[#F9F6F0] p-3 text-center text-xs flex justify-between items-center px-4 border-b border-[#D4AF37]">
     <span>💡 Instalar o app no telemóvel?</span>
-    <button id="btn-instalar-app" onclick="instalarAppPWA()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded shadow">Instalar App</button>
+    <button onclick="instalarAppPWA()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded shadow">Instalar App</button>
   </div>
 
-  <!-- Navegação de Módulos -->
   <div class="p-4 max-w-2xl mx-auto flex gap-2 w-full">
     <button onclick="mudarModo('proprietaria')" id="btn-prop" class="flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]">
       Painel Proprietária
@@ -65,16 +61,13 @@
 
   <main class="max-w-2xl mx-auto px-4 flex-grow w-full">
     
-    <!-- MÓDULO PROPRIETÁRIA -->
     <div id="view-proprietaria" class="space-y-6">
       
-      <!-- Cadastrar Peça com Leitor de Câmara Nativo -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <div class="flex justify-between items-center mb-3">
           <h2 class="text-lg font-bold text-[#3D2314] flex items-center gap-2">
             <i data-lucide="plus-circle" class="text-[#D4AF37]"></i> Cadastrar Peça
           </h2>
-          <!-- Botão de Câmara para Código de Barras -->
           <label class="cursor-pointer text-xs bg-[#D4AF37] text-[#2A180E] px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow">
             <i data-lucide="camera" class="w-4 h-4"></i> Ler Código de Barras
             <input type="file" accept="image/*" capture="environment" class="hidden" onchange="lerCodigoBarrasCam(event)">
@@ -110,7 +103,6 @@
         </form>
       </div>
 
-      <!-- Cadastrar Revendedora e Termo -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center gap-2">
           <i data-lucide="user-plus" class="text-[#D4AF37]"></i> Cadastrar Nova Revendedora
@@ -140,7 +132,6 @@
         </form>
       </div>
 
-      <!-- Pedidos de Reposição -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center justify-between">
           <span>Pedidos de Reposição Pendentes</span>
@@ -151,7 +142,6 @@
         </div>
       </div>
 
-      <!-- Estoque Geral -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center justify-between">
           <span>Estoque Geral</span>
@@ -164,10 +154,8 @@
 
     </div>
 
-    <!-- MÓDULO REVENDEDORA -->
     <div id="view-revendedora" class="hidden space-y-6">
       
-      <!-- Identificação -->
       <div class="bg-[#2A180E] text-[#F9F6F0] p-4 rounded-xl shadow border border-[#D4AF37] space-y-3">
         <p class="text-xs text-[#D4AF37]">Identificação da Revendedora</p>
         <div>
@@ -180,7 +168,6 @@
         <p id="rev-logada-txt" class="text-xs text-green-400 font-bold hidden">Revendedora ativa: <span id="span-nome-rev"></span></p>
       </div>
 
-      <!-- Solicitar Reposição -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <h3 class="font-bold text-[#3D2314] mb-2 text-sm flex items-center gap-1">
           <i data-lucide="send" class="w-4 h-4 text-[#D4AF37]"></i> Pedir Reposição de Peças
@@ -192,7 +179,6 @@
         </form>
       </div>
 
-      <!-- Minha Maleta -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <h3 class="font-bold text-[#3D2314] mb-2 text-sm">Minhas Peças Consignadas (Maleta)</h3>
         <div id="minha-maleta-lista" class="divide-y divide-[#EFE6D8] text-sm">
@@ -200,7 +186,6 @@
         </div>
       </div>
 
-      <!-- Ferramentas -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8] space-y-3">
         <h3 class="font-bold text-[#3D2314]">Ferramentas</h3>
         <button onclick="gerarReciboSimples()" class="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-[#2A180E] font-bold py-3 px-4 rounded-xl shadow flex items-center justify-center gap-2">
@@ -215,22 +200,29 @@
 
   </main>
 
-  <!-- Rodapé -->
   <footer class="text-center py-4 text-xs text-gray-500 mt-auto">
     App criado por Julia Agda
   </footer>
 
   <script>
     const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZXR5c3l6ZGpjZmFudnRhZXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5MjM4MTYsImV4cCI6MjEwODQ5OTgxNn0.wx9a9lJdKF3-LAWRrREO1f97FnyUESSq8q8FbC_T81s'; //  
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZXR5c3l6ZGpjZmFudnRhZXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5MjM4MTYsImV4cCI6MjEwODQ5OTgxNn0.wx9a9lJdKF3-LAWRrREO1f97FnyUESSq8q8FbC_T81s'; // 
 
-    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    if (window.lucide) {
-      lucide.createIcons();
+    let _supabase = null;
+    try {
+      if (window.supabase && SUPABASE_KEY && !SUPABASE_KEY.startsWith('COLE_AQUI')) {
+        _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      }
+    } catch (err) {
+      console.error("Erro Supabase:", err);
     }
 
-    // Configuração do Botão de Instalação PWA Real
+    try {
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    } catch(e) {}
+
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
@@ -245,38 +237,44 @@
           deferredPrompt = null;
         }
       } else {
-        alert("Para instalar no telemóvel:\n\n• Android (Chrome): Toque nos 3 pontos no canto superior direito e selecione 'Adicionar ao ecrã inicial' ou 'Instalar aplicação'.\n• iPhone (Safari): Toque no botão de partilha e selecione 'Adicionar ao ecrã principal'.");
+        alert("Para instalar este app no celular:\n\n1. No Android (Chrome): Clique nos 3 pontos no canto superior direito e selecione 'Adicionar à tela inicial' ou 'Instalar aplicativo'.\n2. No iPhone (Safari): Clique no ícone de Compartilhar (quadrado com seta para cima) e escolha 'Adicionar à Tela de Início'.");
       }
     }
 
-    // Câmara Nativa para captura do código de barras
     function lerCodigoBarrasCam(event) {
       const file = event.target.files[0];
       if (file) {
-        // Gera um código automático baseado na hora ou simula a leitura
         const codigoGerado = "AGDA-" + Math.floor(100000 + Math.random() * 900000);
-        document.getElementById('prod-codigo').value = codigoGerado;
-        alert("Foto capturada com sucesso! Código gerado/atribuído ao SKU: " + codigoGerado);
+        const campoCodigo = document.getElementById('prod-codigo');
+        if (campoCodigo) campoCodigo.value = codigoGerado;
+        alert("Foto capturada com sucesso! Código atribuído: " + codigoGerado);
       }
     }
 
     let revendedoraAtual = localStorage.getItem('agda_revendedora') || '';
     if (revendedoraAtual) {
-      document.getElementById('rev-nome-input').value = revendedoraAtual;
-      document.getElementById('span-nome-rev').innerText = revendedoraAtual;
-      document.getElementById('rev-logada-txt').classList.remove('hidden');
+      const inputEl = document.getElementById('rev-nome-input');
+      const spanEl = document.getElementById('span-nome-rev');
+      const txtEl = document.getElementById('rev-logada-txt');
+      if (inputEl) inputEl.value = revendedoraAtual;
+      if (spanEl) spanEl.innerText = revendedoraAtual;
+      if (txtEl) txtEl.classList.remove('hidden');
     }
 
     function salvarNomeRevendedora() {
-      const nome = document.getElementById('rev-nome-input').value.trim();
+      const inputEl = document.getElementById('rev-nome-input');
+      if (!inputEl) return;
+      const nome = inputEl.value.trim();
       if (!nome) {
         alert('Digite o seu nome.');
         return;
       }
       revendedoraAtual = nome;
       localStorage.setItem('agda_revendedora', nome);
-      document.getElementById('span-nome-rev').innerText = nome;
-      document.getElementById('rev-logada-txt').classList.remove('hidden');
+      const spanEl = document.getElementById('span-nome-rev');
+      const txtEl = document.getElementById('rev-logada-txt');
+      if (spanEl) spanEl.innerText = nome;
+      if (txtEl) txtEl.classList.remove('hidden');
       alert('Revendedora identificada com sucesso!');
       carregarMinhaMaleta();
     }
@@ -288,29 +286,37 @@
       const btnP = document.getElementById('btn-prop');
       const btnR = document.getElementById('btn-rev');
 
+      if (!prop || !rev) return;
+
       if (modo === 'proprietaria') {
         prop.classList.remove('hidden');
         rev.classList.add('hidden');
-        label.innerText = 'Painel Proprietária';
-        btnP.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]';
-        btnR.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]';
+        if (label) label.innerText = 'Painel Proprietária';
+        if (btnP) btnP.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]';
+        if (btnR) btnR.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]';
         carregarProdutos();
         carregarPedidos();
       } else {
         prop.classList.add('hidden');
         rev.classList.remove('hidden');
-        label.innerText = 'App Revendedora';
-        btnR.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]';
-        btnP.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]';
+        if (label) label.innerText = 'App Revendedora';
+        if (btnR) btnR.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]';
+        if (btnP) btnP.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]';
         if (revendedoraAtual) carregarMinhaMaleta();
       }
     }
 
     async function salvarProduto(e) {
       e.preventDefault();
+      if (!_supabase) {
+        alert('Erro: Chave do Supabase não configurada!');
+        return;
+      }
       const btn = document.getElementById('btn-salvar-peca');
-      btn.disabled = true;
-      btn.innerText = 'Salvando...';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'Salvando...';
+      }
 
       const codigo = document.getElementById('prod-codigo').value;
       const nome = document.getElementById('prod-nome').value;
@@ -327,38 +333,48 @@
           alert('Erro ao salvar produto: ' + error.message);
         } else {
           alert('Produto cadastrado com sucesso!');
-          document.getElementById('form-produto').reset();
+          const formP = document.getElementById('form-produto');
+          if (formP) formP.reset();
           carregarProdutos();
         }
       } catch (err) {
         alert('Erro inesperado: ' + err.message);
       } finally {
-        btn.disabled = false;
-        btn.innerText = 'Salvar Peça no Banco';
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = 'Salvar Peça no Banco';
+        }
       }
     }
 
     async function salvarRevendedora(e) {
       e.preventDefault();
+      if (!_supabase) {
+        alert('Erro: Chave do Supabase não configurada!');
+        return;
+      }
       const nome = document.getElementById('rev-cad-nome').value;
       const cpf = document.getElementById('rev-cad-cpf').value;
       const whats = document.getElementById('rev-cad-whats').value;
       const termo = document.getElementById('rev-cad-termo').value;
 
       const { error } = await _supabase.from('revendedoras').insert([
-        { nome: nome, cpf: cpf, whatsapp: whatsapp = whats, assinatura: termo }
+        { nome: nome, cpf: cpf, whatsapp: whats, assinatura: termo }
       ]);
 
       if (error) {
-        alert('Erro ao registar revendedora: ' + error.message);
+        alert('Erro ao cadastrar revendedora: ' + error.message);
       } else {
-        alert('Revendedora e Termo de Responsabilidade registados com sucesso!');
-        document.getElementById('form-revendedora').reset();
+        alert('Revendedora e Termo registrados com sucesso!');
+        const formR = document.getElementById('form-revendedora');
+        if (formR) formR.reset();
       }
     }
 
     async function carregarProdutos() {
+      if (!_supabase) return;
       const container = document.getElementById('lista-produtos');
+      if (!container) return;
       container.innerHTML = '<p class="text-gray-500 py-2 text-center">Buscando...</p>';
       const { data, error } = await _supabase.from('produtos').select('*').order('created_at', { ascending: false });
 
@@ -380,6 +396,10 @@
 
     async function pedirReposicao(e) {
       e.preventDefault();
+      if (!_supabase) {
+        alert('Erro: Chave do Supabase não configurada!');
+        return;
+      }
       if (!revendedoraAtual) {
         alert('Por favor, digite seu nome no topo do app primeiro!');
         return;
@@ -396,11 +416,4 @@
       } else {
         alert('Pedido de reposição enviado para a proprietária com sucesso!');
         document.getElementById('rep-peca').value = '';
-        document.getElementById('rep-qtd').value = '';
-      }
-    }
-
-    async function carregarPedidos() {
-      const container = document.getElementById('lista-pedidos');
-      container.innerHTML = '<p class="text-gray-500 py-2 text-center">A carregar...</p>';
-      const { data, error } = await _supabase.from('pedidos_reposicao').select('*').eq('status', 'pendente').order('created_at',
+        document.getElementByI
