@@ -37,22 +37,15 @@
     <!-- MÓDULO PROPRIETÁRIA -->
     <div id="view-proprietaria" class="space-y-6">
       
-      <!-- Formulário Novo Produto + Câmara Nativa -->
+      <!-- Cadastrar Peça -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
-        <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center justify-between">
-          <span class="flex items-center gap-2">
-            <i data-lucide="plus-circle" class="text-[#D4AF37]"></i> Cadastrar Peça
-          </span>
-          <label class="cursor-pointer text-xs bg-[#D4AF37] text-[#2A180E] px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow">
-            <i data-lucide="camera" class="w-4 h-4"></i> Abrir Câmara
-            <input type="file" accept="image/*" capture="environment" class="hidden" onchange="lerCodigoComCamera(event)">
-          </label>
+        <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center gap-2">
+          <i data-lucide="plus-circle" class="text-[#D4AF37]"></i> Cadastrar Peça no Estoque
         </h2>
-
         <form id="form-produto" onsubmit="salvarProduto(event)" class="space-y-3">
           <div>
-            <label class="block text-xs font-bold text-[#3D2314]">Código de Barras / SKU (Tiny)</label>
-            <input type="text" id="prod-codigo" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Escaneie ou digite o código">
+            <label class="block text-xs font-bold text-[#3D2314]">Código / SKU (Tiny)</label>
+            <input type="text" id="prod-codigo" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: 12345">
           </div>
           <div>
             <label class="block text-xs font-bold text-[#3D2314]">Nome do Produto</label>
@@ -60,16 +53,16 @@
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="block text-xs font-bold text-[#3D2314]">Preço de Custo (R$)</label>
+              <label class="block text-xs font-bold text-[#3D2314]">Preço Custo (R$)</label>
               <input type="number" step="0.01" id="prod-custo" class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="25.00">
             </div>
             <div>
-              <label class="block text-xs font-bold text-[#3D2314]">Preço de Venda (R$)</label>
+              <label class="block text-xs font-bold text-[#3D2314]">Preço Venda (R$)</label>
               <input type="number" step="0.01" id="prod-venda" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="50.00">
             </div>
           </div>
           <div>
-            <label class="block text-xs font-bold text-[#3D2314]">Estoque Geral Inicial</label>
+            <label class="block text-xs font-bold text-[#3D2314]">Estoque Inicial</label>
             <input type="number" id="prod-estoque" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="10">
           </div>
           <button type="submit" id="btn-salvar" class="w-full bg-[#2A180E] hover:bg-[#3D2314] text-[#D4AF37] font-bold py-2.5 rounded-lg border border-[#D4AF37]">
@@ -78,7 +71,18 @@
         </form>
       </div>
 
-      <!-- Lista de Produtos -->
+      <!-- Gestão de Pedidos de Reposição das Revendedoras -->
+      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
+        <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center justify-between">
+          <span>Pedidos de Reposição Pendentes</span>
+          <button onclick="carregarPedidos()" class="text-xs bg-[#EFE6D8] px-2 py-1 rounded text-[#3D2314]">Atualizar</button>
+        </h2>
+        <div id="lista-pedidos" class="divide-y divide-[#EFE6D8] text-sm">
+          <p class="text-gray-500 py-2 text-center">A carregar pedidos...</p>
+        </div>
+      </div>
+
+      <!-- Estoque Geral -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center justify-between">
           <span>Estoque Geral</span>
@@ -93,30 +97,58 @@
 
     <!-- MÓDULO REVENDEDORA -->
     <div id="view-revendedora" class="hidden space-y-6">
-      <div class="bg-[#2A180E] text-[#F9F6F0] p-4 rounded-xl shadow border border-[#D4AF37]">
-        <p class="text-xs text-[#D4AF37]">Minha Maleta / Consignado</p>
-        <h3 class="text-lg font-bold">Comissão Fixa: 30%</h3>
-        <p class="text-xs text-gray-300 mt-1">Gere recibos e registre suas vendas direto pelo celular.</p>
+      
+      <!-- Identificação da Revendedora -->
+      <div class="bg-[#2A180E] text-[#F9F6F0] p-4 rounded-xl shadow border border-[#D4AF37] space-y-3">
+        <p class="text-xs text-[#D4AF37]">Identificação da Revendedora</p>
+        <div>
+          <label class="block text-xs text-gray-300 mb-1">Digite o seu Nome:</label>
+          <div class="flex gap-2">
+            <input type="text" id="rev-nome-input" class="w-full p-2 rounded text-[#2A180E] font-bold text-sm bg-white" placeholder="Ex: Ana Souza">
+            <button onclick="salvarNomeRevendedora()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-4 py-2 rounded text-xs">Entrar</button>
+          </div>
+        </div>
+        <p id="rev-logada-txt" class="text-xs text-green-400 font-bold hidden">Revendedora ativa: <span id="span-nome-rev"></span></p>
       </div>
 
+      <!-- Solicitar Reposição -->
+      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
+        <h3 class="font-bold text-[#3D2314] mb-2 text-sm flex items-center gap-1">
+          <i data-lucide="send" class="w-4 h-4 text-[#D4AF37]"></i> Pedir Reposição de Peças
+        </h3>
+        <form onsubmit="pedirReposicao(event)" class="space-y-2">
+          <input type="text" id="rep-peca" required class="w-full p-2 border rounded border-[#EFE6D8] text-xs bg-[#F9F6F0]" placeholder="Nome ou Código da Peça desejada">
+          <input type="number" id="rep-qtd" required class="w-full p-2 border rounded border-[#EFE6D8] text-xs bg-[#F9F6F0]" placeholder="Quantidade">
+          <button type="submit" class="w-full bg-[#3D2314] text-[#D4AF37] font-bold py-2 rounded text-xs">Enviar Pedido para Proprietária</button>
+        </form>
+      </div>
+
+      <!-- Minha Maleta Atual -->
+      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
+        <h3 class="font-bold text-[#3D2314] mb-2 text-sm">Minhas Peças Consignadas (Maleta)</h3>
+        <div id="minha-maleta-lista" class="divide-y divide-[#EFE6D8] text-sm">
+          <p class="text-gray-500 py-2 text-center">Informe seu nome acima para ver sua maleta.</p>
+        </div>
+      </div>
+
+      <!-- Ações Rápidas -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8] space-y-3">
-        <h3 class="font-bold text-[#3D2314]">Ações Rápidas</h3>
-        <button onclick="gerarReciboSimples()" class="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-[#2A180E] font-bold py-3 px-4 rounded-xl shadow transition-all flex items-center justify-center gap-2">
-          <i data-lucide="file-text" class="w-5 h-5"></i>
-          Gerar Recibo Simples da Cliente
+        <h3 class="font-bold text-[#3D2314]">Ferramentas</h3>
+        <button onclick="gerarReciboSimples()" class="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-[#2A180E] font-bold py-3 px-4 rounded-xl shadow flex items-center justify-center gap-2">
+          <i data-lucide="file-text" class="w-5 h-5"></i> Gerar Recibo Simples da Cliente
         </button>
-        <button onclick="abrirNFF()" class="w-full bg-[#3D2314] hover:bg-[#2A180E] text-[#F9F6F0] font-bold py-3 px-4 rounded-xl shadow transition-all flex items-center justify-center gap-2 border border-[#D4AF37]">
-          <i data-lucide="external-link" class="w-5 h-5 text-[#D4AF37]"></i>
-          Emitir Nota Fiscal (NFF)
+        <button onclick="abrirNFF()" class="w-full bg-[#3D2314] hover:bg-[#2A180E] text-[#F9F6F0] font-bold py-3 px-4 rounded-xl shadow flex items-center justify-center gap-2 border border-[#D4AF37]">
+          <i data-lucide="external-link" class="w-5 h-5 text-[#D4AF37]"></i> Emitir Nota Fiscal (NFF)
         </button>
       </div>
+
     </div>
 
   </main>
 
   <script>
     const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZXR5c3l6ZGpjZmFudnRhZXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5MjM4MTYsImV4cCI6MjEwODQ5OTgxNn0.wx9a9lJdKF3-LAWRrREO1f97FnyUESSq8q8FbC_T81s'; //
+    const SUPABASE_KEY = 'COLE_AQUI_A_SUA_CHAVE_EYJ'; // Substitua pela sua chave legacy eyJ...
 
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -124,11 +156,26 @@
       lucide.createIcons();
     }
 
-    function lerCodigoComCamera(event) {
-      const file = event.target.files[0];
-      if (file) {
-        alert("Câmara acionada com sucesso! Digite ou confirme o código da peça no campo SKU.");
+    let revendedoraAtual = localStorage.getItem('agda_revendedora') || '';
+    if (revendedoraAtual) {
+      document.getElementById('rev-nome-input').value = revendedoraAtual;
+      document.getElementById('span-nome-rev').innerText = revendedoraAtual;
+      document.getElementById('rev-logada-txt').classList.remove('hidden');
+      carregarMinhaMaleta();
+    }
+
+    function salvarNomeRevendedora() {
+      const nome = document.getElementById('rev-nome-input').value.trim();
+      if (!nome) {
+        alert('Digite o seu nome.');
+        return;
       }
+      revendedoraAtual = nome;
+      localStorage.setItem('agda_revendedora', nome);
+      document.getElementById('span-nome-rev').innerText = nome;
+      document.getElementById('rev-logada-txt').classList.remove('hidden');
+      alert('Revendedora identificada com sucesso!');
+      carregarMinhaMaleta();
     }
 
     function mudarModo(modo) {
@@ -144,60 +191,46 @@
         label.innerText = 'Painel Proprietária';
         btnP.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]';
         btnR.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]';
+        carregarProdutos();
+        carregarPedidos();
       } else {
         prop.classList.add('hidden');
         rev.classList.remove('hidden');
         label.innerText = 'App Revendedora';
         btnR.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]';
         btnP.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]';
+        if(revendedoraAtual) carregarMinhaMaleta();
       }
     }
 
     async function salvarProduto(e) {
       e.preventDefault();
-      const btn = document.getElementById('btn-salvar');
-      btn.disabled = true;
-      btn.innerText = 'A salvar...';
-
       const codigo = document.getElementById('prod-codigo').value;
       const nome = document.getElementById('prod-nome').value;
       const custo = parseFloat(document.getElementById('prod-custo').value || 0);
       const venda = parseFloat(document.getElementById('prod-venda').value);
       const estoque = parseInt(document.getElementById('prod-estoque').value);
 
-      try {
-        const { data, error } = await _supabase.from('produtos').insert([
-          { codigo_barras: codigo, nome: nome, preco_custo: custo, preco_venda: venda, estoque_geral: estoque }
-        ]);
+      const { error } = await _supabase.from('produtos').insert([
+        { codigo_barras: codigo, nome: nome, preco_custo: custo, preco_venda: venda, estoque_geral: estoque }
+      ]);
 
-        if (error) {
-          alert('Erro ao salvar produto: ' + error.message);
-        } else {
-          alert('Produto cadastrado com sucesso!');
-          document.getElementById('form-produto').reset();
-          carregarProdutos();
-        }
-      } catch (err) {
-        alert('Erro inesperado: ' + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.innerText = 'Salvar no Banco de Dados';
+      if (error) {
+        alert('Erro: ' + error.message);
+      } else {
+        alert('Produto cadastrado com sucesso!');
+        document.getElementById('form-produto').reset();
+        carregarProdutos();
       }
     }
 
     async function carregarProdutos() {
       const container = document.getElementById('lista-produtos');
       container.innerHTML = '<p class="text-gray-500 py-2 text-center">Buscando...</p>';
-
       const { data, error } = await _supabase.from('produtos').select('*').order('created_at', { ascending: false });
 
-      if (error) {
-        container.innerHTML = '<p class="text-red-500 py-2 text-center">Erro ao carregar dados: ' + error.message + '</p>';
-        return;
-      }
-
-      if (!data || data.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhum produto cadastrado ainda.</p>';
+      if (error || !data || data.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhum produto no estoque.</p>';
         return;
       }
 
@@ -212,18 +245,106 @@
       `).join('');
     }
 
+    async function pedirReposicao(e) {
+      e.preventDefault();
+      if (!revendedoraAtual) {
+        alert('Por favor, digite seu nome no topo do app primeiro!');
+        return;
+      }
+      const peca = document.getElementById('rep-peca').value;
+      const qtd = parseInt(document.getElementById('rep-qtd').value);
+
+      const { error } = await _supabase.from('pedidos_reposicao').insert([
+        { revendedora_nome: revendedoraAtual, peca_pedida: peca, quantidade: qtd, status: 'pendente' }
+      ]);
+
+      if (error) {
+        alert('Erro ao enviar pedido: ' + error.message);
+      } else {
+        alert('Pedido de reposição enviado para a proprietária com sucesso!');
+        document.getElementById('rep-peca').value = '';
+        document.getElementById('rep-qtd').value = '';
+      }
+    }
+
+    async function carregarPedidos() {
+      const container = document.getElementById('lista-pedidos');
+      container.innerHTML = '<p class="text-gray-500 py-2 text-center">A carregar...</p>';
+      const { data, error } = await _supabase.from('pedidos_reposicao').select('*').eq('status', 'pendente').order('created_at', { ascending: false });
+
+      if (error || !data || data.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhum pedido de reposição pendente.</p>';
+        return;
+      }
+
+      container.innerHTML = data.map(ped => `
+        <div class="py-2.5 flex justify-between items-center">
+          <div>
+            <p class="font-bold text-[#3D2314]">${ped.revendedora_nome}</p>
+            <p class="text-xs text-gray-600">Peça: <b>${ped.peca_pedida}</b> | Qtd: ${ped.quantidade}</p>
+          </div>
+          <button onclick="aprovarPedido('${ped.id}', '${ped.revendedora_nome}', '${ped.peca_pedida}', ${ped.quantidade})" class="bg-green-700 text-white font-bold px-3 py-1 rounded text-xs">Aprovar</button>
+        </div>
+      `).join('');
+    }
+
+    async function aprovarPedido(id, revNome, pecaNome, qtd) {
+      // Atualiza o pedido para aprovado
+      await _supabase.from('pedidos_reposicao').update({ status: 'aprovado' }).eq('id', id);
+
+      // Adiciona automaticamente à maleta da revendedora
+      // Verifica se ela já tem uma maleta aberta
+      let { data: maleta } = await _supabase.from('maletas').select('*').eq('revendedora_nome', revNome).eq('status', 'aberta').single();
+      
+      let maletaId;
+      if (!maleta) {
+        const { data: novaMaleta } = await _supabase.from('maletas').insert([{ revendedora_nome: revNome, status: 'aberta' }]).select().single();
+        maletaId = novaMaleta.id;
+      } else {
+        maletaId = maleta.id;
+      }
+
+      await _supabase.from('maleta_itens').insert([
+        { maleta_id: maletaId, produto_nome: pecaNome, quantidade: qtd, preco_venda: 0 }
+      ]);
+
+      alert('Pedido aprovado e enviado para a maleta da revendedora!');
+      carregarPedidos();
+    }
+
+    async function carregarMinhaMaleta() {
+      const container = document.getElementById('minha-maleta-lista');
+      container.innerHTML = '<p class="text-gray-500 py-2 text-center">Buscando maleta...</p>';
+
+      const { data: maleta } = await _supabase.from('maletas').select('*').eq('revendedora_nome', revendedoraAtual).eq('status', 'aberta').single();
+
+      if (!maleta) {
+        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhuma maleta ativa no momento.</p>';
+        return;
+      }
+
+      const { data: itens } = await _supabase.from('maleta_itens').select('*').eq('maleta_id', maleta.id);
+
+      if (!itens || itens.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Sua maleta está vazia.</p>';
+        return;
+      }
+
+      container.innerHTML = itens.map(item => `
+        <div class="py-2 flex justify-between items-center text-xs">
+          <span><b>${item.produto_nome}</b></span>
+          <span class="text-gray-600">Qtd: ${item.quantidade}</span>
+        </div>
+      `).join('');
+    }
+
     function abrirNFF() {
       window.open("https://www.gov.br/receitafederal/pt-br/assuntos/nota-fiscal-facil-nff", "_blank");
     }
 
     function gerarReciboSimples() {
       const nome = prompt("Nome da Cliente:", "Maria Silva") || "Cliente";
-      const cpf = prompt("CPF da Cliente:", "000.000.000-00") || "";
-      const email = prompt("E-mail:", "maria@email.com") || "";
-      const whats = prompt("WhatsApp:", "(11) 99999-9999") || "";
-      const end = prompt("Endereço de Entrega:", "Rua Exemplo, 123") || "";
       const valor = prompt("Valor Total (R$):", "150,00") || "0,00";
-
       const win = window.open('', '', 'width=600,height=600');
       win.document.write(`
         <html>
@@ -233,11 +354,6 @@
             <h2 style="text-align:center; color:#3D2314;">AGDA Semijoias - Recibo</h2>
             <hr style="border:0.5px solid #D4AF37; margin-bottom:15px;">
             <p><strong>Cliente:</strong> ${nome}</p>
-            <p><strong>CPF:</strong> ${cpf}</p>
-            <p><strong>E-mail:</strong> ${email}</p>
-            <p><strong>WhatsApp:</strong> ${whats}</p>
-            <p><strong>Endereço:</strong> ${end}</p>
-            <hr style="border:0.5px solid #EFE6D8; margin:15px 0;">
             <p style="font-size:18px;"><strong>Valor Total:</strong> R$ ${valor}</p>
           </div>
           <script>window.print();<\/script>
@@ -246,8 +362,6 @@
       `);
       win.document.close();
     }
-
-    carregarProdutos();
   </script>
 </body>
 </html>
