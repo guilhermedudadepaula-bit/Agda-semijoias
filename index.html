@@ -7,6 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Biblioteca de Leitor de Código de Barras via Câmara -->
+  <script src="https://unpkg.com/@html5-qrcode/html5-qrcode" type="text/javascript"></script>
   <style>
     body { background-color: #F9F6F0; color: #2A180E; font-family: sans-serif; }
   </style>
@@ -37,28 +39,40 @@
     <!-- MÓDULO PROPRIETÁRIA -->
     <div id="view-proprietaria" class="space-y-6">
       
-      <!-- Formulário Novo Produto -->
+      <!-- Formulário Novo Produto + Leitor de Barras -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
-        <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center gap-2">
-          <i data-lucide="plus-circle" class="text-[#D4AF37]"></i> Cadastrar Novo Produto
+        <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center justify-between">
+          <span class="flex items-center gap-2">
+            <i data-lucide="plus-circle" class="text-[#D4AF37]"></i> Cadastrar Peça
+          </span>
+          <button type="button" onclick="ativarLeitorCamera()" class="text-xs bg-[#D4AF37] text-[#2A180E] px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow">
+            <i data-lucide="camera" class="w-4 h-4"></i> Ler Código de Barras
+          </button>
         </h2>
+
+        <!-- Janela da Câmara (Escondida por padrão) -->
+        <div id="container-camera" class="hidden mb-4 p-2 bg-black rounded-lg text-center">
+          <div id="reader" style="width: 100%;"></div>
+          <button type="button" onclick="fecharLeitorCamera()" class="mt-2 text-xs bg-red-600 text-white px-3 py-1 rounded font-bold">Fechar Câmara</button>
+        </div>
+
         <form id="form-produto" onsubmit="salvarProduto(event)" class="space-y-3">
           <div>
             <label class="block text-xs font-bold text-[#3D2314]">Código de Barras / SKU</label>
-            <input type="text" id="prod-codigo" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: 2234">
+            <input type="text" id="prod-codigo" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Escaneie ou digite o código">
           </div>
           <div>
             <label class="block text-xs font-bold text-[#3D2314]">Nome do Produto</label>
-            <input type="text" id="prod-nome" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: Anel">
+            <input type="text" id="prod-nome" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: Anel Solitário">
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="block text-xs font-bold text-[#3D2314]">Preço de Custo (R$)</label>
-              <input type="number" step="0.01" id="prod-custo" class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="25,00">
+              <input type="number" step="0.01" id="prod-custo" class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="25.00">
             </div>
             <div>
               <label class="block text-xs font-bold text-[#3D2314]">Preço de Venda (R$)</label>
-              <input type="number" step="0.01" id="prod-venda" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="50,00">
+              <input type="number" step="0.01" id="prod-venda" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="50.00">
             </div>
           </div>
           <div>
@@ -108,16 +122,54 @@
   </main>
 
   <script>
-    // Configurações do Supabase
+    // Configurações do Supabase corrigidas (bypass de restrição de chave publishable)
     const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_XcogKbHnk59a9knNworgeg_DJlow...';
 
-    // Inicialização compatível com a nova chave publishable
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-      auth: { persistSession: false, autoRefreshToken: false }
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { headers: { 'apikey': SUPABASE_KEY } }
     });
 
     lucide.createIcons();
+
+    let html5QrCodeScanner = null;
+
+    function ativarLeitorCamera() {
+      const container = document.getElementById('container-camera');
+      container.classList.remove('hidden');
+
+      if (!html5QrCodeScanner) {
+        html5QrCodeScanner = new Html5Qrcode("reader");
+      }
+
+      html5QrCodeScanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 100 } },
+        (decodedText, decodedResult) => {
+          document.getElementById('prod-codigo').value = decodedText;
+          fecharLeitorCamera();
+          alert('Código escaneado com sucesso: ' + decodedText);
+        },
+        (errorMessage) => {
+          // Erros de leitura contínua da câmara são ignorados para não poluir
+        }
+      ).catch(err => {
+        alert("Erro ao aceder à câmara: " + err);
+      });
+    }
+
+    function fecharLeitorCamera() {
+      if (html5QrCodeScanner) {
+        html5QrCodeScanner.stop().then(() => {
+          document.getElementById('container-camera').classList.add('hidden');
+        }).catch(err => {
+          document.getElementById('container-camera').classList.add('hidden');
+        });
+      } else {
+        document.getElementById('container-camera').classList.add('hidden');
+      }
+    }
 
     function mudarModo(modo) {
       const prop = document.getElementById('view-proprietaria');
