@@ -7,7 +7,6 @@
   
   <meta name="theme-color" content="#2A180E">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="AGDA">
   
   <script src="https://cdn.tailwindcss.com"></script>
@@ -44,30 +43,20 @@
     <!-- PAINEL PROPRIETÁRIA -->
     <div id="view-proprietaria" style="display: block;" class="space-y-6">
       
-      <!-- Cadastrar Peça com CSV / Tiny -->
+      <!-- Cadastrar Peça -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <div class="flex justify-between items-center mb-3">
-          <h2 class="text-lg font-bold text-[#3D2314]">Cadastrar Peça / Planilha Tiny</h2>
+          <h2 class="text-lg font-bold text-[#3D2314]">Cadastrar Peça no Estoque</h2>
           <label class="cursor-pointer text-xs bg-[#D4AF37] text-[#2A180E] px-3 py-1.5 rounded-lg font-bold shadow">
             📷 Câmera SKU
             <input type="file" accept="image/*" capture="environment" class="hidden" onchange="lerCodigoBarrasCam(event)">
           </label>
         </div>
 
-        <div class="flex gap-2 mb-3">
-          <label class="flex-1 bg-[#3D2314] text-[#D4AF37] text-xs font-bold py-2 px-3 rounded text-center cursor-pointer border border-[#D4AF37]">
-            📂 Importar Planilha (CSV)
-            <input type="file" accept=".csv" class="hidden" onchange="importarPlanilhaCSV(event)">
-          </label>
-          <button type="button" onclick="exportarPlanilhaCSV()" class="flex-1 bg-[#EFE6D8] text-[#3D2314] text-xs font-bold py-2 px-3 rounded border border-[#3D2314]">
-            📥 Exportar Estoque CSV
-          </button>
-        </div>
-
         <form onsubmit="salvarProduto(event)" class="space-y-3">
           <div>
             <label class="block text-xs font-bold text-[#3D2314]">Código / SKU</label>
-            <input type="text" id="prod-codigo" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Digite ou escaneie">
+            <input type="text" id="prod-codigo" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: 12345">
           </div>
           <div>
             <label class="block text-xs font-bold text-[#3D2314]">Nome da Peça</label>
@@ -163,7 +152,7 @@
           <button type="button" onclick="carregarEstoque()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
         </div>
         <div id="lista-estoque" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
-          <p class="text-gray-500 py-2 text-center">Carregando...</p>
+          <p class="text-gray-500 py-2 text-center">A carregar...</p>
         </div>
       </div>
 
@@ -174,7 +163,7 @@
           <button type="button" onclick="carregarRevendedoras()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
         </div>
         <div id="lista-revendedoras" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
-          <p class="text-gray-500 py-2 text-center">Carregando...</p>
+          <p class="text-gray-500 py-2 text-center">A carregar...</p>
         </div>
       </div>
 
@@ -244,33 +233,7 @@
   </footer>
 
   <script>
-    const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZXR5c3l6ZGpjZmFudnRhZXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5MjM4MTYsImV4cCI6MjEwODQ5OTgxNn0.wx9a9lJdKF3-LAWRrREO1f97FnyUESSq8q8FbC_T81s';
-
     let itemsMaletaTemporaria = [];
-
-    async function apiSupabase(endpoint, method = 'GET', body = null) {
-      const headers = {
-        'apikey': SUPABASE_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_KEY,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
-      };
-      const options = { method, headers };
-      if (body) options.body = JSON.stringify(body);
-
-      try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, options);
-        if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.message || `Erro ${response.status}`);
-        }
-        return await response.json();
-      } catch (err) {
-        console.error("Erro API:", err);
-        throw err;
-      }
-    }
 
     function mudarModo(modo) {
       const prop = document.getElementById('view-proprietaria');
@@ -296,109 +259,28 @@
       }
     }
 
-    async function salvarProduto(e) {
+    function salvarProduto(e) {
       e.preventDefault();
-      try {
-        const codigo = document.getElementById('prod-codigo').value.trim();
-        const nome = document.getElementById('prod-nome').value.trim();
-        const custo = parseFloat(document.getElementById('prod-custo').value || 0);
-        const venda = parseFloat(document.getElementById('prod-venda').value);
-        const estoque = parseInt(document.getElementById('prod-estoque').value);
+      const codigo = document.getElementById('prod-codigo').value.trim();
+      const nome = document.getElementById('prod-nome').value.trim();
+      const custo = parseFloat(document.getElementById('prod-custo').value || 0);
+      const venda = parseFloat(document.getElementById('prod-venda').value);
+      const estoque = parseInt(document.getElementById('prod-estoque').value);
 
-        await apiSupabase('produtos', 'POST', {
-          codigo_barras: codigo,
-          nome: nome,
-          preco_custo: custo,
-          preco_venda: venda,
-          estoque_geral: estoque
-        });
+      let produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+      produtos.unshift({ codigo_barras: codigo, nome, preco_custo: custo, preco_venda: venda, estoque_geral: estoque, created_at: new Date().toISOString() });
+      localStorage.setItem('agda_produtos', JSON.stringify(produtos));
 
-        alert('Peça salva com sucesso no estoque!');
-        e.target.reset();
-        carregarEstoque();
-      } catch (err) {
-        alert('Erro ao salvar peça: ' + err.message);
-      }
+      alert('Peça salva com sucesso no estoque!');
+      e.target.reset();
+      carregarEstoque();
     }
 
-    async function salvarRevendedora(e) {
+    function salvarRevendedora(e) {
       e.preventDefault();
-      try {
-        const nome = document.getElementById('rev-cad-nome').value.trim();
-        const cpf = document.getElementById('rev-cad-cpf').value.trim();
-        const whats = document.getElementById('rev-cad-whats').value.trim();
+      const nome = document.getElementById('rev-cad-nome').value.trim();
+      const cpf = document.getElementById('rev-cad-cpf').value.trim();
+      const whats = document.getElementById('rev-cad-whats').value.trim();
 
-        await apiSupabase('revendedoras', 'POST', { nome, cpf, whatsapp: whats });
-
-        alert('Revendedora cadastrada com sucesso!');
-        e.target.reset();
-        carregarRevendedoras();
-      } catch (err) {
-        alert('Erro ao cadastrar revendedora: ' + err.message);
-      }
-    }
-
-    async function carregarEstoque() {
-      const container = document.getElementById('lista-estoque');
-      try {
-        const data = await apiSupabase('produtos?select=*&order=created_at.desc');
-        if (!data || data.length === 0) {
-          container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhuma peça no estoque.</p>';
-          return;
-        }
-        container.innerHTML = data.map(p => `
-          <div class="py-2 flex justify-between items-center">
-            <div>
-              <span class="font-bold text-[#3D2314]">${p.nome}</span>
-              <span class="text-gray-500 block">Cód: ${p.codigo_barras} | Qtd: ${p.estoque_geral}</span>
-            </div>
-            <span class="font-bold text-[#2A180E]">R$ ${parseFloat(p.preco_venda).toFixed(2)}</span>
-          </div>
-        `).join('');
-      } catch (err) {
-        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Erro ao carregar estoque.</p>';
-      }
-    }
-
-    async function carregarRevendedoras() {
-      const container = document.getElementById('lista-revendedoras');
-      try {
-        const data = await apiSupabase('revendedoras?select=*&order=created_at.desc');
-        if (!data || data.length === 0) {
-          container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhuma revendedora cadastrada.</p>';
-          return;
-        }
-        container.innerHTML = data.map(r => `
-          <div class="py-2 flex justify-between items-center">
-            <div>
-              <span class="font-bold text-[#3D2314]">${r.nome}</span>
-              <span class="text-gray-500 block">WhatsApp: ${r.whatsapp} | CPF: ${r.cpf}</span>
-            </div>
-          </div>
-        `).join('');
-      } catch (err) {
-        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Erro ao carregar revendedoras.</p>';
-      }
-    }
-
-    function adicionarItemMaleta() {
-      const nome = document.getElementById('item-nome').value.trim();
-      const qtd = parseInt(document.getElementById('item-qtd').value);
-      const preco = parseFloat(document.getElementById('item-preco').value);
-
-      if (!nome || isNaN(qtd) || isNaN(preco)) {
-        alert('Preencha o nome, quantidade e preço da peça.');
-        return;
-      }
-
-      itemsMaletaTemporaria.push({ nome, qtd, preco, total: qtd * preco });
-      document.getElementById('item-nome').value = '';
-      document.getElementById('item-qtd').value = '';
-      document.getElementById('item-preco').value = '';
-      
-      const container = document.getElementById('lista-temp-maleta');
-      let valorTotal = 0;
-      container.innerHTML = itemsMaletaTemporaria.map((it) => {
-        valorTotal += it.total;
-        return `<div class="flex justify-between py-1 border-b">
-          <span><b>${it.qt
+      let revendedoras = JSON.parse(localStorage.getItem('agda_revendedoras') || '[]');
+      revendedoras.unshift({ nome, cpf, whatsapp: whats,
