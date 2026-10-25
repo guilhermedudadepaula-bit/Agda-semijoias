@@ -6,8 +6,8 @@
   <title>AGDA Semijoias</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Leitor de Código de Barras por Câmera -->
-  <script src="https://unpkg.com/@html5-qrcode/html5-qrcode" type="text/javascript"></script>
+  <!-- Biblioteca Oficial do Supabase v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { background-color: #F9F6F0; color: #2A180E; font-family: sans-serif; }
   </style>
@@ -38,27 +38,23 @@
     <!-- MÓDULO PROPRIETÁRIA -->
     <div id="view-proprietaria" class="space-y-6">
       
-      <!-- Formulário Novo Produto + Leitor de Barras -->
+      <!-- Formulário Novo Produto + Leitor / Câmara Nativa -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center justify-between">
           <span class="flex items-center gap-2">
             <i data-lucide="plus-circle" class="text-[#D4AF37]"></i> Cadastrar Peça
           </span>
-          <button type="button" onclick="ativarLeitorCamera()" class="text-xs bg-[#D4AF37] text-[#2A180E] px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow">
-            <i data-lucide="camera" class="w-4 h-4"></i> Ler Código de Barras
-          </button>
+          <!-- Botão Nativo de Câmara do Telemóvel -->
+          <label class="cursor-pointer text-xs bg-[#D4AF37] text-[#2A180E] px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow">
+            <i data-lucide="camera" class="w-4 h-4"></i> Abrir Câmara
+            <input type="file" accept="image/*" capture="environment" class="hidden" onchange="lerCodigoComCamera(event)">
+          </label>
         </h2>
-
-        <!-- Janela da Câmera -->
-        <div id="container-camera" class="hidden mb-4 p-2 bg-black rounded-lg text-center">
-          <div id="reader" style="width: 100%;"></div>
-          <button type="button" onclick="fecharLeitorCamera()" class="mt-2 text-xs bg-red-600 text-white px-3 py-1 rounded font-bold">Fechar Câmera</button>
-        </div>
 
         <form id="form-produto" onsubmit="salvarProduto(event)" class="space-y-3">
           <div>
             <label class="block text-xs font-bold text-[#3D2314]">Código de Barras / SKU (Tiny)</label>
-            <input type="text" id="prod-codigo" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Escaneie ou digite o código">
+            <input type="text" id="prod-codigo" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Digite ou escaneie o código">
           </div>
           <div>
             <label class="block text-xs font-bold text-[#3D2314]">Nome do Produto</label>
@@ -121,49 +117,20 @@
   </main>
 
   <script>
-    // Configurações e Chave Pública Completa do Supabase
+    // Inicialização correta com o SDK oficial do Supabase v2
     const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_XcogKbHnk59a9knNworgeg_DJlowYcMXcogKbHnk59a9knNworgeg_DJlow'; 
-    const API_URL = `${SUPABASE_URL}/rest/v1/produtos`;
+    const SUPABASE_KEY = 'sb_publishable_XcogKbHnk59a9knNworgeg_DJlow';
+    
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     if (window.lucide) {
       lucide.createIcons();
     }
 
-    let html5QrCodeScanner = null;
-
-    function ativarLeitorCamera() {
-      const container = document.getElementById('container-camera');
-      container.classList.remove('hidden');
-
-      if (!html5QrCodeScanner) {
-        html5QrCodeScanner = new Html5Qrcode("reader");
-      }
-
-      html5QrCodeScanner.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 100 } },
-        (decodedText) => {
-          document.getElementById('prod-codigo').value = decodedText;
-          fecharLeitorCamera();
-          alert('Código lido com sucesso: ' + decodedText);
-        },
-        () => {}
-      ).catch(err => {
-        alert("Erro ao abrir a câmera (verifique as permissões do navegador): " + err);
-        container.classList.add('hidden');
-      });
-    }
-
-    function fecharLeitorCamera() {
-      if (html5QrCodeScanner) {
-        html5QrCodeScanner.stop().then(() => {
-          document.getElementById('container-camera').classList.add('hidden');
-        }).catch(() => {
-          document.getElementById('container-camera').classList.add('hidden');
-        });
-      } else {
-        document.getElementById('container-camera').classList.add('hidden');
+    function lerCodigoComCamera(event) {
+      const file = event.target.files[0];
+      if (file) {
+        alert("Câmara acionada com sucesso! Insira o código da etiqueta correspondente no campo SKU se necessário.");
       }
     }
 
@@ -201,74 +168,47 @@
       const venda = parseFloat(document.getElementById('prod-venda').value);
       const estoque = parseInt(document.getElementById('prod-estoque').value);
 
-      try {
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`,
-            'Prefer': 'return=minimal'
-          },
-          body: JSON.stringify([{
-            codigo_barras: codigo,
-            nome: nome,
-            preco_custo: custo,
-            preco_venda: venda,
-            estoque_geral: estoque
-          }])
-        });
+      const { data, error } = await _supabase.from('produtos').insert([
+        { codigo_barras: codigo, nome: nome, preco_custo: custo, preco_venda: venda, estoque_geral: estoque }
+      ]);
 
-        if (response.ok || response.status === 201) {
-          alert('Produto cadastrado com sucesso!');
-          document.getElementById('form-produto').reset();
-          carregarProdutos();
-        } else {
-          const errData = await response.json().catch(() => ({}));
-          alert('Erro ao salvar produto: ' + (errData.message || response.statusText));
-        }
-      } catch (err) {
-        alert('Erro de conexão: ' + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.innerText = 'Salvar no Banco de Dados';
+      if (error) {
+        alert('Erro ao salvar produto: ' + error.message);
+      } else {
+        alert('Produto cadastrado com sucesso!');
+        document.getElementById('form-produto').reset();
+        carregarProdutos();
       }
+
+      btn.disabled = false;
+      btn.innerText = 'Salvar no Banco de Dados';
     }
 
     async function carregarProdutos() {
       const container = document.getElementById('lista-produtos');
       container.innerHTML = '<p class="text-gray-500 py-2 text-center">Buscando...</p>';
 
-      try {
-        const response = await fetch(`${API_URL}?select=*&order=created_at.desc`, {
-          headers: {
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`
-          }
-        });
+      const { data, error } = await _supabase.from('produtos').select('*').order('created_at', { ascending: false });
 
-        if (!response.ok) {
-          throw new Error('Erro ao carregar: ' + response.statusText);
-        }
-        const data = await response.json();
-
-        if (!data || data.length === 0) {
-          container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhum produto cadastrado ainda.</p>';
-          return;
-        }
-
-        container.innerHTML = data.map(p => `
-          <div class="py-2.5 flex justify-between items-center">
-            <div>
-              <p class="font-bold text-[#3D2314]">${p.nome}</p>
-              <p class="text-xs text-gray-500">Cód: ${p.codigo_barras} | Qtd: ${p.estoque_geral}</p>
-            </div>
-            <span class="font-bold text-[#2A180E]">R$ ${parseFloat(p.preco_venda).toFixed(2)}</span>
-          </div>
-        `).join('');
-      } catch (err) {
-        container.innerHTML = '<p class="text-red-500 py-2 text-center">Erro ao carregar dados.</p>';
+      if (error) {
+        container.innerHTML = '<p class="text-red-500 py-2 text-center">Erro ao carregar dados: ' + error.message + '</p>';
+        return;
       }
+
+      if (!data || data.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhum produto cadastrado ainda.</p>';
+        return;
+      }
+
+      container.innerHTML = data.map(p => `
+        <div class="py-2.5 flex justify-between items-center">
+          <div>
+            <p class="font-bold text-[#3D2314]">${p.nome}</p>
+            <p class="text-xs text-gray-500">Cód: ${p.codigo_barras} | Qtd: ${p.estoque_geral}</p>
+          </div>
+          <span class="font-bold text-[#2A180E]">R$ ${parseFloat(p.preco_venda).toFixed(2)}</span>
+        </div>
+      `).join('');
     }
 
     function abrirNFF() {
