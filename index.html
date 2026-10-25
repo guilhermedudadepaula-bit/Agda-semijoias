@@ -156,8 +156,7 @@
 
   <script>
     const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
-    // COLE A SUA CHAVE PUBLICA 'ANON' COPIADA DO SUPABASE ENTRE AS ASPAS ABAIXO:
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZXR5c3l6ZGpjZmFudnRhZXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5MjM4MTYsImV4cCI6MjEwODQ5OTgxNn0.wx9a9lJdKF3-LAWRrREO1f97FnyUESSq8q8FbC_T81s';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZXR5c3l6ZGpjZmFudnRhZXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyMzg2Mzh9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
 
     let _supabase = null;
     try {
@@ -231,10 +230,10 @@
         ]);
 
         if (error) {
-          if (error.message.includes('API key')) {
-            alert('A chave do Supabase está incorreta ou expirou. Por favor, copie a chave anon (pública) em Settings > API do painel Supabase.');
+          if (error.code === '23505') {
+            alert('Aviso: Este código de barras (SKU) já está cadastrado no sistema. Por favor, use outro código.');
           } else {
-            alert('Erro ao salvar no Supabase: ' + error.message);
+            alert('Erro ao salvar produto: ' + error.message);
           }
         } else {
           alert('Peça cadastrada com sucesso!');
@@ -253,16 +252,13 @@
       const termo = document.getElementById('rev-cad-termo').value;
 
       try {
+        // Envia apenas os campos padrão para evitar erro de coluna ausente
         const { error } = await _supabase.from('revendedoras').insert([
-          { nome: nome, cpf: cpf, whatsapp: whats, assinatura: termo }
+          { nome: nome, cpf: cpf, whatsapp: whats }
         ]);
 
         if (error) {
-          if (error.message.includes('API key')) {
-            alert('A chave do Supabase está incorreta. Copie a chave anon (pública) no painel do Supabase.');
-          } else {
-            alert('Erro ao registrar revendedora: ' + error.message);
-          }
+          alert('Erro ao registrar revendedora: ' + error.message);
         } else {
           alert('Revendedora registrada com sucesso!');
           document.getElementById('form-revendedora').reset();
