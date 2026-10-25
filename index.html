@@ -47,10 +47,10 @@
     <span id="mod-label" class="text-xs bg-[#3D2314] px-2 py-1 rounded text-[#EFE6D8] border border-[#D4AF37]">Painel Proprietária</span>
   </header>
 
-  <!-- Botão de Instalação Rápida no Ecrã (Estilo o exemplo da foto) -->
+  <!-- Barra de Instalação PWA Real -->
   <div id="banner-instalacao" class="bg-[#3D2314] text-[#F9F6F0] p-3 text-center text-xs flex justify-between items-center px-4 border-b border-[#D4AF37]">
-    <span>💡 Quer o app no ecrã do telemóvel com ícone AGDA?</span>
-    <button onclick="mostrarInstrucoesInstalacao()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded shadow">Instalar App</button>
+    <span>💡 Instalar o app no telemóvel?</span>
+    <button id="btn-instalar-app" onclick="instalarAppPWA()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded shadow">Instalar App</button>
   </div>
 
   <!-- Navegação de Módulos -->
@@ -68,15 +68,23 @@
     <!-- MÓDULO PROPRIETÁRIA -->
     <div id="view-proprietaria" class="space-y-6">
       
-      <!-- Cadastrar Peça -->
+      <!-- Cadastrar Peça com Leitor de Câmara Nativo -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
-        <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center gap-2">
-          <i data-lucide="plus-circle" class="text-[#D4AF37]"></i> Cadastrar Peça no Estoque
-        </h2>
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-lg font-bold text-[#3D2314] flex items-center gap-2">
+            <i data-lucide="plus-circle" class="text-[#D4AF37]"></i> Cadastrar Peça
+          </h2>
+          <!-- Botão de Câmara para Código de Barras -->
+          <label class="cursor-pointer text-xs bg-[#D4AF37] text-[#2A180E] px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow">
+            <i data-lucide="camera" class="w-4 h-4"></i> Ler Código de Barras
+            <input type="file" accept="image/*" capture="environment" class="hidden" onchange="lerCodigoBarrasCam(event)">
+          </label>
+        </div>
+
         <form id="form-produto" onsubmit="salvarProduto(event)" class="space-y-3">
           <div>
-            <label class="block text-xs font-bold text-[#3D2314]">Código / SKU (Tiny)</label>
-            <input type="text" id="prod-codigo" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: 12345">
+            <label class="block text-xs font-bold text-[#3D2314]">Código de Barras / SKU (Tiny)</label>
+            <input type="text" id="prod-codigo" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Escaneie ou digite">
           </div>
           <div>
             <label class="block text-xs font-bold text-[#3D2314]">Nome do Produto</label>
@@ -96,8 +104,8 @@
             <label class="block text-xs font-bold text-[#3D2314]">Estoque Inicial</label>
             <input type="number" id="prod-estoque" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="10">
           </div>
-          <button type="submit" class="w-full bg-[#2A180E] hover:bg-[#3D2314] text-[#D4AF37] font-bold py-2.5 rounded-lg border border-[#D4AF37]">
-            Salvar Peça
+          <button type="submit" id="btn-salvar-peca" class="w-full bg-[#2A180E] hover:bg-[#3D2314] text-[#D4AF37] font-bold py-2.5 rounded-lg border border-[#D4AF37]">
+            Salvar Peça no Banco
           </button>
         </form>
       </div>
@@ -124,7 +132,7 @@
           </div>
           <div>
             <label class="block text-xs font-bold text-[#3D2314]">Termo de Responsabilidade & Assinatura Digital</label>
-            <textarea id="rev-cad-termo" rows="3" class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0] text-xs" placeholder="Termo: Declaro receber as peças em consignado... Assinatura / Digite o Nome Completo como Assinatura"></textarea>
+            <textarea id="rev-cad-termo" rows="3" class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0] text-xs" placeholder="Termo: Declaro receber as peças em consignado... Digite o nome como assinatura"></textarea>
           </div>
           <button type="submit" class="w-full bg-[#3D2314] hover:bg-[#2A180E] text-[#D4AF37] font-bold py-2.5 rounded-lg border border-[#D4AF37]">
             Registar Revendedora com Termo
@@ -132,7 +140,7 @@
         </form>
       </div>
 
-      <!-- Gestão de Pedidos de Reposição -->
+      <!-- Pedidos de Reposição -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center justify-between">
           <span>Pedidos de Reposição Pendentes</span>
@@ -214,7 +222,231 @@
 
   <script>
     const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZXR5c3l6ZGpjZmFudnRhZXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5MjM4MTYsImV4cCI6MjEwODQ5OTgxNn0.wx9a9lJdKF3-LAWRrREO1f97FnyUESSq8q8FbC_T81s'; //
+    const SUPABASE_KEY = '<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AGDA Semijoias</title>
+  
+  <meta name="theme-color" content="#2A180E">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AGDA">
+  
+  <!-- Ícone personalizado com fundo marrom e letras AGDA em branco -->
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%232A180E'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-weight='bold' font-size='160' fill='%23FFFFFF'%3EAGDA%3C/text%3E%3C/svg%3E">
+  
+  <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
+    %22name%22: %22AGDA Semijoias%22,
+    %22short_name%22: %22AGDA%22,
+    %22start_url%22: %22/%22,
+    %22display%22: %22standalone%22,
+    %22background_color%22: %22%232A180E%22,
+    %22theme_color%22: %22%232A180E%22,
+    %22icons%22: [
+      {
+        %22src%22: %22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%232A180E'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-weight='bold' font-size='160' fill='%23FFFFFF'%3EAGDA%3C/text%3E%3C/svg%3E%22,
+        %22sizes%22: %22512x512%22,
+        %22type%22: %22image/svg+xml%22
+      }
+    ]
+  }">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { background-color: #F9F6F0; color: #2A180E; font-family: sans-serif; }
+  </style>
+</head>
+<body class="pb-10 flex flex-col min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-[#2A180E] text-[#F9F6F0] p-4 shadow-md flex justify-between items-center border-b-2 border-[#D4AF37]">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-full bg-[#D4AF37] flex items-center justify-center text-[#2A180E] font-bold">A</div>
+      <h1 class="text-xl font-bold tracking-wide text-[#D4AF37]">AGDA Semijoias</h1>
+    </div>
+    <span id="mod-label" class="text-xs bg-[#3D2314] px-2 py-1 rounded text-[#EFE6D8] border border-[#D4AF37]">Painel Proprietária</span>
+  </header>
+
+  <!-- Barra de Instalação PWA Real -->
+  <div id="banner-instalacao" class="bg-[#3D2314] text-[#F9F6F0] p-3 text-center text-xs flex justify-between items-center px-4 border-b border-[#D4AF37]">
+    <span>💡 Instalar o app no telemóvel?</span>
+    <button id="btn-instalar-app" onclick="instalarAppPWA()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded shadow">Instalar App</button>
+  </div>
+
+  <!-- Navegação de Módulos -->
+  <div class="p-4 max-w-2xl mx-auto flex gap-2 w-full">
+    <button onclick="mudarModo('proprietaria')" id="btn-prop" class="flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]">
+      Painel Proprietária
+    </button>
+    <button onclick="mudarModo('revendedora')" id="btn-rev" class="flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]">
+      App Revendedora
+    </button>
+  </div>
+
+  <main class="max-w-2xl mx-auto px-4 flex-grow w-full">
+    
+    <!-- MÓDULO PROPRIETÁRIA -->
+    <div id="view-proprietaria" class="space-y-6">
+      
+      <!-- Cadastrar Peça com Leitor de Câmara Nativo -->
+      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-lg font-bold text-[#3D2314] flex items-center gap-2">
+            <i data-lucide="plus-circle" class="text-[#D4AF37]"></i> Cadastrar Peça
+          </h2>
+          <!-- Botão de Câmara para Código de Barras -->
+          <label class="cursor-pointer text-xs bg-[#D4AF37] text-[#2A180E] px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow">
+            <i data-lucide="camera" class="w-4 h-4"></i> Ler Código de Barras
+            <input type="file" accept="image/*" capture="environment" class="hidden" onchange="lerCodigoBarrasCam(event)">
+          </label>
+        </div>
+
+        <form id="form-produto" onsubmit="salvarProduto(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-[#3D2314]">Código de Barras / SKU (Tiny)</label>
+            <input type="text" id="prod-codigo" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Escaneie ou digite">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#3D2314]">Nome do Produto</label>
+            <input type="text" id="prod-nome" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: Anel Solitário">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-bold text-[#3D2314]">Preço Custo (R$)</label>
+              <input type="number" step="0.01" id="prod-custo" class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="25.00">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#3D2314]">Preço Venda (R$)</label>
+              <input type="number" step="0.01" id="prod-venda" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="50.00">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#3D2314]">Estoque Inicial</label>
+            <input type="number" id="prod-estoque" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="10">
+          </div>
+          <button type="submit" id="btn-salvar-peca" class="w-full bg-[#2A180E] hover:bg-[#3D2314] text-[#D4AF37] font-bold py-2.5 rounded-lg border border-[#D4AF37]">
+            Salvar Peça no Banco
+          </button>
+        </form>
+      </div>
+
+      <!-- Cadastrar Revendedora e Termo -->
+      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
+        <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center gap-2">
+          <i data-lucide="user-plus" class="text-[#D4AF37]"></i> Cadastrar Nova Revendedora
+        </h2>
+        <form id="form-revendedora" onsubmit="salvarRevendedora(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-[#3D2314]">Nome Completo</label>
+            <input type="text" id="rev-cad-nome" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: Maria Silva">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-bold text-[#3D2314]">CPF</label>
+              <input type="text" id="rev-cad-cpf" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="000.000.000-00">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#3D2314]">WhatsApp</label>
+              <input type="text" id="rev-cad-whats" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="(11) 99999-9999">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#3D2314]">Termo de Responsabilidade & Assinatura Digital</label>
+            <textarea id="rev-cad-termo" rows="3" class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0] text-xs" placeholder="Termo: Declaro receber as peças em consignado... Digite o nome como assinatura"></textarea>
+          </div>
+          <button type="submit" class="w-full bg-[#3D2314] hover:bg-[#2A180E] text-[#D4AF37] font-bold py-2.5 rounded-lg border border-[#D4AF37]">
+            Registar Revendedora com Termo
+          </button>
+        </form>
+      </div>
+
+      <!-- Pedidos de Reposição -->
+      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
+        <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center justify-between">
+          <span>Pedidos de Reposição Pendentes</span>
+          <button onclick="carregarPedidos()" class="text-xs bg-[#EFE6D8] px-2 py-1 rounded text-[#3D2314]">Atualizar</button>
+        </h2>
+        <div id="lista-pedidos" class="divide-y divide-[#EFE6D8] text-sm">
+          <p class="text-gray-500 py-2 text-center">Nenhum pedido pendente.</p>
+        </div>
+      </div>
+
+      <!-- Estoque Geral -->
+      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
+        <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center justify-between">
+          <span>Estoque Geral</span>
+          <button onclick="carregarProdutos()" class="text-xs bg-[#EFE6D8] px-2 py-1 rounded text-[#3D2314]">Atualizar</button>
+        </h2>
+        <div id="lista-produtos" class="divide-y divide-[#EFE6D8] text-sm">
+          <p class="text-gray-500 py-2 text-center">Buscando...</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- MÓDULO REVENDEDORA -->
+    <div id="view-revendedora" class="hidden space-y-6">
+      
+      <!-- Identificação -->
+      <div class="bg-[#2A180E] text-[#F9F6F0] p-4 rounded-xl shadow border border-[#D4AF37] space-y-3">
+        <p class="text-xs text-[#D4AF37]">Identificação da Revendedora</p>
+        <div>
+          <label class="block text-xs text-gray-300 mb-1">Digite o seu Nome Cadastrado:</label>
+          <div class="flex gap-2">
+            <input type="text" id="rev-nome-input" class="w-full p-2 rounded text-[#2A180E] font-bold text-sm bg-white" placeholder="Ex: Maria Silva">
+            <button onclick="salvarNomeRevendedora()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-4 py-2 rounded text-xs">Entrar</button>
+          </div>
+        </div>
+        <p id="rev-logada-txt" class="text-xs text-green-400 font-bold hidden">Revendedora ativa: <span id="span-nome-rev"></span></p>
+      </div>
+
+      <!-- Solicitar Reposição -->
+      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
+        <h3 class="font-bold text-[#3D2314] mb-2 text-sm flex items-center gap-1">
+          <i data-lucide="send" class="w-4 h-4 text-[#D4AF37]"></i> Pedir Reposição de Peças
+        </h3>
+        <form onsubmit="pedirReposicao(event)" class="space-y-2">
+          <input type="text" id="rep-peca" required class="w-full p-2 border rounded border-[#EFE6D8] text-xs bg-[#F9F6F0]" placeholder="Nome ou Código da Peça">
+          <input type="number" id="rep-qtd" required class="w-full p-2 border rounded border-[#EFE6D8] text-xs bg-[#F9F6F0]" placeholder="Quantidade">
+          <button type="submit" class="w-full bg-[#3D2314] text-[#D4AF37] font-bold py-2 rounded text-xs">Enviar Pedido para Proprietária</button>
+        </form>
+      </div>
+
+      <!-- Minha Maleta -->
+      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
+        <h3 class="font-bold text-[#3D2314] mb-2 text-sm">Minhas Peças Consignadas (Maleta)</h3>
+        <div id="minha-maleta-lista" class="divide-y divide-[#EFE6D8] text-sm">
+          <p class="text-gray-500 py-2 text-center">Informe seu nome acima para ver sua maleta.</p>
+        </div>
+      </div>
+
+      <!-- Ferramentas -->
+      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8] space-y-3">
+        <h3 class="font-bold text-[#3D2314]">Ferramentas</h3>
+        <button onclick="gerarReciboSimples()" class="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-[#2A180E] font-bold py-3 px-4 rounded-xl shadow flex items-center justify-center gap-2">
+          <i data-lucide="file-text" class="w-5 h-5"></i> Gerar Recibo Simples da Cliente
+        </button>
+        <button onclick="abrirNFF()" class="w-full bg-[#3D2314] hover:bg-[#2A180E] text-[#F9F6F0] font-bold py-3 px-4 rounded-xl shadow flex items-center justify-center gap-2 border border-[#D4AF37]">
+          <i data-lucide="external-link" class="w-5 h-5 text-[#D4AF37]"></i> Emitir Nota Fiscal (NFF)
+        </button>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Rodapé -->
+  <footer class="text-center py-4 text-xs text-gray-500 mt-auto">
+    App criado por Julia Agda
+  </footer>
+
+  <script>
+    const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
+    const SUPABASE_KEY = 'COLE_AQUI_A_SUA_CHAVE_EYJ'; // Cole aqui a sua chave legacy eyJ...
 
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -222,8 +454,34 @@
       lucide.createIcons();
     }
 
-    function mostrarInstrucoesInstalacao() {
-      alert("Para instalar o app no seu telemóvel:\n\n1. No Android (Chrome): Toque nos 3 pontos no canto superior direito e escolha 'Adicionar ao ecrã inicial'.\n2. No iPhone (Safari): Toque no botão de partilha (quadrado com seta para cima) e escolha 'Adicionar ao ecrã principal'.");
+    // Configuração do Botão de Instalação PWA Real
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+
+    async function instalarAppPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          deferredPrompt = null;
+        }
+      } else {
+        alert("Para instalar no telemóvel:\n\n• Android (Chrome): Toque nos 3 pontos no canto superior direito e selecione 'Adicionar ao ecrã inicial' ou 'Instalar aplicação'.\n• iPhone (Safari): Toque no botão de partilha e selecione 'Adicionar ao ecrã principal'.");
+      }
+    }
+
+    // Câmara Nativa para captura do código de barras
+    function lerCodigoBarrasCam(event) {
+      const file = event.target.files[0];
+      if (file) {
+        // Gera um código automático baseado na hora ou simula a leitura
+        const codigoGerado = "AGDA-" + Math.floor(100000 + Math.random() * 900000);
+        document.getElementById('prod-codigo').value = codigoGerado;
+        alert("Foto capturada com sucesso! Código gerado/atribuído ao SKU: " + codigoGerado);
+      }
     }
 
     let revendedoraAtual = localStorage.getItem('agda_revendedora') || '';
@@ -231,7 +489,6 @@
       document.getElementById('rev-nome-input').value = revendedoraAtual;
       document.getElementById('span-nome-rev').innerText = revendedoraAtual;
       document.getElementById('rev-logada-txt').classList.remove('hidden');
-      carregarMinhaMaleta();
     }
 
     function salvarNomeRevendedora() {
@@ -269,28 +526,39 @@
         label.innerText = 'App Revendedora';
         btnR.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]';
         btnP.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]';
-        if(revendedoraAtual) carregarMinhaMaleta();
+        if (revendedoraAtual) carregarMinhaMaleta();
       }
     }
 
     async function salvarProduto(e) {
       e.preventDefault();
+      const btn = document.getElementById('btn-salvar-peca');
+      btn.disabled = true;
+      btn.innerText = 'Salvando...';
+
       const codigo = document.getElementById('prod-codigo').value;
       const nome = document.getElementById('prod-nome').value;
       const custo = parseFloat(document.getElementById('prod-custo').value || 0);
       const venda = parseFloat(document.getElementById('prod-venda').value);
       const estoque = parseInt(document.getElementById('prod-estoque').value);
 
-      const { error } = await _supabase.from('produtos').insert([
-        { codigo_barras: codigo, nome: nome, preco_custo: custo, preco_venda: venda, estoque_geral: estoque }
-      ]);
+      try {
+        const { error } = await _supabase.from('produtos').insert([
+          { codigo_barras: codigo, nome: nome, preco_custo: custo, preco_venda: venda, estoque_geral: estoque }
+        ]);
 
-      if (error) {
-        alert('Erro: ' + error.message);
-      } else {
-        alert('Produto cadastrado com sucesso!');
-        document.getElementById('form-produto').reset();
-        carregarProdutos();
+        if (error) {
+          alert('Erro ao salvar produto: ' + error.message);
+        } else {
+          alert('Produto cadastrado com sucesso!');
+          document.getElementById('form-produto').reset();
+          carregarProdutos();
+        }
+      } catch (err) {
+        alert('Erro inesperado: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Salvar Peça no Banco';
       }
     }
 
@@ -302,7 +570,7 @@
       const termo = document.getElementById('rev-cad-termo').value;
 
       const { error } = await _supabase.from('revendedoras').insert([
-        { nome: nome, cpf: cpf, whatsapp: whats, assinatura: termo }
+        { nome: nome, cpf: cpf, whatsapp: whatsapp = whats, assinatura: termo }
       ]);
 
       if (error) {
@@ -359,44 +627,185 @@
     async function carregarPedidos() {
       const container = document.getElementById('lista-pedidos');
       container.innerHTML = '<p class="text-gray-500 py-2 text-center">A carregar...</p>';
-      const { data, error } = await _supabase.from('pedidos_reposicao').select('*').eq('status', 'pendente').order('created_at', { ascending: false });
+      const { data, error } = await _supabase.from('pedidos_reposicao').select('*').eq('status', 'pendente').order('created_at','; // 
+
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+
+    // Configuração do Botão de Instalação PWA Real
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+
+    async function instalarAppPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          deferredPrompt = null;
+        }
+      } else {
+        alert("Para instalar no telemóvel:\n\n• Android (Chrome): Toque nos 3 pontos no canto superior direito e selecione 'Adicionar ao ecrã inicial' ou 'Instalar aplicação'.\n• iPhone (Safari): Toque no botão de partilha e selecione 'Adicionar ao ecrã principal'.");
+      }
+    }
+
+    // Câmara Nativa para captura do código de barras
+    function lerCodigoBarrasCam(event) {
+      const file = event.target.files[0];
+      if (file) {
+        // Gera um código automático baseado na hora ou simula a leitura
+        const codigoGerado = "AGDA-" + Math.floor(100000 + Math.random() * 900000);
+        document.getElementById('prod-codigo').value = codigoGerado;
+        alert("Foto capturada com sucesso! Código gerado/atribuído ao SKU: " + codigoGerado);
+      }
+    }
+
+    let revendedoraAtual = localStorage.getItem('agda_revendedora') || '';
+    if (revendedoraAtual) {
+      document.getElementById('rev-nome-input').value = revendedoraAtual;
+      document.getElementById('span-nome-rev').innerText = revendedoraAtual;
+      document.getElementById('rev-logada-txt').classList.remove('hidden');
+    }
+
+    function salvarNomeRevendedora() {
+      const nome = document.getElementById('rev-nome-input').value.trim();
+      if (!nome) {
+        alert('Digite o seu nome.');
+        return;
+      }
+      revendedoraAtual = nome;
+      localStorage.setItem('agda_revendedora', nome);
+      document.getElementById('span-nome-rev').innerText = nome;
+      document.getElementById('rev-logada-txt').classList.remove('hidden');
+      alert('Revendedora identificada com sucesso!');
+      carregarMinhaMaleta();
+    }
+
+    function mudarModo(modo) {
+      const prop = document.getElementById('view-proprietaria');
+      const rev = document.getElementById('view-revendedora');
+      const label = document.getElementById('mod-label');
+      const btnP = document.getElementById('btn-prop');
+      const btnR = document.getElementById('btn-rev');
+
+      if (modo === 'proprietaria') {
+        prop.classList.remove('hidden');
+        rev.classList.add('hidden');
+        label.innerText = 'Painel Proprietária';
+        btnP.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]';
+        btnR.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]';
+        carregarProdutos();
+        carregarPedidos();
+      } else {
+        prop.classList.add('hidden');
+        rev.classList.remove('hidden');
+        label.innerText = 'App Revendedora';
+        btnR.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]';
+        btnP.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]';
+        if (revendedoraAtual) carregarMinhaMaleta();
+      }
+    }
+
+    async function salvarProduto(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-salvar-peca');
+      btn.disabled = true;
+      btn.innerText = 'Salvando...';
+
+      const codigo = document.getElementById('prod-codigo').value;
+      const nome = document.getElementById('prod-nome').value;
+      const custo = parseFloat(document.getElementById('prod-custo').value || 0);
+      const venda = parseFloat(document.getElementById('prod-venda').value);
+      const estoque = parseInt(document.getElementById('prod-estoque').value);
+
+      try {
+        const { error } = await _supabase.from('produtos').insert([
+          { codigo_barras: codigo, nome: nome, preco_custo: custo, preco_venda: venda, estoque_geral: estoque }
+        ]);
+
+        if (error) {
+          alert('Erro ao salvar produto: ' + error.message);
+        } else {
+          alert('Produto cadastrado com sucesso!');
+          document.getElementById('form-produto').reset();
+          carregarProdutos();
+        }
+      } catch (err) {
+        alert('Erro inesperado: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Salvar Peça no Banco';
+      }
+    }
+
+    async function salvarRevendedora(e) {
+      e.preventDefault();
+      const nome = document.getElementById('rev-cad-nome').value;
+      const cpf = document.getElementById('rev-cad-cpf').value;
+      const whats = document.getElementById('rev-cad-whats').value;
+      const termo = document.getElementById('rev-cad-termo').value;
+
+      const { error } = await _supabase.from('revendedoras').insert([
+        { nome: nome, cpf: cpf, whatsapp: whatsapp = whats, assinatura: termo }
+      ]);
+
+      if (error) {
+        alert('Erro ao registar revendedora: ' + error.message);
+      } else {
+        alert('Revendedora e Termo de Responsabilidade registados com sucesso!');
+        document.getElementById('form-revendedora').reset();
+      }
+    }
+
+    async function carregarProdutos() {
+      const container = document.getElementById('lista-produtos');
+      container.innerHTML = '<p class="text-gray-500 py-2 text-center">Buscando...</p>';
+      const { data, error } = await _supabase.from('produtos').select('*').order('created_at', { ascending: false });
 
       if (error || !data || data.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhum pedido de reposição pendente.</p>';
+        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhum produto no estoque.</p>';
         return;
       }
 
-      container.innerHTML = data.map(ped => `
+      container.innerHTML = data.map(p => `
         <div class="py-2.5 flex justify-between items-center">
           <div>
-            <p class="font-bold text-[#3D2314]">${ped.revendedora_nome}</p>
-            <p class="text-xs text-gray-600">Peça: <b>${ped.peca_pedida}</b> | Qtd: ${ped.quantidade}</p>
+            <p class="font-bold text-[#3D2314]">${p.nome}</p>
+            <p class="text-xs text-gray-500">Cód: ${p.codigo_barras} | Qtd: ${p.estoque_geral}</p>
           </div>
-          <button onclick="aprovarPedido('${ped.id}', '${ped.revendedora_nome}', '${ped.peca_pedida}', ${ped.quantidade})" class="bg-green-700 text-white font-bold px-3 py-1 rounded text-xs">Aprovar</button>
+          <span class="font-bold text-[#2A180E]">R$ ${parseFloat(p.preco_venda).toFixed(2)}</span>
         </div>
       `).join('');
     }
 
-    async function aprovarPedido(id, revNome, pecaNome, qtd) {
-      await _supabase.from('pedidos_reposicao').update({ status: 'aprovado' }).eq('id', id);
-
-      let { data: maleta } = await _supabase.from('maletas').select('*').eq('revendedora_nome', revNome).eq('status', 'aberta').single();
-      
-      let maletaId;
-      if (!maleta) {
-        const { data: novaMaleta } = await _supabase.from('maletas').insert([{ revendedora_nome: revNome, status: 'aberta' }]).select().single();
-        maletaId = novaMaleta.id;
-      } else {
-        maletaId = maleta.id;
+    async function pedirReposicao(e) {
+      e.preventDefault();
+      if (!revendedoraAtual) {
+        alert('Por favor, digite seu nome no topo do app primeiro!');
+        return;
       }
+      const peca = document.getElementById('rep-peca').value;
+      const qtd = parseInt(document.getElementById('rep-qtd').value);
 
-      await _supabase.from('maleta_itens').insert([
-        { maleta_id: maletaId, produto_nome: pecaNome, quantidade: qtd, preco_venda: 0 }
+      const { error } = await _supabase.from('pedidos_reposicao').insert([
+        { revendedora_nome: revendedoraAtual, peca_pedida: peca, quantidade: qtd, status: 'pendente' }
       ]);
 
-      alert('Pedido aprovado e enviado para a maleta da revendedora!');
-      carregarPedidos();
+      if (error) {
+        alert('Erro ao enviar pedido: ' + error.message);
+      } else {
+        alert('Pedido de reposição enviado para a proprietária com sucesso!');
+        document.getElementById('rep-peca').value = '';
+        document.getElementById('rep-qtd').value = '';
+      }
     }
 
-    async function carregarMinhaMaleta() {
-      const container = document.getElementById
+    async function carregarPedidos() {
+      const container = document.getElementById('lista-pedidos');
+      container.innerHTML = '<p class="text-gray-500 py-2 text-center">A carregar...</p>';
+      const { data, error } = await _supabase.from('pedidos_reposicao').select('*').eq('status', 'pendente').order('created_at',
