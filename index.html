@@ -156,6 +156,7 @@
 
   <script>
     const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
+    // COLE A SUA CHAVE PUBLICA 'ANON' COPIADA DO SUPABASE ENTRE AS ASPAS ABAIXO:
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZXR5c3l6ZGpjZmFudnRhZXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyMzg2Mzh9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
 
     let _supabase = null;
@@ -187,7 +188,7 @@
           deferredPrompt = null;
         }
       } else {
-        alert("Para instalar direto no celular:\n\n1. No Android (Chrome): Toque nos 3 pontinhos no canto superior direito e toque em 'Adicionar à tela inicial' ou 'Instalar aplicativo'.\n2. No iPhone (Safari): Toque no ícone de compartilhamento e em 'Adicionar à Tela de Início'.");
+        alert("Para instalar direto no celular:\n\n1. No Android (Chrome): Toque nos 3 pontinhos no canto superior direito e selecione 'Adicionar à tela inicial' ou 'Instalar aplicativo'.\n2. No iPhone (Safari): Toque no ícone de compartilhamento e selecione 'Adicionar à Tela de Início'.");
       }
     }
 
@@ -230,7 +231,11 @@
         ]);
 
         if (error) {
-          alert('Atenção: Verifique se a chave anon no Supabase está correta. Detalhes: ' + error.message);
+          if (error.message.includes('API key')) {
+            alert('A chave do Supabase está incorreta ou expirou. Por favor, copie a chave anon (pública) em Settings > API do painel Supabase.');
+          } else {
+            alert('Erro ao salvar no Supabase: ' + error.message);
+          }
         } else {
           alert('Peça cadastrada com sucesso!');
           document.getElementById('form-produto').reset();
@@ -253,7 +258,11 @@
         ]);
 
         if (error) {
-          alert('Atenção: ' + error.message);
+          if (error.message.includes('API key')) {
+            alert('A chave do Supabase está incorreta. Copie a chave anon (pública) no painel do Supabase.');
+          } else {
+            alert('Erro ao registrar revendedora: ' + error.message);
+          }
         } else {
           alert('Revendedora registrada com sucesso!');
           document.getElementById('form-revendedora').reset();
