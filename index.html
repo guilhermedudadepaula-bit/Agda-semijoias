@@ -6,8 +6,7 @@
   <title>AGDA Semijoias</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Leitor de Código de Barras via Câmera -->
+  <!-- Leitor de Código de Barras por Câmera -->
   <script src="https://unpkg.com/@html5-qrcode/html5-qrcode" type="text/javascript"></script>
   <style>
     body { background-color: #F9F6F0; color: #2A180E; font-family: sans-serif; }
@@ -79,7 +78,7 @@
             <label class="block text-xs font-bold text-[#3D2314]">Estoque Geral Inicial</label>
             <input type="number" id="prod-estoque" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="10">
           </div>
-          <button type="submit" class="w-full bg-[#2A180E] hover:bg-[#3D2314] text-[#D4AF37] font-bold py-2.5 rounded-lg border border-[#D4AF37]">
+          <button type="submit" id="btn-salvar" class="w-full bg-[#2A180E] hover:bg-[#3D2314] text-[#D4AF37] font-bold py-2.5 rounded-lg border border-[#D4AF37]">
             Salvar no Banco de Dados
           </button>
         </form>
@@ -122,17 +121,13 @@
   </main>
 
   <script>
-    // Conexão com Supabase usando a SUA chave completa extraída da tela do projeto
-    const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_XcogKbHnk59a9knNworgeg_DJlowYcMXcogKbHnk59a9knNworgeg_DJlow...'.replace('...', ''); 
+    // URL Base da API do Supabase
+    const API_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co/rest/v1/produtos';
     
-    // A chave oficial exata copiada do seu painel:
-    const CHAVE_EXATA = 'sb_publishable_XcogKbHnk59a9knNworgeg_DJlow_'; 
-
-    // Inicialização direta do Supabase JS Client
-    const _supabase = supabase.createClient(SUPABASE_URL, 'sb_publishable_XcogKbHnk59a9knNworgeg_DJlow');
-
-    lucide.createIcons();
+    // Inicialização dos Ícones
+    if (window.lucide) {
+      lucide.createIcons();
+    }
 
     let html5QrCodeScanner = null;
 
@@ -147,12 +142,12 @@
       html5QrCodeScanner.start(
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 250, height: 100 } },
-        (decodedText, decodedResult) => {
+        (decodedText) => {
           document.getElementById('prod-codigo').value = decodedText;
           fecharLeitorCamera();
-          alert('Código escaneado com sucesso: ' + decodedText);
+          alert('Código lido: ' + decodedText);
         },
-        (errorMessage) => {}
+        () => {}
       ).catch(err => {
         alert("Erro ao abrir a câmera: " + err);
       });
@@ -194,22 +189,45 @@
 
     async function salvarProduto(e) {
       e.preventDefault();
+      const btn = document.getElementById('btn-salvar');
+      btn.disabled = true;
+      btn.innerText = 'Salvando...';
+
       const codigo = document.getElementById('prod-codigo').value;
       const nome = document.getElementById('prod-nome').value;
       const custo = parseFloat(document.getElementById('prod-custo').value || 0);
       const venda = parseFloat(document.getElementById('prod-venda').value);
       const estoque = parseInt(document.getElementById('prod-estoque').value);
 
-      const { data, error } = await _supabase.from('produtos').insert([
-        { codigo_barras: codigo, nome: nome, preco_custo: custo, preco_venda: venda, estoque_geral: estoque }
-      ]);
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify([{
+            codigo_barras: codigo,
+            nome: nome,
+            preco_custo: custo,
+            preco_venda: venda,
+            estoque_geral: estoque
+          }])
+        });
 
-      if (error) {
-        alert('Erro ao salvar produto: ' + error.message);
-      } else {
-        alert('Produto cadastrado com sucesso!');
-        document.getElementById('form-produto').reset();
-        carregarProdutos();
+        if (response.ok || response.status === 201) {
+          alert('Produto cadastrado com sucesso!');
+          document.getElementById('form-produto').reset();
+          carregarProdutos();
+        } else {
+          const errData = await response.json().catch(() => ({}));
+          alert('Erro ao salvar produto: ' + (errData.message || response.statusText));
+        }
+      } catch (err) {
+        alert('Erro de conexão: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Salvar no Banco de Dados';
       }
     }
 
@@ -217,27 +235,30 @@
       const container = document.getElementById('lista-produtos');
       container.innerHTML = '<p class="text-gray-500 py-2 text-center">Buscando...</p>';
 
-      const { data, error } = await _supabase.from('produtos').select('*').order('created_at', { ascending: false });
+      try {
+        const response = await fetch(`${API_URL}?select=*&order=created_at.desc`);
+        if (!response.ok) {
+          throw new Error('Erro na requisição: ' + response.statusText);
+        }
+        const data = await response.json();
 
-      if (error) {
-        container.innerHTML = '<p class="text-red-500 py-2 text-center">Erro ao carregar dados: ' + error.message + '</p>';
-        return;
-      }
+        if (!data || data.length === 0) {
+          container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhum produto cadastrado ainda.</p>';
+          return;
+        }
 
-      if (!data || data.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhum produto cadastrado ainda.</p>';
-        return;
-      }
-
-      container.innerHTML = data.map(p => `
-        <div class="py-2.5 flex justify-between items-center">
-          <div>
-            <p class="font-bold text-[#3D2314]">${p.nome}</p>
-            <p class="text-xs text-gray-500">Cód: ${p.codigo_barras} \vert{} Qtd:${p.estoque_geral}</p>
+        container.innerHTML = data.map(p => `
+          <div class="py-2.5 flex justify-between items-center">
+            <div>
+              <p class="font-bold text-[#3D2314]">${p.nome}</p>
+              <p class="text-xs text-gray-500">Cód: ${p.codigo_barras} | Qtd: ${p.estoque_geral}</p>
+            </div>
+            <span class="font-bold text-[#2A180E]">R$ ${parseFloat(p.preco_venda).toFixed(2)}</span>
           </div>
-          <span class="font-bold text-[#2A180E]">R$ ${parseFloat(p.preco_venda).toFixed(2)}</span>
-        </div>
-      `).join('');
+        `).join('');
+      } catch (err) {
+        container.innerHTML = '<p class="text-red-500 py-2 text-center">Erro ao carregar dados.</p>';
+      }
     }
 
     function abrirNFF() {
@@ -256,4 +277,27 @@
       win.document.write(`
         <html>
         <head><title>Recibo AGDA Semijoias</title></head>
-        <body style="font-family:sans-serif; padding:20px; background:#
+        <body style="font-family:sans-serif; padding:20px; background:#F9F6F0; color:#2A180E;">
+          <div style="background:#fff; border:2px solid #D4AF37; border-radius:12px; padding:24px;">
+            <h2 style="text-align:center; color:#3D2314;">AGDA Semijoias - Recibo</h2>
+            <hr style="border:0.5px solid #D4AF37; margin-bottom:15px;">
+            <p><strong>Cliente:</strong> ${nome}</p>
+            <p><strong>CPF:</strong> ${cpf}</p>
+            <p><strong>E-mail:</strong> ${email}</p>
+            <p><strong>WhatsApp:</strong> ${whats}</p>
+            <p><strong>Endereço:</strong> ${end}</p>
+            <hr style="border:0.5px solid #EFE6D8; margin:15px 0;">
+            <p style="font-size:18px;"><strong>Valor Total:</strong> R$ ${valor}</p>
+          </div>
+          <script>window.print();<\/script>
+        </body>
+        </html>
+      `);
+      win.document.close();
+    }
+
+    // Carregar estoque ao iniciar
+    carregarProdutos();
+  </script>
+</body>
+</html>
