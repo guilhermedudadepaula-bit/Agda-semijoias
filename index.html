@@ -61,8 +61,10 @@
 
   <main class="max-w-2xl mx-auto px-4 flex-grow w-full">
     
+    <!-- PAINEL PROPRIETÁRIA -->
     <div id="view-proprietaria" class="space-y-6">
       
+      <!-- Cadastrar Peça -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <div class="flex justify-between items-center mb-3">
           <h2 class="text-lg font-bold text-[#3D2314] flex items-center gap-2">
@@ -97,12 +99,13 @@
             <label class="block text-xs font-bold text-[#3D2314]">Estoque Inicial</label>
             <input type="number" id="prod-estoque" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="10">
           </div>
-          <button type="submit" id="btn-salvar-peca" class="w-full bg-[#2A180E] hover:bg-[#3D2314] text-[#D4AF37] font-bold py-2.5 rounded-lg border border-[#D4AF37]">
+          <button type="submit" class="w-full bg-[#2A180E] hover:bg-[#3D2314] text-[#D4AF37] font-bold py-2.5 rounded-lg border border-[#D4AF37]">
             Salvar Peça no Banco
           </button>
         </form>
       </div>
 
+      <!-- Cadastrar Revendedora -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center gap-2">
           <i data-lucide="user-plus" class="text-[#D4AF37]"></i> Cadastrar Nova Revendedora
@@ -122,18 +125,41 @@
               <input type="text" id="rev-cad-whats" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="(11) 99999-9999">
             </div>
           </div>
-          <div>
-            <label class="block text-xs font-bold text-[#3D2314]">Termo de Responsabilidade & Assinatura Digital</label>
-            <textarea id="rev-cad-termo" rows="3" class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0] text-xs" placeholder="Termo: Declaro receber as peças em consignado... Digite o nome como assinatura"></textarea>
-          </div>
           <button type="submit" class="w-full bg-[#3D2314] hover:bg-[#2A180E] text-[#D4AF37] font-bold py-2.5 rounded-lg border border-[#D4AF37]">
-            Registar Revendedora com Termo
+            Registar Revendedora
           </button>
         </form>
       </div>
 
+      <!-- Visualizar Estoque Geral -->
+      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="font-bold text-[#3D2314] text-md flex items-center gap-1">
+            <i data-lucide="box" class="w-4 h-4 text-[#D4AF37]"></i> Estoque Geral Cadastrado
+          </h3>
+          <button type="button" onclick="carregarEstoque()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
+        </div>
+        <div id="lista-estoque" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
+          <p class="text-gray-500 py-2 text-center">Carregando estoque...</p>
+        </div>
+      </div>
+
+      <!-- Visualizar Revendedoras Cadastradas -->
+      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="font-bold text-[#3D2314] text-md flex items-center gap-1">
+            <i data-lucide="users" class="w-4 h-4 text-[#D4AF37]"></i> Revendedoras Cadastradas
+          </h3>
+          <button type="button" onclick="carregarRevendedoras()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
+        </div>
+        <div id="lista-revendedoras" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
+          <p class="text-gray-500 py-2 text-center">Carregando revendedoras...</p>
+        </div>
+      </div>
+
     </div>
 
+    <!-- APP REVENDEDORA -->
     <div id="view-revendedora" class="hidden space-y-6">
       <div class="bg-[#2A180E] text-[#F9F6F0] p-4 rounded-xl shadow border border-[#D4AF37] space-y-3">
         <p class="text-xs text-[#D4AF37]">Identificação da Revendedora</p>
@@ -156,7 +182,7 @@
 
   <script>
     const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZXR5c3l6ZGpjZmFudnRhZXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5MjM4MTYsImV4cCI6MjEwODQ5OTgxNn0.wx9a9lJdKF3-LAWRrREO1f97FnyUESSq8q8FbC_T81s';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZXR5c3l6ZGpjZmFudnRhZXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5MjM4MTYsImV4cCI6MjEwODQ5OTgxNn0.wx9a9lJdKF3-LAWRrREO1f97FnyUESSq8q8FbC_T81s'; // 
 
     let _supabase = null;
     try {
@@ -187,7 +213,7 @@
           deferredPrompt = null;
         }
       } else {
-        alert("Para instalar direto no celular:\n\n1. No Android (Chrome): Toque nos 3 pontinhos no canto superior direito e selecione 'Adicionar à tela inicial' ou 'Instalar aplicativo'.\n2. No iPhone (Safari): Toque no ícone de compartilhamento e selecione 'Adicionar à Tela de Início'.");
+        alert("Para instalar direto no celular:\n\n1. No Android (Chrome): Toque nos 3 pontinhos no canto superior direito e selecione 'Adicionar à tela inicial'.\n2. No iPhone (Safari): Toque no ícone de compartilhamento e selecione 'Adicionar à Tela de Início'.");
       }
     }
 
@@ -206,6 +232,8 @@
         if (label) label.innerText = 'Painel Proprietária';
         if (btnP) btnP.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]';
         if (btnR) btnR.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]';
+        carregarEstoque();
+        carregarRevendedoras();
       } else {
         prop.classList.add('hidden');
         rev.classList.remove('hidden');
@@ -217,7 +245,6 @@
 
     async function salvarProduto(e) {
       e.preventDefault();
-      
       const codigo = document.getElementById('prod-codigo').value;
       const nome = document.getElementById('prod-nome').value;
       const custo = parseFloat(document.getElementById('prod-custo').value || 0);
@@ -231,13 +258,14 @@
 
         if (error) {
           if (error.code === '23505') {
-            alert('Aviso: Este código de barras (SKU) já está cadastrado no sistema. Por favor, use outro código.');
+            alert('Aviso: Este código de barras já está cadastrado.');
           } else {
             alert('Erro ao salvar produto: ' + error.message);
           }
         } else {
           alert('Peça cadastrada com sucesso!');
           document.getElementById('form-produto').reset();
+          carregarEstoque();
         }
       } catch (err) {
         alert('Erro de conexão: ' + err.message);
@@ -249,10 +277,8 @@
       const nome = document.getElementById('rev-cad-nome').value;
       const cpf = document.getElementById('rev-cad-cpf').value;
       const whats = document.getElementById('rev-cad-whats').value;
-      const termo = document.getElementById('rev-cad-termo').value;
 
       try {
-        // Envia apenas os campos padrão para evitar erro de coluna ausente
         const { error } = await _supabase.from('revendedoras').insert([
           { nome: nome, cpf: cpf, whatsapp: whats }
         ]);
@@ -262,10 +288,52 @@
         } else {
           alert('Revendedora registrada com sucesso!');
           document.getElementById('form-revendedora').reset();
+          carregarRevendedoras();
         }
       } catch (err) {
         alert('Erro de conexão: ' + err.message);
       }
+    }
+
+    async function carregarEstoque() {
+      const container = document.getElementById('lista-estoque');
+      if (!container || !_supabase) return;
+      
+      const { data, error } = await _supabase.from('produtos').select('*').order('created_at', { ascending: false });
+      if (error || !data || data.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhuma peça no estoque.</p>';
+        return;
+      }
+
+      container.innerHTML = data.map(p => `
+        <div class="py-2 flex justify-between items-center">
+          <div>
+            <span class="font-bold text-[#3D2314]">${p.nome}</span>
+            <span class="text-gray-500 block">Cód: ${p.codigo_barras} | Qtd: ${p.estoque_geral}</span>
+          </div>
+          <span class="font-bold text-[#2A180E]">R$ ${parseFloat(p.preco_venda).toFixed(2)}</span>
+        </div>
+      `).join('');
+    }
+
+    async function carregarRevendedoras() {
+      const container = document.getElementById('lista-revendedoras');
+      if (!container || !_supabase) return;
+
+      const { data, error } = await _supabase.from('revendedoras').select('*').order('created_at', { ascending: false });
+      if (error || !data || data.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhuma revendedora cadastrada.</p>';
+        return;
+      }
+
+      container.innerHTML = data.map(r => `
+        <div class="py-2 flex justify-between items-center">
+          <div>
+            <span class="font-bold text-[#3D2314]">${r.nome}</span>
+            <span class="text-gray-500 block">WhatsApp: ${r.whatsapp} | CPF: ${r.cpf}</span>
+          </div>
+        </div>
+      `).join('');
     }
 
     function salvarNomeRevendedora() {
@@ -293,6 +361,12 @@
         alert("Código gerado automaticamente: " + codigoGerado);
       }
     }
+
+    // Carrega os dados ao abrir a página
+    window.addEventListener('DOMContentLoaded', () => {
+      carregarEstoque();
+      carregarRevendedoras();
+    });
   </script>
 </body>
 </html>
