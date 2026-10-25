@@ -4,6 +4,32 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AGDA Semijoias</title>
+  
+  <!-- Configurações de Aplicativo (PWA) -->
+  <meta name="theme-color" content="#2A180E">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AGDA">
+  
+  <!-- Ícone personalizado gerado com fundo marrom e letras AGDA em branco -->
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%232A180E'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-weight='bold' font-size='160' fill='%23FFFFFF'%3EAGDA%3C/text%3E%3C/svg%3E">
+  
+  <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
+    %22name%22: %22AGDA Semijoias%22,
+    %22short_name%22: %22AGDA%22,
+    %22start_url%22: %22/%22,
+    %22display%22: %22standalone%22,
+    %22background_color%22: %22%232A180E%22,
+    %22theme_color%22: %22%232A180E%22,
+    %22icons%22: [
+      {
+        %22src%22: %22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%232A180E'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-weight='bold' font-size='160' fill='%23FFFFFF'%3EAGDA%3C/text%3E%3C/svg%3E%22,
+        %22sizes%22: %22512x512%22,
+        %22type%22: %22image/svg+xml%22
+      }
+    ]
+  }">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -176,14 +202,14 @@
 
   </main>
 
-  <!-- Rodapé exigido -->
+  <!-- Rodapé -->
   <footer class="text-center py-4 text-xs text-gray-500 mt-auto">
     App criado por Julia Agda
   </footer>
 
   <script>
     const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZXR5c3l6ZGpjZmFudnRhZXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5MjM4MTYsImV4cCI6MjEwODQ5OTgxNn0.wx9a9lJdKF3-LAWRrREO1f97FnyUESSq8q8FbC_T81s'; //  
+    const SUPABASE_KEY = 'COLE_AQUI_A_SUA_CHAVE_EYJ'; // Cole aqui a sua chave legacy eyJ...
 
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -381,40 +407,4 @@
         return;
       }
 
-      container.innerHTML = itens.map(item => `
-        <div class="py-2 flex justify-between items-center text-xs">
-          <span><b>${item.produto_nome}</b></span>
-          <span class="text-gray-600">Qtd: ${item.quantidade}</span>
-        </div>
-      `).join('');
-    }
-
-    function abrirNFF() {
-      window.open("https://www.gov.br/receitafederal/pt-br/assuntos/nota-fiscal-facil-nff", "_blank");
-    }
-
-    function gerarReciboSimples() {
-      const nome = prompt("Nome da Cliente:", "Maria Silva") || "Cliente";
-      const valor = prompt("Valor Total (R$):", "150,00") || "0,00";
-      const win = window.open('', '', 'width=600,height=600');
-      win.document.write(`
-        <html>
-        <head><title>Recibo AGDA Semijoias</title></head>
-        <body style="font-family:sans-serif; padding:20px; background:#F9F6F0; color:#2A180E;">
-          <div style="background:#fff; border:2px solid #D4AF37; border-radius:12px; padding:24px;">
-            <h2 style="text-align:center; color:#3D2314;">AGDA Semijoias - Recibo</h2>
-            <hr style="border:0.5px solid #D4AF37; margin-bottom:15px;">
-            <p><strong>Cliente:</strong> ${nome}</p>
-            <p style="font-size:18px;"><strong>Valor Total:</strong> R$ ${valor}</p>
-          </div>
-          <script>window.print();<\/script>
-        </body>
-        </html>
-      `);
-      win.document.close();
-    }
-
-    carregarProdutos();
-  </script>
-</body>
-</html>
+      container.innerHTML = itens
