@@ -142,6 +142,7 @@
 
   <script>
     const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
+    // Certifique-se de usar a chave pública 'anon' do seu Supabase aqui:
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZXR5c3l6ZGpjZmFudnRhZXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyMzg2Mzh9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
 
     let _supabase = null;
@@ -256,7 +257,7 @@
     }
 
     function instalarAppPWA() {
-      alert("Para instalar no telemóvel:\n\n1. No Android (Chrome): Toque nos 3 pontos no canto superior direito e selecione 'Adicionar ao ecrã inicial'.\n2. No iPhone (Safari): Toque no botão de partilha e selecione 'Adicionar ao ecrã principal'.");
+      alert("Para instalar no telemóvel:\n\n1. No Android (Chrome): Toque nos 3 pontos verticais (canto superior direito) e selecione 'Adicionar ao ecrã inicial'.\n2. No iPhone (Safari): Toque no botão de partilha e selecione 'Adicionar ao ecrã principal'.");
     }
 
     function lerCodigoBarrasCam(event) {
