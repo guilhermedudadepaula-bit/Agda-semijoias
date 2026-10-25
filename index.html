@@ -7,12 +7,13 @@
 
   <meta name="theme-color" content="#2A180E">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="AGDA">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { background-color: #F9F6F0; color: #2A180E; font-family: sans-serif; }
-    button, input, select, label { touch-action: manipulation; }
+    button, input, select, label { touch-action: manipulation; cursor: pointer; }
   </style>
 </head>
 <body class="pb-10 flex flex-col min-h-screen">
@@ -26,10 +27,10 @@
     <span id="mod-label" class="text-xs bg-[#3D2314] px-2 py-1 rounded text-[#EFE6D8] border border-[#D4AF37]">Painel Proprietária</span>
   </header>
 
-  <!-- BANNER INSTALAÇÃO -->
+  <!-- BANNER INSTALAÇÃO MANUAL -->
   <div class="bg-[#3D2314] text-[#F9F6F0] p-3 text-center text-xs flex justify-between items-center px-4 border-b border-[#D4AF37]">
-    <span>💡 Instalar o app no telemóvel?</span>
-    <button type="button" onclick="instalarAppPWA()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded shadow">Instalar App</button>
+    <span>💡 Como instalar o app no telemóvel?</span>
+    <button type="button" onclick="instalarAppPWA()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded shadow">Ver Como Instalar</button>
   </div>
 
   <!-- NAVEGAÇÃO ENTRE PAINÉIS -->
@@ -47,26 +48,9 @@
     <!-- PAINEL PROPRIETÁRIA -->
     <div id="view-proprietaria" class="space-y-6" style="display: block;">
       
-      <!-- CADASTRAR PEÇA / TINY -->
+      <!-- CADASTRAR PEÇA -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
-        <div class="flex justify-between items-center mb-3">
-          <h2 class="text-lg font-bold text-[#3D2314]">Cadastrar Peça / Planilha Tiny</h2>
-          <label class="cursor-pointer text-xs bg-[#D4AF37] text-[#2A180E] px-3 py-1.5 rounded-lg font-bold shadow">
-            📷 Câmera SKU
-            <input type="file" accept="image/*" capture="environment" class="hidden" onchange="lerCodigoBarrasCam(event)">
-          </label>
-        </div>
-
-        <div class="flex gap-2 mb-3">
-          <label class="flex-1 bg-[#3D2314] text-[#D4AF37] text-xs font-bold py-2 px-3 rounded text-center cursor-pointer border border-[#D4AF37]">
-            📂 Importar CSV
-            <input type="file" accept=".csv" class="hidden" onchange="importarPlanilhaCSV(event)">
-          </label>
-          <button type="button" onclick="exportarPlanilhaCSV()" class="flex-1 bg-[#EFE6D8] text-[#3D2314] text-xs font-bold py-2 px-3 rounded border border-[#3D2314]">
-            📥 Exportar CSV
-          </button>
-        </div>
-
+        <h2 class="text-lg font-bold text-[#3D2314] mb-3">Cadastrar Peça no Estoque</h2>
         <form onsubmit="salvarProduto(event)" class="space-y-3">
           <div>
             <label class="block text-xs font-bold text-[#3D2314]">Código / SKU</label>
@@ -111,92 +95,6 @@
         </form>
       </div>
 
-      <!-- MONTAR MALETA (LEITOR SKU) -->
-      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
-        <h2 class="text-lg font-bold text-[#3D2314] mb-3">Montar Maleta (Com Leitor SKU)</h2>
-        <form onsubmit="finalizarMontagemMaleta(event)" class="space-y-3">
-          <div>
-            <label class="block text-xs font-bold text-[#3D2314]">Nome da Revendedora</label>
-            <input type="text" id="maleta-revendedora-nome" required class="w-full p-2.5 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: Tais Silva">
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-xs font-bold text-[#3D2314]">Data de Entrega</label>
-              <input type="date" id="maleta-data-inicio" required class="w-full p-2.5 border rounded border-[#EFE6D8] bg-[#F9F6F0]">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-[#3D2314]">Finalização da Coleção</label>
-              <input type="date" id="maleta-data-fim" required class="w-full p-2.5 border rounded border-[#EFE6D8] bg-[#F9F6F0]">
-            </div>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-[#3D2314]">Porcentagem de Comissão (%)</label>
-            <input type="number" id="maleta-comissao-pct" value="30" required class="w-full p-2.5 border rounded border-[#EFE6D8] bg-[#F9F6F0]">
-          </div>
-
-          <div class="border-t border-[#EFE6D8] pt-3">
-            <div class="flex justify-between items-center mb-2">
-              <p class="text-xs font-bold text-[#3D2314]">Adicionar Peças na Maleta:</p>
-              <label class="cursor-pointer text-[10px] bg-[#D4AF37] text-[#2A180E] px-2 py-1 rounded font-bold shadow">
-                📷 Escanear SKU p/ Maleta
-                <input type="file" accept="image/*" capture="environment" class="hidden" onchange="escanearPecaMaletaCam(event)">
-              </label>
-            </div>
-            <div class="grid grid-cols-3 gap-2 mb-2">
-              <input type="text" id="item-nome" placeholder="Peça ou SKU" class="p-2 text-xs border rounded bg-[#F9F6F0]">
-              <input type="number" id="item-qtd" placeholder="Qtd" class="p-2 text-xs border rounded bg-[#F9F6F0]">
-              <input type="number" step="0.01" id="item-preco" placeholder="Valor Un" class="p-2 text-xs border rounded bg-[#F9F6F0]">
-            </div>
-            <button type="button" onclick="adicionarItemMaletaLista()" class="w-full bg-[#EFE6D8] text-[#3D2314] font-bold py-2 rounded text-xs">
-              + Incluir Peça na Maleta
-            </button>
-          </div>
-
-          <div id="lista-temp-maleta" class="bg-[#F9F6F0] p-2 rounded border border-[#EFE6D8] text-xs space-y-1">
-            <p class="text-gray-500 text-center">Nenhuma peça adicionada ainda.</p>
-          </div>
-
-          <div class="text-right font-bold text-sm text-[#2A180E]">
-            Total da Maleta: R$ <span id="maleta-valor-total">0.00</span>
-          </div>
-
-          <div class="border-t border-[#EFE6D8] pt-3">
-            <label class="block text-xs font-bold text-[#3D2314] mb-1">Termo de Aceite & Assinatura Digital:</label>
-            <div id="texto-termo-preview" class="bg-[#F9F6F0] p-2 text-xs rounded text-gray-700 italic border mb-2">
-              Preencha os dados acima para gerar o termo automático.
-            </div>
-            <input type="text" id="maleta-assinatura" required class="w-full p-2.5 border rounded border-[#EFE6D8] bg-[#F9F6F0] text-xs font-bold" placeholder="Digite o nome completo da revendedora como assinatura">
-          </div>
-
-          <button type="submit" class="w-full bg-[#3D2314] text-[#D4AF37] font-bold py-3 rounded-lg border border-[#D4AF37]">
-            Entregar e Gravar Maleta
-          </button>
-        </form>
-      </div>
-
-      <!-- ACOMPANHAR VENDAS -->
-      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
-        <div class="flex justify-between items-center mb-3">
-          <h3 class="font-bold text-[#3D2314] text-md">Acompanhar Vendas (Tempo Real)</h3>
-          <button type="button" onclick="carregarVendasMaster()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
-        </div>
-        <div id="lista-vendas-master" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
-          <p class="text-gray-500 py-2 text-center">Nenhuma venda registrada ainda.</p>
-        </div>
-      </div>
-
-      <!-- FECHAMENTO DE CICLO MASTER -->
-      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
-        <h3 class="font-bold text-[#3D2314] text-md mb-2">Fechamento de Ciclo (Acerto Master)</h3>
-        <div class="space-y-2">
-          <input type="text" id="acerto-rev-nome" placeholder="Nome da Revendedora para Fechamento" class="w-full p-2.5 border rounded text-xs bg-[#F9F6F0]">
-          <button type="button" onclick="realizarFechamentoMaster()" class="w-full bg-[#3D2314] text-[#D4AF37] font-bold py-2.5 rounded text-xs">
-            Gerar Prestação de Contas / Fechamento
-          </button>
-          <div id="resultado-fechamento-master" class="bg-[#F9F6F0] p-3 rounded text-xs border hidden"></div>
-        </div>
-      </div>
-
       <!-- ESTOQUE GERAL -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <div class="flex justify-between items-center mb-3">
@@ -228,60 +126,14 @@
         <p class="text-xs text-[#D4AF37] font-bold">Identificação da Revendedora</p>
         <div class="flex gap-2">
           <input type="text" id="rev-nome-input" class="w-full p-2.5 rounded text-[#2A180E] font-bold text-sm bg-white" placeholder="Digite seu Nome Cadastrado">
-          <button type="button" onclick="carregarMaletaRevendedora()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-4 py-2 rounded text-xs">Acessar</button>
+          <button type="button" onclick="acessarRevendedora()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-4 py-2 rounded text-xs">Acessar</button>
         </div>
         <p id="rev-status-txt" class="text-xs text-yellow-300 font-bold hidden"></p>
       </div>
 
-      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8] space-y-3">
-        <h3 class="font-bold text-[#3D2314] text-md">Minha Maleta & Comissão</h3>
-        <div class="grid grid-cols-2 gap-2 bg-[#F9F6F0] p-3 rounded-lg text-xs border">
-          <div>
-            <span class="text-gray-500 block">Total Vendido:</span>
-            <span id="rev-total-vendido" class="font-bold text-green-700 text-sm">R$ 0,00</span>
-          </div>
-          <div>
-            <span class="text-gray-500 block">Minha Comissão:</span>
-            <span id="rev-minha-comissao" class="font-bold text-[#D4AF37] text-sm">R$ 0,00</span>
-          </div>
-        </div>
-        <div id="rev-pecas-lista" class="divide-y divide-[#EFE6D8] text-xs">
-          <p class="text-gray-500 text-center py-2">Digite seu nome acima para carregar.</p>
-        </div>
-      </div>
-
-      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8] space-y-3">
-        <h3 class="font-bold text-[#3D2314] text-md text-green-700">Registrar Nova Venda</h3>
-        <form onsubmit="registrarVendaRevendedora(event)" class="space-y-2">
-          <input type="text" id="venda-peca" required class="w-full p-2.5 border rounded text-xs bg-[#F9F6F0]" placeholder="Nome da Peça Vendida">
-          <div class="grid grid-cols-2 gap-2">
-            <input type="number" id="venda-qtd" required class="w-full p-2.5 border rounded text-xs bg-[#F9F6F0]" placeholder="Quantidade">
-            <input type="number" step="0.01" id="venda-valor" required class="w-full p-2.5 border rounded text-xs bg-[#F9F6F0]" placeholder="Valor Total (R$)">
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-[#3D2314]">Data Nasc. Cliente:</label>
-            <input type="date" id="venda-cliente-nasc" required class="w-full p-2.5 border rounded text-xs bg-[#F9F6F0]">
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-[#3D2314]">Pagamento:</label>
-            <select id="venda-pagamento" required class="w-full p-2.5 border rounded text-xs bg-[#F9F6F0]">
-              <option value="PIX">Pix</option>
-              <option value="Débito">Débito</option>
-              <option value="Crédito">Crédito</option>
-            </select>
-          </div>
-          <button type="submit" class="w-full bg-green-700 text-white font-bold py-3 rounded text-xs shadow">
-            Confirmar Venda
-          </button>
-        </form>
-      </div>
-
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
-        <h3 class="font-bold text-[#3D2314] text-md mb-2">Meu Fechamento de Ciclo</h3>
-        <button type="button" onclick="realizarFechamentoRevendedora()" class="w-full bg-[#3D2314] text-[#D4AF37] font-bold py-2.5 rounded text-xs">
-          Ver Resumo do Meu Acerto
-        </button>
-        <div id="resultado-fechamento-rev" class="bg-[#F9F6F0] p-3 rounded text-xs border mt-2 hidden"></div>
+        <h3 class="font-bold text-[#3D2314] text-md mb-2">Painel da Revendedora</h3>
+        <p class="text-xs text-gray-600">Digite seu nome acima para verificar suas informações e vendas.</p>
       </div>
 
     </div>
@@ -293,9 +145,6 @@
   </footer>
 
   <script>
-    var itemsMaletaTemporaria = [];
-
-    // Mudar Abas de forma Direta
     function mudarModo(modo) {
       var prop = document.getElementById('view-proprietaria');
       var rev = document.getElementById('view-revendedora');
@@ -313,7 +162,6 @@
         btnR.style.color = '#3D2314';
         carregarEstoque();
         carregarRevendedoras();
-        carregarVendasMaster();
       } else {
         prop.style.display = 'none';
         rev.style.display = 'block';
@@ -325,7 +173,6 @@
       }
     }
 
-    // Salvar Peça
     function salvarProduto(e) {
       e.preventDefault();
       var codigo = document.getElementById('prod-codigo').value.trim();
@@ -343,7 +190,6 @@
       carregarEstoque();
     }
 
-    // Salvar Revendedora
     function salvarRevendedora(e) {
       e.preventDefault();
       var nome = document.getElementById('rev-cad-nome').value.trim();
@@ -354,12 +200,11 @@
       revendedoras.unshift({ nome: nome, cpf: cpf, whatsapp: whats });
       localStorage.setItem('agda_revendedoras', JSON.stringify(revendedoras));
 
-      alert('Revendedora cadastrada!');
+      alert('Revendedora cadastrada com sucesso!');
       e.target.reset();
       carregarRevendedoras();
     }
 
-    // Carregar Estoque
     function carregarEstoque() {
       var container = document.getElementById('lista-estoque');
       if (!container) return;
@@ -376,4 +221,41 @@
       container.innerHTML = html;
     }
 
-    // Carr
+    function carregarRevendedoras() {
+      var container = document.getElementById('lista-revendedoras');
+      if (!container) return;
+      var revendedoras = JSON.parse(localStorage.getItem('agda_revendedoras') || '[]');
+      if (revendedoras.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhuma revendedora cadastrada.</p>';
+        return;
+      }
+      var html = '';
+      for (var i = 0; i < revendedoras.length; i++) {
+        var r = revendedoras[i];
+        html += '<div class="py-2 flex justify-between items-center border-b"><div><span class="font-bold text-[#3D2314]">' + r.nome + '</span><span class="text-gray-500 block">WhatsApp: ' + r.whatsapp + ' | CPF: ' + r.cpf + '</span></div></div>';
+      }
+      container.innerHTML = html;
+    }
+
+    function acessarRevendedora() {
+      var nome = document.getElementById('rev-nome-input').value.trim();
+      var statusTxt = document.getElementById('rev-status-txt');
+      if (!nome) {
+        alert('Digite o seu nome.');
+        return;
+      }
+      statusTxt.innerText = 'Bem-vinda, ' + nome + '!';
+      statusTxt.classList.remove('hidden');
+    }
+
+    function instalarAppPWA() {
+      alert("Para instalar o app no telemóvel:\n\n1. No Android (Chrome): Toque nos 3 pontinhos verticais no canto superior direito e selecione 'Adicionar à tela inicial' ou 'Instalar aplicativo'.\n2. No iPhone (Safari): Toque no ícone de partilha e selecione 'Adicionar à Tela de Início'.");
+    }
+
+    window.onload = function() {
+      carregarEstoque();
+      carregarRevendedoras();
+    };
+  </script>
+</body>
+</html>
