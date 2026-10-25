@@ -11,7 +11,7 @@
     body { background-color: #F9F6F0; color: #2A180E; font-family: sans-serif; }
   </style>
 </head>
-<body class="pb-10">
+<body class="pb-10 flex flex-col min-h-screen">
 
   <!-- Header -->
   <header class="bg-[#2A180E] text-[#F9F6F0] p-4 shadow-md flex justify-between items-center border-b-2 border-[#D4AF37]">
@@ -23,7 +23,7 @@
   </header>
 
   <!-- Navegação de Módulos -->
-  <div class="p-4 max-w-2xl mx-auto flex gap-2">
+  <div class="p-4 max-w-2xl mx-auto flex gap-2 w-full">
     <button onclick="mudarModo('proprietaria')" id="btn-prop" class="flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]">
       Painel Proprietária
     </button>
@@ -32,7 +32,7 @@
     </button>
   </div>
 
-  <main class="max-w-2xl mx-auto px-4">
+  <main class="max-w-2xl mx-auto px-4 flex-grow w-full">
     
     <!-- MÓDULO PROPRIETÁRIA -->
     <div id="view-proprietaria" class="space-y-6">
@@ -65,20 +65,50 @@
             <label class="block text-xs font-bold text-[#3D2314]">Estoque Inicial</label>
             <input type="number" id="prod-estoque" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="10">
           </div>
-          <button type="submit" id="btn-salvar" class="w-full bg-[#2A180E] hover:bg-[#3D2314] text-[#D4AF37] font-bold py-2.5 rounded-lg border border-[#D4AF37]">
-            Salvar no Banco de Dados
+          <button type="submit" class="w-full bg-[#2A180E] hover:bg-[#3D2314] text-[#D4AF37] font-bold py-2.5 rounded-lg border border-[#D4AF37]">
+            Salvar Peça
           </button>
         </form>
       </div>
 
-      <!-- Gestão de Pedidos de Reposição das Revendedoras -->
+      <!-- Cadastrar Revendedora e Termo -->
+      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
+        <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center gap-2">
+          <i data-lucide="user-plus" class="text-[#D4AF37]"></i> Cadastrar Nova Revendedora
+        </h2>
+        <form id="form-revendedora" onsubmit="salvarRevendedora(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-[#3D2314]">Nome Completo</label>
+            <input type="text" id="rev-cad-nome" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: Maria Silva">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-bold text-[#3D2314]">CPF</label>
+              <input type="text" id="rev-cad-cpf" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="000.000.000-00">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#3D2314]">WhatsApp</label>
+              <input type="text" id="rev-cad-whats" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="(11) 99999-9999">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#3D2314]">Termo de Responsabilidade & Assinatura Digital</label>
+            <textarea id="rev-cad-termo" rows="3" class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0] text-xs" placeholder="Termo: Declaro receber as peças em consignado... Assinatura / Digite o Nome Completo como Assinatura"></textarea>
+          </div>
+          <button type="submit" class="w-full bg-[#3D2314] hover:bg-[#2A180E] text-[#D4AF37] font-bold py-2.5 rounded-lg border border-[#D4AF37]">
+            Registar Revendedora com Termo
+          </button>
+        </form>
+      </div>
+
+      <!-- Gestão de Pedidos de Reposição -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center justify-between">
           <span>Pedidos de Reposição Pendentes</span>
           <button onclick="carregarPedidos()" class="text-xs bg-[#EFE6D8] px-2 py-1 rounded text-[#3D2314]">Atualizar</button>
         </h2>
         <div id="lista-pedidos" class="divide-y divide-[#EFE6D8] text-sm">
-          <p class="text-gray-500 py-2 text-center">A carregar pedidos...</p>
+          <p class="text-gray-500 py-2 text-center">Nenhum pedido pendente.</p>
         </div>
       </div>
 
@@ -98,13 +128,13 @@
     <!-- MÓDULO REVENDEDORA -->
     <div id="view-revendedora" class="hidden space-y-6">
       
-      <!-- Identificação da Revendedora -->
+      <!-- Identificação -->
       <div class="bg-[#2A180E] text-[#F9F6F0] p-4 rounded-xl shadow border border-[#D4AF37] space-y-3">
         <p class="text-xs text-[#D4AF37]">Identificação da Revendedora</p>
         <div>
-          <label class="block text-xs text-gray-300 mb-1">Digite o seu Nome:</label>
+          <label class="block text-xs text-gray-300 mb-1">Digite o seu Nome Cadastrado:</label>
           <div class="flex gap-2">
-            <input type="text" id="rev-nome-input" class="w-full p-2 rounded text-[#2A180E] font-bold text-sm bg-white" placeholder="Ex: Ana Souza">
+            <input type="text" id="rev-nome-input" class="w-full p-2 rounded text-[#2A180E] font-bold text-sm bg-white" placeholder="Ex: Maria Silva">
             <button onclick="salvarNomeRevendedora()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-4 py-2 rounded text-xs">Entrar</button>
           </div>
         </div>
@@ -117,13 +147,13 @@
           <i data-lucide="send" class="w-4 h-4 text-[#D4AF37]"></i> Pedir Reposição de Peças
         </h3>
         <form onsubmit="pedirReposicao(event)" class="space-y-2">
-          <input type="text" id="rep-peca" required class="w-full p-2 border rounded border-[#EFE6D8] text-xs bg-[#F9F6F0]" placeholder="Nome ou Código da Peça desejada">
+          <input type="text" id="rep-peca" required class="w-full p-2 border rounded border-[#EFE6D8] text-xs bg-[#F9F6F0]" placeholder="Nome ou Código da Peça">
           <input type="number" id="rep-qtd" required class="w-full p-2 border rounded border-[#EFE6D8] text-xs bg-[#F9F6F0]" placeholder="Quantidade">
           <button type="submit" class="w-full bg-[#3D2314] text-[#D4AF37] font-bold py-2 rounded text-xs">Enviar Pedido para Proprietária</button>
         </form>
       </div>
 
-      <!-- Minha Maleta Atual -->
+      <!-- Minha Maleta -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <h3 class="font-bold text-[#3D2314] mb-2 text-sm">Minhas Peças Consignadas (Maleta)</h3>
         <div id="minha-maleta-lista" class="divide-y divide-[#EFE6D8] text-sm">
@@ -131,7 +161,7 @@
         </div>
       </div>
 
-      <!-- Ações Rápidas -->
+      <!-- Ferramentas -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8] space-y-3">
         <h3 class="font-bold text-[#3D2314]">Ferramentas</h3>
         <button onclick="gerarReciboSimples()" class="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-[#2A180E] font-bold py-3 px-4 rounded-xl shadow flex items-center justify-center gap-2">
@@ -146,9 +176,14 @@
 
   </main>
 
+  <!-- Rodapé exigido -->
+  <footer class="text-center py-4 text-xs text-gray-500 mt-auto">
+    App criado por Julia Agda
+  </footer>
+
   <script>
     const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
-    const SUPABASE_KEY = 'COLE_AQUI_A_SUA_CHAVE_EYJ'; // Substitua pela sua chave legacy eyJ...
+    const SUPABASE_KEY = 'COLE_AQUI_A_SUA_CHAVE_EYJ'; // Cole aqui a sua chave legacy eyJ...
 
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -224,6 +259,25 @@
       }
     }
 
+    async function salvarRevendedora(e) {
+      e.preventDefault();
+      const nome = document.getElementById('rev-cad-nome').value;
+      const cpf = document.getElementById('rev-cad-cpf').value;
+      const whats = document.getElementById('rev-cad-whats').value;
+      const termo = document.getElementById('rev-cad-termo').value;
+
+      const { error } = await _supabase.from('revendedoras').insert([
+        { nome: nome, cpf: cpf, whatsapp: whats, assinatura: termo }
+      ]);
+
+      if (error) {
+        alert('Erro ao registar revendedora: ' + error.message);
+      } else {
+        alert('Revendedora e Termo de Responsabilidade registados com sucesso!');
+        document.getElementById('form-revendedora').reset();
+      }
+    }
+
     async function carregarProdutos() {
       const container = document.getElementById('lista-produtos');
       container.innerHTML = '<p class="text-gray-500 py-2 text-center">Buscando...</p>';
@@ -289,11 +343,8 @@
     }
 
     async function aprovarPedido(id, revNome, pecaNome, qtd) {
-      // Atualiza o pedido para aprovado
       await _supabase.from('pedidos_reposicao').update({ status: 'aprovado' }).eq('id', id);
 
-      // Adiciona automaticamente à maleta da revendedora
-      // Verifica se ela já tem uma maleta aberta
       let { data: maleta } = await _supabase.from('maletas').select('*').eq('revendedora_nome', revNome).eq('status', 'aberta').single();
       
       let maletaId;
@@ -362,6 +413,8 @@
       `);
       win.document.close();
     }
+
+    carregarProdutos();
   </script>
 </body>
 </html>
