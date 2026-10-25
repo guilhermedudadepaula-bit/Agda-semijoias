@@ -49,7 +49,7 @@
           </button>
         </h2>
 
-        <!-- Janela da Câmera (Escondida por padrão) -->
+        <!-- Janela da Câmera -->
         <div id="container-camera" class="hidden mb-4 p-2 bg-black rounded-lg text-center">
           <div id="reader" style="width: 100%;"></div>
           <button type="button" onclick="fecharLeitorCamera()" class="mt-2 text-xs bg-red-600 text-white px-3 py-1 rounded font-bold">Fechar Câmera</button>
@@ -121,10 +121,11 @@
   </main>
 
   <script>
-    // URL Base da API do Supabase
-    const API_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co/rest/v1/produtos';
-    
-    // Inicialização dos Ícones
+    // Configurações e Chave Pública Completa do Supabase
+    const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_XcogKbHnk59a9knNworgeg_DJlowYcMXcogKbHnk59a9knNworgeg_DJlow'; 
+    const API_URL = `${SUPABASE_URL}/rest/v1/produtos`;
+
     if (window.lucide) {
       lucide.createIcons();
     }
@@ -145,11 +146,12 @@
         (decodedText) => {
           document.getElementById('prod-codigo').value = decodedText;
           fecharLeitorCamera();
-          alert('Código lido: ' + decodedText);
+          alert('Código lido com sucesso: ' + decodedText);
         },
         () => {}
       ).catch(err => {
-        alert("Erro ao abrir a câmera: " + err);
+        alert("Erro ao abrir a câmera (verifique as permissões do navegador): " + err);
+        container.classList.add('hidden');
       });
     }
 
@@ -191,7 +193,7 @@
       e.preventDefault();
       const btn = document.getElementById('btn-salvar');
       btn.disabled = true;
-      btn.innerText = 'Salvando...';
+      btn.innerText = 'A salvar...';
 
       const codigo = document.getElementById('prod-codigo').value;
       const nome = document.getElementById('prod-nome').value;
@@ -204,6 +206,8 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
             'Prefer': 'return=minimal'
           },
           body: JSON.stringify([{
@@ -236,9 +240,15 @@
       container.innerHTML = '<p class="text-gray-500 py-2 text-center">Buscando...</p>';
 
       try {
-        const response = await fetch(`${API_URL}?select=*&order=created_at.desc`);
+        const response = await fetch(`${API_URL}?select=*&order=created_at.desc`, {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`
+          }
+        });
+
         if (!response.ok) {
-          throw new Error('Erro na requisição: ' + response.statusText);
+          throw new Error('Erro ao carregar: ' + response.statusText);
         }
         const data = await response.json();
 
