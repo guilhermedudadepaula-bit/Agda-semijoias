@@ -5,13 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AGDA Semijoias</title>
   
-  <!-- Configurações de Aplicativo (PWA) -->
   <meta name="theme-color" content="#2A180E">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="AGDA">
   
-  <!-- Ícone personalizado gerado com fundo marrom e letras AGDA em branco -->
+  <!-- Ícone personalizado com fundo marrom e letras AGDA em branco -->
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%232A180E'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-weight='bold' font-size='160' fill='%23FFFFFF'%3EAGDA%3C/text%3E%3C/svg%3E">
   
   <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
@@ -47,6 +46,12 @@
     </div>
     <span id="mod-label" class="text-xs bg-[#3D2314] px-2 py-1 rounded text-[#EFE6D8] border border-[#D4AF37]">Painel Proprietária</span>
   </header>
+
+  <!-- Botão de Instalação Rápida no Ecrã (Estilo o exemplo da foto) -->
+  <div id="banner-instalacao" class="bg-[#3D2314] text-[#F9F6F0] p-3 text-center text-xs flex justify-between items-center px-4 border-b border-[#D4AF37]">
+    <span>💡 Quer o app no ecrã do telemóvel com ícone AGDA?</span>
+    <button onclick="mostrarInstrucoesInstalacao()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded shadow">Instalar App</button>
+  </div>
 
   <!-- Navegação de Módulos -->
   <div class="p-4 max-w-2xl mx-auto flex gap-2 w-full">
@@ -209,12 +214,16 @@
 
   <script>
     const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZXR5c3l6ZGpjZmFudnRhZXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5MjM4MTYsImV4cCI6MjEwODQ5OTgxNn0.wx9a9lJdKF3-LAWRrREO1f97FnyUESSq8q8FbC_T81s'; //  
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZXR5c3l6ZGpjZmFudnRhZXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5MjM4MTYsImV4cCI6MjEwODQ5OTgxNn0.wx9a9lJdKF3-LAWRrREO1f97FnyUESSq8q8FbC_T81s'; //
 
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     if (window.lucide) {
       lucide.createIcons();
+    }
+
+    function mostrarInstrucoesInstalacao() {
+      alert("Para instalar o app no seu telemóvel:\n\n1. No Android (Chrome): Toque nos 3 pontos no canto superior direito e escolha 'Adicionar ao ecrã inicial'.\n2. No iPhone (Safari): Toque no botão de partilha (quadrado com seta para cima) e escolha 'Adicionar ao ecrã principal'.");
     }
 
     let revendedoraAtual = localStorage.getItem('agda_revendedora') || '';
@@ -390,21 +399,4 @@
     }
 
     async function carregarMinhaMaleta() {
-      const container = document.getElementById('minha-maleta-lista');
-      container.innerHTML = '<p class="text-gray-500 py-2 text-center">Buscando maleta...</p>';
-
-      const { data: maleta } = await _supabase.from('maletas').select('*').eq('revendedora_nome', revendedoraAtual).eq('status', 'aberta').single();
-
-      if (!maleta) {
-        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhuma maleta ativa no momento.</p>';
-        return;
-      }
-
-      const { data: itens } = await _supabase.from('maleta_itens').select('*').eq('maleta_id', maleta.id);
-
-      if (!itens || itens.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Sua maleta está vazia.</p>';
-        return;
-      }
-
-      container.innerHTML = itens
+      const container = document.getElementById
