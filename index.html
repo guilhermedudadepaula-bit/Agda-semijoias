@@ -115,9 +115,8 @@
   </main>
 
   <script>
-    // Insira abaixo a sua chave legacy anon que começa com eyJ...
-    const SUPABASE_URL = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZXR5c3l6ZGpjZmFudnRhZXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5MjM4MTYsImV4cCI6MjEwODQ5OTgxNn0.wx9a9lJdKF3-LAWRrREO1f97FnyUESSq8q8FbC_T81s';
-    const SUPABASE_KEY = 'COLE_AQUI_A_SUA_CHAVE_EYJ';
+    const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
+    const SUPABASE_KEY = 'COLE_AQUI_A_SUA_CHAVE_EYJ'; // Cole aqui a sua chave legacy que começa por eyJ...
 
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -166,20 +165,24 @@
       const venda = parseFloat(document.getElementById('prod-venda').value);
       const estoque = parseInt(document.getElementById('prod-estoque').value);
 
-      const { data, error } = await _supabase.from('produtos').insert([
-        { codigo_barras: codigo, nome: nome, preco_custo: custo, preco_venda: venda, estoque_geral: estoque }
-      ]);
+      try {
+        const { data, error } = await _supabase.from('produtos').insert([
+          { codigo_barras: codigo, nome: nome, preco_custo: custo, preco_venda: venda, estoque_geral: estoque }
+        ]);
 
-      if (error) {
-        alert('Erro ao salvar produto: ' + error.message);
-      } else {
-        alert('Produto cadastrado com sucesso!');
-        document.getElementById('form-produto').reset();
-        carregarProdutos();
+        if (error) {
+          alert('Erro ao salvar produto: ' + error.message);
+        } else {
+          alert('Produto cadastrado com sucesso!');
+          document.getElementById('form-produto').reset();
+          carregarProdutos();
+        }
+      } catch (err) {
+        alert('Erro inesperado: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Salvar no Banco de Dados';
       }
-
-      btn.disabled = false;
-      btn.innerText = 'Salvar no Banco de Dados';
     }
 
     async function carregarProdutos() {
