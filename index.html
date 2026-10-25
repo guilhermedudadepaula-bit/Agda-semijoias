@@ -4,11 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AGDA Semijoias</title>
-  
-  <meta name="theme-color" content="#2A180E">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="AGDA">
-  
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { background-color: #F9F6F0; color: #2A180E; font-family: sans-serif; }
@@ -17,66 +12,51 @@
 <body class="pb-10 flex flex-col min-h-screen">
 
   <header class="bg-[#2A180E] text-[#F9F6F0] p-4 shadow-md flex justify-between items-center border-b-2 border-[#D4AF37]">
-    <div class="flex items-center gap-2">
-      <div class="w-8 h-8 rounded-full bg-[#D4AF37] flex items-center justify-center text-[#2A180E] font-bold">A</div>
-      <h1 class="text-xl font-bold tracking-wide text-[#D4AF37]">AGDA Semijoias</h1>
-    </div>
+    <h1 class="text-xl font-bold tracking-wide text-[#D4AF37]">AGDA Semijoias</h1>
     <span id="mod-label" class="text-xs bg-[#3D2314] px-2 py-1 rounded text-[#EFE6D8] border border-[#D4AF37]">Painel Proprietária</span>
   </header>
 
-  <div class="bg-[#3D2314] text-[#F9F6F0] p-3 text-center text-xs flex justify-between items-center px-4 border-b border-[#D4AF37]">
-    <span>💡 Como instalar o app no telemóvel?</span>
-    <button type="button" onclick="mostrarInstrucoesInstalacao()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded shadow">Instalar App</button>
-  </div>
-
   <div class="p-4 max-w-2xl mx-auto flex gap-2 w-full">
-    <button type="button" onclick="mudarModo('proprietaria')" id="btn-prop" class="flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]">
+    <button type="button" onclick="mudarModo('proprietaria')" id="btn-prop" class="flex-1 py-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]">
       Painel Proprietária
     </button>
-    <button type="button" onclick="mudarModo('revendedora')" id="btn-rev" class="flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]">
+    <button type="button" onclick="mudarModo('revendedora')" id="btn-rev" class="flex-1 py-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]">
       App Revendedora
     </button>
   </div>
 
-  <main class="max-w-2xl mx-auto px-4 flex-grow w-full">
+  <main class="max-w-2xl mx-auto px-4 flex-grow w-full space-y-6">
     
     <!-- PAINEL PROPRIETÁRIA -->
-    <div id="view-proprietaria" style="display: block;" class="space-y-6">
+    <div id="view-proprietaria" class="space-y-6">
       
       <!-- Cadastrar Peça -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
-        <div class="flex justify-between items-center mb-3">
-          <h2 class="text-lg font-bold text-[#3D2314]">Cadastrar Peça no Estoque</h2>
-          <label class="cursor-pointer text-xs bg-[#D4AF37] text-[#2A180E] px-3 py-1.5 rounded-lg font-bold shadow">
-            📷 Câmera SKU
-            <input type="file" accept="image/*" capture="environment" class="hidden" onchange="lerCodigoBarrasCam(event)">
-          </label>
-        </div>
-
+        <h2 class="text-lg font-bold text-[#3D2314] mb-3">Cadastrar Peça no Estoque</h2>
         <form onsubmit="salvarProduto(event)" class="space-y-3">
           <div>
             <label class="block text-xs font-bold text-[#3D2314]">Código / SKU</label>
-            <input type="text" id="prod-codigo" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: 12345">
+            <input type="text" id="prod-codigo" required class="w-full p-3 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: 12345">
           </div>
           <div>
             <label class="block text-xs font-bold text-[#3D2314]">Nome da Peça</label>
-            <input type="text" id="prod-nome" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: Colar Coração Banhado">
+            <input type="text" id="prod-nome" required class="w-full p-3 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: Colar Coração Banhado">
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="block text-xs font-bold text-[#3D2314]">Custo (R$)</label>
-              <input type="number" step="0.01" id="prod-custo" class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="15.00">
+              <input type="number" step="0.01" id="prod-custo" class="w-full p-3 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="15.00">
             </div>
             <div>
               <label class="block text-xs font-bold text-[#3D2314]">Preço Venda (R$)</label>
-              <input type="number" step="0.01" id="prod-venda" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="35.00">
+              <input type="number" step="0.01" id="prod-venda" required class="w-full p-3 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="35.00">
             </div>
           </div>
           <div>
             <label class="block text-xs font-bold text-[#3D2314]">Estoque Inicial</label>
-            <input type="number" id="prod-estoque" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="10">
+            <input type="number" id="prod-estoque" required class="w-full p-3 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="10">
           </div>
-          <button type="submit" class="w-full bg-[#2A180E] text-[#D4AF37] font-bold py-2.5 rounded-lg border border-[#D4AF37]">
+          <button type="submit" class="w-full bg-[#2A180E] text-[#D4AF37] font-bold py-3 rounded-lg border border-[#D4AF37]">
             Salvar Peça no Estoque
           </button>
         </form>
@@ -86,82 +66,28 @@
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <h2 class="text-lg font-bold text-[#3D2314] mb-3">Cadastrar Revendedora</h2>
         <form onsubmit="salvarRevendedora(event)" class="space-y-3">
-          <input type="text" id="rev-cad-nome" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]" placeholder="Nome Completo">
+          <input type="text" id="rev-cad-nome" required class="w-full p-3 border rounded text-sm bg-[#F9F6F0]" placeholder="Nome Completo">
           <div class="grid grid-cols-2 gap-2">
-            <input type="text" id="rev-cad-cpf" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]" placeholder="CPF">
-            <input type="text" id="rev-cad-whats" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]" placeholder="WhatsApp">
+            <input type="text" id="rev-cad-cpf" required class="w-full p-3 border rounded text-sm bg-[#F9F6F0]" placeholder="CPF">
+            <input type="text" id="rev-cad-whats" required class="w-full p-3 border rounded text-sm bg-[#F9F6F0]" placeholder="WhatsApp">
           </div>
-          <button type="submit" class="w-full bg-[#3D2314] text-[#D4AF37] font-bold py-2 rounded text-xs">
+          <button type="submit" class="w-full bg-[#3D2314] text-[#D4AF37] font-bold py-3 rounded text-sm">
             Cadastrar Revendedora
-          </button>
-        </form>
-      </div>
-
-      <!-- Montar Maleta -->
-      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
-        <h2 class="text-lg font-bold text-[#3D2314] mb-3">Montar Maleta para Revendedora</h2>
-        <form onsubmit="finalizarMontagemMaleta(event)" class="space-y-3">
-          <input type="text" id="maleta-revendedora-nome" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Nome da Revendedora">
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-xs font-bold text-[#3D2314]">Data Entrega</label>
-              <input type="date" id="maleta-data-inicio" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-[#3D2314]">Data Final</label>
-              <input type="date" id="maleta-data-fim" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]">
-            </div>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-[#3D2314]">Comissão (%)</label>
-            <input type="number" id="maleta-comissao-pct" value="30" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]">
-          </div>
-
-          <div class="border-t pt-3">
-            <p class="text-xs font-bold text-[#3D2314] mb-2">Adicionar Peças na Maleta:</p>
-            <div class="grid grid-cols-3 gap-2 mb-2">
-              <input type="text" id="item-nome" placeholder="Peça/SKU" class="p-2 text-xs border rounded bg-[#F9F6F0]">
-              <input type="number" id="item-qtd" placeholder="Qtd" class="p-2 text-xs border rounded bg-[#F9F6F0]">
-              <input type="number" step="0.01" id="item-preco" placeholder="Valor Un" class="p-2 text-xs border rounded bg-[#F9F6F0]">
-            </div>
-            <button type="button" onclick="adicionarItemMaleta()" class="w-full bg-[#EFE6D8] text-[#3D2314] font-bold py-1.5 rounded text-xs">
-              + Incluir Peça na Maleta
-            </button>
-          </div>
-
-          <div id="lista-temp-maleta" class="bg-[#F9F6F0] p-2 rounded border text-xs space-y-1">
-            <p class="text-gray-500 text-center">Nenhuma peça adicionada ainda.</p>
-          </div>
-
-          <div class="text-right font-bold text-sm text-[#2A180E]">
-            Total da Maleta: R$ <span id="maleta-valor-total">0.00</span>
-          </div>
-
-          <input type="text" id="maleta-assinatura" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0] text-xs font-bold" placeholder="Digite o nome como assinatura digital">
-
-          <button type="submit" class="w-full bg-[#3D2314] text-[#D4AF37] font-bold py-2.5 rounded-lg border border-[#D4AF37]">
-            Entregar e Gravar Maleta
           </button>
         </form>
       </div>
 
       <!-- VISUALIZAR ESTOQUE GERAL -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
-        <div class="flex justify-between items-center mb-3">
-          <h3 class="font-bold text-[#3D2314] text-md">Estoque Geral Cadastrado</h3>
-          <button type="button" onclick="carregarEstoque()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
-        </div>
+        <h3 class="font-bold text-[#3D2314] text-md mb-2">Estoque Geral Cadastrado</h3>
         <div id="lista-estoque" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
-          <p class="text-gray-500 py-2 text-center">Nenhuma peça no estoque.</p>
+          <p class="text-gray-500 py-2 text-center">Nenhuma peça cadastrada.</p>
         </div>
       </div>
 
-      <!-- VISUALIZAR REVENDEDORAS CADASTRADAS -->
+      <!-- VISUALIZAR REVENDEDORAS -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
-        <div class="flex justify-between items-center mb-3">
-          <h3 class="font-bold text-[#3D2314] text-md">Revendedoras Cadastradas</h3>
-          <button type="button" onclick="carregarRevendedoras()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
-        </div>
+        <h3 class="font-bold text-[#3D2314] text-md mb-2">Revendedoras Cadastradas</h3>
         <div id="lista-revendedoras" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
           <p class="text-gray-500 py-2 text-center">Nenhuma revendedora cadastrada.</p>
         </div>
@@ -171,70 +97,29 @@
 
     <!-- APP REVENDEDORA -->
     <div id="view-revendedora" style="display: none;" class="space-y-6">
-      
       <div class="bg-[#2A180E] text-[#F9F6F0] p-4 rounded-xl shadow border border-[#D4AF37] space-y-3">
         <p class="text-xs text-[#D4AF37] font-bold">Identificação da Revendedora</p>
         <div class="flex gap-2">
-          <input type="text" id="rev-nome-input" class="w-full p-2 rounded text-[#2A180E] font-bold text-sm bg-white" placeholder="Digite seu Nome Cadastrado">
-          <button type="button" onclick="carregarMaletaRevendedora()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-4 py-2 rounded text-xs">Acessar</button>
+          <input type="text" id="rev-nome-input" class="w-full p-3 rounded text-[#2A180E] font-bold text-sm bg-white" placeholder="Digite seu Nome">
+          <button type="button" onclick="acessarAppRevendedora()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-4 py-3 rounded text-xs">Acessar</button>
         </div>
         <p id="rev-status-txt" class="text-xs text-yellow-300 font-bold hidden"></p>
       </div>
 
-      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8] space-y-3">
-        <h3 class="font-bold text-[#3D2314] text-md">Minha Maleta & Comissão</h3>
-        <div class="grid grid-cols-2 gap-2 bg-[#F9F6F0] p-3 rounded-lg text-xs border">
-          <div>
-            <span class="text-gray-500 block">Total Vendido:</span>
-            <span id="rev-total-vendido" class="font-bold text-green-700 text-sm">R$ 0,00</span>
-          </div>
-          <div>
-            <span class="text-gray-500 block">Minha Comissão:</span>
-            <span id="rev-minha-comissao" class="font-bold text-[#D4AF37] text-sm">R$ 0,00</span>
-          </div>
-        </div>
-        <div id="rev-pecas-lista" class="divide-y divide-[#EFE6D8] text-xs">
-          <p class="text-gray-500 text-center py-2">Digite seu nome para carregar.</p>
-        </div>
+      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
+        <h3 class="font-bold text-[#3D2314] text-md mb-2">Painel de Vendas da Revendedora</h3>
+        <p class="text-xs text-gray-600">Digite seu nome acima para verificar o acesso.</p>
       </div>
-
-      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8] space-y-3">
-        <h3 class="font-bold text-[#3D2314] text-md">Registrar Nova Venda</h3>
-        <form onsubmit="registrarVendaRevendedora(event)" class="space-y-2">
-          <input type="text" id="venda-peca" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]" placeholder="Nome da Peça Vendida">
-          <div class="grid grid-cols-2 gap-2">
-            <input type="number" id="venda-qtd" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]" placeholder="Quantidade">
-            <input type="number" step="0.01" id="venda-valor" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]" placeholder="Valor Total (R$)">
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-[#3D2314]">Data Nasc. Cliente:</label>
-            <input type="date" id="venda-cliente-nasc" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]">
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-[#3D2314]">Pagamento:</label>
-            <select id="venda-pagamento" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]">
-              <option value="PIX">Pix</option>
-              <option value="Débito">Débito</option>
-              <option value="Crédito">Crédito</option>
-            </select>
-          </div>
-          <button type="submit" class="w-full bg-green-700 text-white font-bold py-2.5 rounded text-xs shadow">
-            Confirmar Venda
-          </button>
-        </form>
-      </div>
-
     </div>
 
   </main>
 
-  <footer class="text-center py-4 text-xs text-gray-500 mt-auto">
+  <footer class="text-center py-6 text-xs text-gray-500 mt-auto">
     App criado por Julia Agda
   </footer>
 
   <script>
-    let itemsMaletaTemporaria = [];
-
+    // Função para Alternar Abas de forma totalmente segura e garantida
     function mudarModo(modo) {
       const prop = document.getElementById('view-proprietaria');
       const rev = document.getElementById('view-revendedora');
@@ -242,23 +127,30 @@
       const btnP = document.getElementById('btn-prop');
       const btnR = document.getElementById('btn-rev');
 
+      if (!prop || !rev) return;
+
       if (modo === 'proprietaria') {
         prop.style.display = 'block';
         rev.style.display = 'none';
         label.innerText = 'Painel Proprietária';
-        btnP.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]';
-        btnR.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]';
+        btnP.style.background = '#3D2314';
+        btnP.style.color = '#D4AF37';
+        btnR.style.background = '#EFE6D8';
+        btnR.style.color = '#3D2314';
         carregarEstoque();
         carregarRevendedoras();
       } else {
         prop.style.display = 'none';
         rev.style.display = 'block';
         label.innerText = 'App Revendedora';
-        btnR.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]';
-        btnP.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]';
+        btnR.style.background = '#3D2314';
+        btnR.style.color = '#D4AF37';
+        btnP.style.background = '#EFE6D8';
+        btnP.style.color = '#3D2314';
       }
     }
 
+    // Salvar Peça no Armazenamento Local
     function salvarProduto(e) {
       e.preventDefault();
       const codigo = document.getElementById('prod-codigo').value.trim();
@@ -268,7 +160,7 @@
       const estoque = parseInt(document.getElementById('prod-estoque').value);
 
       let produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
-      produtos.unshift({ codigo_barras: codigo, nome, preco_custo: custo, preco_venda: venda, estoque_geral: estoque });
+      produtos.unshift({ codigo_barras: codigo, nome, preco_venda: venda, estoque_geral: estoque });
       localStorage.setItem('agda_produtos', JSON.stringify(produtos));
 
       alert('Peça salva com sucesso!');
@@ -276,6 +168,7 @@
       carregarEstoque();
     }
 
+    // Salvar Revendedora no Armazenamento Local
     function salvarRevendedora(e) {
       e.preventDefault();
       const nome = document.getElementById('rev-cad-nome').value.trim();
@@ -291,8 +184,10 @@
       carregarRevendedoras();
     }
 
+    // Carregar Estoque na Tela
     function carregarEstoque() {
       const container = document.getElementById('lista-estoque');
+      if (!container) return;
       const produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
       if (produtos.length === 0) {
         container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhuma peça no estoque.</p>';
@@ -309,8 +204,10 @@
       `).join('');
     }
 
+    // Carregar Revendedoras na Tela
     function carregarRevendedoras() {
       const container = document.getElementById('lista-revendedoras');
+      if (!container) return;
       const revendedoras = JSON.parse(localStorage.getItem('agda_revendedoras') || '[]');
       if (revendedoras.length === 0) {
         container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhuma revendedora cadastrada.</p>';
@@ -326,76 +223,22 @@
       `).join('');
     }
 
-    function adicionarItemMaleta() {
-      const nome = document.getElementById('item-nome').value.trim();
-      const qtd = parseInt(document.getElementById('item-qtd').value);
-      const preco = parseFloat(document.getElementById('item-preco').value);
-
-      if (!nome || isNaN(qtd) || isNaN(preco)) {
-        alert('Preencha o nome, quantidade e preço da peça.');
-        return;
-      }
-
-      itemsMaletaTemporaria.push({ nome, qtd, preco, total: qtd * preco });
-      document.getElementById('item-nome').value = '';
-      document.getElementById('item-qtd').value = '';
-      document.getElementById('item-preco').value = '';
-      
-      const container = document.getElementById('lista-temp-maleta');
-      let valorTotal = 0;
-      container.innerHTML = itemsMaletaTemporaria.map((it) => {
-        valorTotal += it.total;
-        return `<div class="flex justify-between py-1 border-b">
-          <span><b>${it.qtd}x</b> ${it.nome}</span>
-          <span>R$ ${it.total.toFixed(2)}</span>
-        </div>`;
-      }).join('');
-      document.getElementById('maleta-valor-total').innerText = valorTotal.toFixed(2);
-    }
-
-    function finalizarMontagemMaleta(e) {
-      e.preventDefault();
-      if (itemsMaletaTemporaria.length === 0) {
-        alert('Adicione pelo menos uma peça na maleta!');
-        return;
-      }
-
-      const revNome = document.getElementById('maleta-revendedora-nome').value;
-      const dataInicio = document.getElementById('maleta-data-inicio').value;
-      const dataFim = document.getElementById('maleta-data-fim').value;
-      const comissaoPct = parseFloat(document.getElementById('maleta-comissao-pct').value);
-      const assinatura = document.getElementById('maleta-assinatura').value;
-      const valorTotal = parseFloat(document.getElementById('maleta-valor-total').innerText);
-
-      let maletas = JSON.parse(localStorage.getItem('agda_maletas') || '[]');
-      maletas.unshift({
-        revendedora_nome: revNome,
-        data_inicio: dataInicio,
-        data_fim: dataFim,
-        comissao_pct: comissaoPct,
-        assinatura,
-        valor_total: valorTotal,
-        items: itemsMaletaTemporaria,
-        status: 'ativa'
-      });
-      localStorage.setItem('agda_maletas', JSON.stringify(maletas));
-
-      alert('Maleta gravada com sucesso!');
-      itemsMaletaTemporaria = [];
-      document.getElementById('lista-temp-maleta').innerHTML = '<p class="text-gray-500 text-center">Nenhuma peça adicionada ainda.</p>';
-      document.getElementById('maleta-valor-total').innerText = '0.00';
-      e.target.reset();
-    }
-
-    function carregarMaletaRevendedora() {
+    function acessarAppRevendedora() {
       const nome = document.getElementById('rev-nome-input').value.trim();
       const statusTxt = document.getElementById('rev-status-txt');
       if (!nome) {
         alert('Digite o seu nome.');
         return;
       }
-      statusTxt.innerText = 'Buscando...';
+      statusTxt.innerText = 'Bem-vinda, ' + nome + '!';
       statusTxt.classList.remove('hidden');
+    }
 
-      const maletas = JSON.parse(localStorage.getItem('agda_maletas') || '[]');
-      const maleta = maletas.find(m => m.reve
+    // Executar ao carregar a página
+    window.onload = function() {
+      carregarEstoque();
+      carregarRevendedoras();
+    };
+  </script>
+</body>
+</html>
