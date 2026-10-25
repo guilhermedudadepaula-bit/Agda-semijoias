@@ -6,7 +6,6 @@
   <title>AGDA Semijoias</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Biblioteca Oficial do Supabase v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { background-color: #F9F6F0; color: #2A180E; font-family: sans-serif; }
@@ -38,13 +37,12 @@
     <!-- MÓDULO PROPRIETÁRIA -->
     <div id="view-proprietaria" class="space-y-6">
       
-      <!-- Formulário Novo Produto + Leitor / Câmara Nativa -->
+      <!-- Formulário Novo Produto + Câmara Nativa -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center justify-between">
           <span class="flex items-center gap-2">
             <i data-lucide="plus-circle" class="text-[#D4AF37]"></i> Cadastrar Peça
           </span>
-          <!-- Botão Nativo de Câmara do Telemóvel -->
           <label class="cursor-pointer text-xs bg-[#D4AF37] text-[#2A180E] px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow">
             <i data-lucide="camera" class="w-4 h-4"></i> Abrir Câmara
             <input type="file" accept="image/*" capture="environment" class="hidden" onchange="lerCodigoComCamera(event)">
@@ -54,7 +52,7 @@
         <form id="form-produto" onsubmit="salvarProduto(event)" class="space-y-3">
           <div>
             <label class="block text-xs font-bold text-[#3D2314]">Código de Barras / SKU (Tiny)</label>
-            <input type="text" id="prod-codigo" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Digite ou escaneie o código">
+            <input type="text" id="prod-codigo" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Escaneie ou digite o código">
           </div>
           <div>
             <label class="block text-xs font-bold text-[#3D2314]">Nome do Produto</label>
@@ -117,10 +115,10 @@
   </main>
 
   <script>
-    // Inicialização correta com o SDK oficial do Supabase v2
+    // Insira abaixo a sua chave legacy anon que começa com eyJ...
     const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_XcogKbHnk59a9knNworgeg_DJlow';
-    
+    const SUPABASE_KEY = 'COLE_AQUI_A_SUA_CHAVE_EYJ';
+
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     if (window.lucide) {
@@ -130,7 +128,7 @@
     function lerCodigoComCamera(event) {
       const file = event.target.files[0];
       if (file) {
-        alert("Câmara acionada com sucesso! Insira o código da etiqueta correspondente no campo SKU se necessário.");
+        alert("Câmara acionada com sucesso! Digite ou confirme o código da peça no campo SKU.");
       }
     }
 
@@ -246,7 +244,6 @@
       win.document.close();
     }
 
-    // Carregar estoque ao iniciar
     carregarProdutos();
   </script>
 </body>
