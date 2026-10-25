@@ -11,6 +11,7 @@
   <meta name="apple-mobile-web-app-title" content="AGDA">
   
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { background-color: #F9F6F0; color: #2A180E; font-family: sans-serif; }
@@ -45,17 +46,36 @@
     <!-- PAINEL PROPRIETÁRIA -->
     <div id="view-proprietaria" style="display: block;" class="space-y-6">
       
-      <!-- Cadastrar Peça -->
+      <!-- Cadastrar Peça com Excel / Tiny -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
-        <h2 class="text-lg font-bold text-[#3D2314] mb-3">Cadastrar Peça no Estoque</h2>
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-lg font-bold text-[#3D2314] flex items-center gap-2">
+            <i data-lucide="plus-circle" class="text-[#D4AF37]"></i> Cadastrar Peça / Planilha Tiny
+          </h2>
+          <label class="cursor-pointer text-xs bg-[#D4AF37] text-[#2A180E] px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow">
+            <i data-lucide="camera" class="w-4 h-4"></i> Câmera SKU
+            <input type="file" accept="image/*" capture="environment" class="hidden" onchange="lerCodigoBarrasCam(event)">
+          </label>
+        </div>
+
+        <div class="flex gap-2 mb-3">
+          <label class="flex-1 bg-[#3D2314] text-[#D4AF37] text-xs font-bold py-2 px-3 rounded text-center cursor-pointer border border-[#D4AF37]">
+            📂 Importar Planilha (CSV)
+            <input type="file" accept=".csv" class="hidden" onchange="importarPlanilhaTiny(event)">
+          </label>
+          <button type="button" onclick="exportarPlanilhaTiny()" class="flex-1 bg-[#EFE6D8] text-[#3D2314] text-xs font-bold py-2 px-3 rounded border border-[#3D2314]">
+            📥 Exportar Estoque CSV
+          </button>
+        </div>
+
         <form id="form-produto" onsubmit="salvarProduto(event)" class="space-y-3">
           <div>
             <label class="block text-xs font-bold text-[#3D2314]">Código / SKU</label>
-            <input type="text" id="prod-codigo" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: 123456">
+            <input type="text" id="prod-codigo" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Digite ou escaneie">
           </div>
           <div>
             <label class="block text-xs font-bold text-[#3D2314]">Nome da Peça</label>
-            <input type="text" id="prod-nome" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: Anel Solitário">
+            <input type="text" id="prod-nome" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: Colar Coração Banhado">
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
@@ -79,7 +99,9 @@
 
       <!-- Cadastrar Revendedora -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
-        <h2 class="text-lg font-bold text-[#3D2314] mb-3">Cadastrar Revendedora</h2>
+        <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center gap-2">
+          <i data-lucide="user-plus" class="text-[#D4AF37]"></i> Cadastrar Revendedora
+        </h2>
         <form id="form-revendedora" onsubmit="salvarRevendedora(event)" class="space-y-3">
           <input type="text" id="rev-cad-nome" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]" placeholder="Nome Completo">
           <div class="grid grid-cols-2 gap-2">
@@ -95,7 +117,9 @@
       <!-- VISUALIZAR ESTOQUE GERAL -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <div class="flex justify-between items-center mb-3">
-          <h3 class="font-bold text-[#3D2314] text-md">Estoque Geral Cadastrado</h3>
+          <h3 class="font-bold text-[#3D2314] text-md flex items-center gap-1">
+            <i data-lucide="box" class="w-4 h-4 text-[#D4AF37]"></i> Estoque Geral Cadastrado
+          </h3>
           <button type="button" onclick="carregarEstoque()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
         </div>
         <div id="lista-estoque" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
@@ -106,7 +130,9 @@
       <!-- VISUALIZAR REVENDEDORAS CADASTRADAS -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <div class="flex justify-between items-center mb-3">
-          <h3 class="font-bold text-[#3D2314] text-md">Revendedoras Cadastradas</h3>
+          <h3 class="font-bold text-[#3D2314] text-md flex items-center gap-1">
+            <i data-lucide="users" class="w-4 h-4 text-[#D4AF37]"></i> Revendedoras Cadastradas
+          </h3>
           <button type="button" onclick="carregarRevendedoras()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
         </div>
         <div id="lista-revendedoras" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
@@ -118,19 +144,59 @@
 
     <!-- APP REVENDEDORA -->
     <div id="view-revendedora" style="display: none;" class="space-y-6">
+      
       <div class="bg-[#2A180E] text-[#F9F6F0] p-4 rounded-xl shadow border border-[#D4AF37] space-y-3">
         <p class="text-xs text-[#D4AF37] font-bold">Identificação da Revendedora</p>
         <div class="flex gap-2">
           <input type="text" id="rev-nome-input" class="w-full p-2 rounded text-[#2A180E] font-bold text-sm bg-white" placeholder="Digite seu Nome Cadastrado">
-          <button type="button" onclick="acessarRevendedora()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-4 py-2 rounded text-xs">Acessar</button>
+          <button type="button" onclick="carregarMaletaRevendedora()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-4 py-2 rounded text-xs">Acessar</button>
         </div>
         <p id="rev-status-txt" class="text-xs text-yellow-300 font-bold hidden"></p>
       </div>
 
-      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
-        <h3 class="font-bold text-[#3D2314] text-md mb-2">Painel da Revendedora Ativa</h3>
-        <p class="text-xs text-gray-600">Digite seu nome acima para verificar suas comissões e vendas.</p>
+      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8] space-y-3">
+        <h3 class="font-bold text-[#3D2314] text-md">Minha Maleta & Comissão</h3>
+        <div class="grid grid-cols-2 gap-2 bg-[#F9F6F0] p-3 rounded-lg text-xs border">
+          <div>
+            <span class="text-gray-500 block">Total Vendido:</span>
+            <span id="rev-total-vendido" class="font-bold text-green-700 text-sm">R$ 0,00</span>
+          </div>
+          <div>
+            <span class="text-gray-500 block">Minha Comissão:</span>
+            <span id="rev-minha-comissao" class="font-bold text-[#D4AF37] text-sm">R$ 0,00</span>
+          </div>
+        </div>
+        <div id="rev-pecas-lista" class="divide-y divide-[#EFE6D8] text-xs">
+          <p class="text-gray-500 text-center py-2">Digite seu nome acima para carregar as suas peças.</p>
+        </div>
       </div>
+
+      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8] space-y-3">
+        <h3 class="font-bold text-[#3D2314] text-md">Registrar Nova Venda</h3>
+        <form onsubmit="registrarVendaRevendedora(event)" class="space-y-2">
+          <input type="text" id="venda-peca" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]" placeholder="Nome da Peça Vendida">
+          <div class="grid grid-cols-2 gap-2">
+            <input type="number" id="venda-qtd" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]" placeholder="Quantidade">
+            <input type="number" step="0.01" id="venda-valor" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]" placeholder="Valor Total (R$)">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-[#3D2314]">Data Nasc. da Cliente:</label>
+            <input type="date" id="venda-cliente-nasc" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-[#3D2314]">Forma de Pagamento:</label>
+            <select id="venda-pagamento" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]">
+              <option value="PIX">Pix</option>
+              <option value="Débito">Cartão de Débito</option>
+              <option value="Crédito">Cartão de Crédito</option>
+            </select>
+          </div>
+          <button type="submit" class="w-full bg-green-700 text-white font-bold py-2.5 rounded text-xs shadow">
+            Confirmar Venda e Calcular Comissão
+          </button>
+        </form>
+      </div>
+
     </div>
 
   </main>
@@ -151,6 +217,10 @@
     } catch (err) {
       console.error("Erro Supabase:", err);
     }
+
+    try {
+      if (window.lucide) lucide.createIcons();
+    } catch(e) {}
 
     function mudarModo(modo) {
       const prop = document.getElementById('view-proprietaria');
@@ -275,24 +345,73 @@
       }
     }
 
-    function acessarRevendedora() {
+    async function carregarMaletaRevendedora() {
       const nome = document.getElementById('rev-nome-input').value.trim();
       const statusTxt = document.getElementById('rev-status-txt');
-      if (!nome) {
-        alert('Digite o seu nome cadastrado.');
+      if (!nome || !_supabase) {
+        alert('Digite o seu nome.');
         return;
       }
-      statusTxt.innerText = 'Bem-vinda, ' + nome + '!';
+      statusTxt.innerText = 'Buscando dados...';
       statusTxt.classList.remove('hidden');
+
+      try {
+        const { data: maletas } = await _supabase.from('maletas').select('*').eq('revendedora_nome', nome).eq('status', 'ativa');
+        const listContainer = document.getElementById('rev-pecas-lista');
+        
+        if (!maletas || maletas.length === 0) {
+          statusTxt.innerText = 'Bem-vinda, ' + nome + ' (Sem maleta ativa)';
+          listContainer.innerHTML = '<p class="text-gray-500 text-center py-2">Nenhuma maleta ativa no momento.</p>';
+          return;
+        }
+
+        const maleta = maletas[0];
+        statusTxt.innerText = `Maleta Ativa - Comissão: ${maleta.comissao_pct}%`;
+
+        if (maleta.items && maleta.items.length > 0) {
+          listContainer.innerHTML = maleta.items.map(it => `
+            <div class="py-2 flex justify-between items-center">
+              <div>
+                <b class="text-[#3D2314]">${it.nome}</b>
+                <span class="text-gray-500 block">Qtd: ${it.qtd}</span>
+              </div>
+              <span class="font-bold text-[#2A180E]">R$ ${it.preco.toFixed(2)} un</span>
+            </div>
+          `).join('');
+        }
+
+        const { data: vendas } = await _supabase.from('vendas').select('*').eq('revendedora_nome', nome);
+        let totalVendido = 0;
+        if (vendas) totalVendido = vendas.reduce((acc, curr) => acc + curr.valor_total, 0);
+        const comissao = totalVendido * (maleta.comissao_pct / 100);
+
+        document.getElementById('rev-total-vendido').innerText = 'R$ ' + totalVendido.toFixed(2);
+        document.getElementById('rev-minha-comissao').innerText = 'R$ ' + comissao.toFixed(2);
+      } catch (e) {
+        statusTxt.innerText = 'Erro ao carregar dados.';
+      }
     }
 
-    function instalarAppPWA() {
-      alert("Para instalar o app no telemóvel:\n\n1. No Android (Chrome): Toque nos 3 pontinhos verticais no canto superior direito e selecione 'Adicionar à tela inicial' ou 'Instalar aplicativo'.\n2. No iPhone (Safari): Toque no ícone de compartilhamento e selecione 'Adicionar à Tela de Início'.");
-    }
+    async function registrarVendaRevendedora(e) {
+      e.preventDefault();
+      const nomeRev = document.getElementById('rev-nome-input').value.trim();
+      if (!nomeRev || !_supabase) {
+        alert('Digite seu nome no topo e clique em Acessar.');
+        return;
+      }
+      const peca = document.getElementById('venda-peca').value;
+      const qtd = parseInt(document.getElementById('venda-qtd').value);
+      const valor = parseFloat(document.getElementById('venda-valor').value);
+      const clienteNasc = document.getElementById('venda-cliente-nasc').value;
+      const pagamento = document.getElementById('venda-pagamento').value;
 
-    window.addEventListener('DOMContentLoaded', () => {
-      mudarModo('proprietaria');
-    });
-  </script>
-</body>
-</html>
+      const { error } = await _supabase.from('vendas').insert([{
+        revendedora_nome: nomeRev,
+        peca_nome: peca,
+        quantidade: qtd,
+        valor_total: valor,
+        cliente_nascimento: clienteNasc,
+        forma_pagamento: pagamento
+      }]);
+
+      if (error) {
