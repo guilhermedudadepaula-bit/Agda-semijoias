@@ -209,7 +209,7 @@
           <button type="button" onclick="carregarVendasMaster()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
         </div>
         <div id="lista-vendas-master" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
-          <p class="text-gray-500 py-2 text-center">Carregando vendas...</p>
+          <p class="text-gray-500 py-2 text-center">Nenhuma venda encontrada.</p>
         </div>
       </div>
 
@@ -236,7 +236,7 @@
           <button type="button" onclick="carregarEstoque()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
         </div>
         <div id="lista-estoque" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
-          <p class="text-gray-500 py-2 text-center">Carregando estoque...</p>
+          <p class="text-gray-500 py-2 text-center">Nenhuma peça cadastrada.</p>
         </div>
       </div>
 
@@ -249,14 +249,14 @@
           <button type="button" onclick="carregarRevendedoras()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
         </div>
         <div id="lista-revendedoras" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
-          <p class="text-gray-500 py-2 text-center">Carregando revendedoras...</p>
+          <p class="text-gray-500 py-2 text-center">Nenhuma revendedora cadastrada.</p>
         </div>
       </div>
 
     </div>
 
     <!-- APP REVENDEDORA -->
-    <div id="view-revendedora" class="hidden space-y-6">
+    <div id="view-revendedora" style="display: none;" class="space-y-6">
       
       <!-- Login / Identificação -->
       <div class="bg-[#2A180E] text-[#F9F6F0] p-4 rounded-xl shadow border border-[#D4AF37] space-y-3">
@@ -358,5 +358,4 @@
     let itemsMaletaTemporaria = [];
 
     async function importarPlanilhaTiny(e) {
-      const file = e.target.files[0];
-      if (!file)
+      const file = e.targe
