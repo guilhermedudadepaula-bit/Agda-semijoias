@@ -2,22 +2,22 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>AGDA Semijoias</title>
-
+  
   <meta name="theme-color" content="#2A180E">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="AGDA">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background-color: #F9F6F0; color: #2A180E; font-family: sans-serif; }
-    button, label, input, select { touch-action: manipulation; }
+    body { background-color: #F9F6F0; color: #2A180E; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
+    button, input, select, label { touch-action: manipulation; }
   </style>
 </head>
 <body class="pb-10 flex flex-col min-h-screen">
 
+  <!-- CABEÇALHO -->
   <header class="bg-[#2A180E] text-[#F9F6F0] p-4 shadow-md flex justify-between items-center border-b-2 border-[#D4AF37]">
     <div class="flex items-center gap-2">
       <div class="w-8 h-8 rounded-full bg-[#D4AF37] flex items-center justify-center text-[#2A180E] font-bold">A</div>
@@ -26,16 +26,18 @@
     <span id="mod-label" class="text-xs bg-[#3D2314] px-2 py-1 rounded text-[#EFE6D8] border border-[#D4AF37]">Painel Proprietária</span>
   </header>
 
+  <!-- BANNER INSTALAÇÃO -->
   <div class="bg-[#3D2314] text-[#F9F6F0] p-3 text-center text-xs flex justify-between items-center px-4 border-b border-[#D4AF37]">
     <span>💡 Instalar o app no telemóvel?</span>
-    <button type="button" onclick="instalarAppPWA()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded shadow cursor-pointer">Instalar App</button>
+    <button type="button" onclick="instalarAppPWA()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded shadow">Instalar App</button>
   </div>
 
+  <!-- NAVEGAÇÃO ENTRE PAINÉIS -->
   <div class="p-4 max-w-2xl mx-auto flex gap-2 w-full">
-    <button type="button" onclick="mudarModo('proprietaria')" id="btn-prop" class="flex-1 py-2.5 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37] cursor-pointer">
+    <button type="button" onclick="mudarModo('proprietaria')" id="btn-prop" class="flex-1 py-3 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]">
       Painel Proprietária
     </button>
-    <button type="button" onclick="mudarModo('revendedora')" id="btn-rev" class="flex-1 py-2.5 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314] cursor-pointer">
+    <button type="button" onclick="mudarModo('revendedora')" id="btn-rev" class="flex-1 py-3 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]">
       App Revendedora
     </button>
   </div>
@@ -43,13 +45,13 @@
   <main class="max-w-2xl mx-auto px-4 flex-grow w-full space-y-6">
     
     <!-- PAINEL PROPRIETÁRIA -->
-    <div id="view-proprietaria" style="display: block;" class="space-y-6">
+    <div id="view-proprietaria" class="space-y-6" style="display: block;">
       
-      <!-- Cadastrar Peça com Câmera e Planilha -->
+      <!-- CADASTRAR PEÇA / TINY -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <div class="flex justify-between items-center mb-3">
           <h2 class="text-lg font-bold text-[#3D2314]">Cadastrar Peça / Planilha Tiny</h2>
-          <label class="cursor-pointer text-xs bg-[#D4AF37] text-[#2A180E] px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow">
+          <label class="cursor-pointer text-xs bg-[#D4AF37] text-[#2A180E] px-3 py-1.5 rounded-lg font-bold shadow">
             📷 Câmera SKU
             <input type="file" accept="image/*" capture="environment" class="hidden" onchange="lerCodigoBarrasCam(event)">
           </label>
@@ -60,7 +62,7 @@
             📂 Importar CSV
             <input type="file" accept=".csv" class="hidden" onchange="importarPlanilhaCSV(event)">
           </label>
-          <button type="button" onclick="exportarPlanilhaCSV()" class="flex-1 bg-[#EFE6D8] text-[#3D2314] text-xs font-bold py-2 px-3 rounded border border-[#3D2314] cursor-pointer">
+          <button type="button" onclick="exportarPlanilhaCSV()" class="flex-1 bg-[#EFE6D8] text-[#3D2314] text-xs font-bold py-2 px-3 rounded border border-[#3D2314]">
             📥 Exportar CSV
           </button>
         </div>
@@ -68,7 +70,7 @@
         <form onsubmit="salvarProduto(event)" class="space-y-3">
           <div>
             <label class="block text-xs font-bold text-[#3D2314]">Código / SKU</label>
-            <input type="text" id="prod-codigo" required class="w-full p-2.5 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Digite ou escaneie">
+            <input type="text" id="prod-codigo" required class="w-full p-2.5 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: 12345">
           </div>
           <div>
             <label class="block text-xs font-bold text-[#3D2314]">Nome da Peça</label>
@@ -88,13 +90,13 @@
             <label class="block text-xs font-bold text-[#3D2314]">Estoque Inicial</label>
             <input type="number" id="prod-estoque" required class="w-full p-2.5 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="10">
           </div>
-          <button type="submit" class="w-full bg-[#2A180E] text-[#D4AF37] font-bold py-2.5 rounded-lg border border-[#D4AF37] cursor-pointer">
+          <button type="submit" class="w-full bg-[#2A180E] text-[#D4AF37] font-bold py-3 rounded-lg border border-[#D4AF37]">
             Salvar Peça no Estoque
           </button>
         </form>
       </div>
 
-      <!-- Cadastrar Revendedora -->
+      <!-- CADASTRAR REVENDEDORA -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <h2 class="text-lg font-bold text-[#3D2314] mb-3">Cadastrar Revendedora</h2>
         <form onsubmit="salvarRevendedora(event)" class="space-y-3">
@@ -103,33 +105,33 @@
             <input type="text" id="rev-cad-cpf" required class="w-full p-2.5 border rounded text-xs bg-[#F9F6F0]" placeholder="CPF">
             <input type="text" id="rev-cad-whats" required class="w-full p-2.5 border rounded text-xs bg-[#F9F6F0]" placeholder="WhatsApp">
           </div>
-          <button type="submit" class="w-full bg-[#3D2314] text-[#D4AF37] font-bold py-2.5 rounded text-xs cursor-pointer">
+          <button type="submit" class="w-full bg-[#3D2314] text-[#D4AF37] font-bold py-3 rounded text-xs">
             Cadastrar Revendedora
           </button>
         </form>
       </div>
 
-      <!-- Montar Maleta -->
+      <!-- MONTAR MALETA (LEITOR SKU) -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <h2 class="text-lg font-bold text-[#3D2314] mb-3">Montar Maleta (Com Leitor SKU)</h2>
         <form onsubmit="finalizarMontagemMaleta(event)" class="space-y-3">
           <div>
             <label class="block text-xs font-bold text-[#3D2314]">Nome da Revendedora</label>
-            <input type="text" id="maleta-revendedora-nome" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: Tais Silva">
+            <input type="text" id="maleta-revendedora-nome" required class="w-full p-2.5 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: Tais Silva">
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="block text-xs font-bold text-[#3D2314]">Data de Entrega</label>
-              <input type="date" id="maleta-data-inicio" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]">
+              <input type="date" id="maleta-data-inicio" required class="w-full p-2.5 border rounded border-[#EFE6D8] bg-[#F9F6F0]">
             </div>
             <div>
               <label class="block text-xs font-bold text-[#3D2314]">Finalização da Coleção</label>
-              <input type="date" id="maleta-data-fim" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]">
+              <input type="date" id="maleta-data-fim" required class="w-full p-2.5 border rounded border-[#EFE6D8] bg-[#F9F6F0]">
             </div>
           </div>
           <div>
-            <label class="block text-xs font-bold text-[#3D2314]">Comissão (%)</label>
-            <input type="number" id="maleta-comissao-pct" value="30" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: 30">
+            <label class="block text-xs font-bold text-[#3D2314]">Porcentagem de Comissão (%)</label>
+            <input type="number" id="maleta-comissao-pct" value="30" required class="w-full p-2.5 border rounded border-[#EFE6D8] bg-[#F9F6F0]">
           </div>
 
           <div class="border-t border-[#EFE6D8] pt-3">
@@ -145,7 +147,7 @@
               <input type="number" id="item-qtd" placeholder="Qtd" class="p-2 text-xs border rounded bg-[#F9F6F0]">
               <input type="number" step="0.01" id="item-preco" placeholder="Valor Un" class="p-2 text-xs border rounded bg-[#F9F6F0]">
             </div>
-            <button type="button" onclick="adicionarItemMaletaLista()" class="w-full bg-[#EFE6D8] text-[#3D2314] font-bold py-1.5 rounded text-xs cursor-pointer">
+            <button type="button" onclick="adicionarItemMaletaLista()" class="w-full bg-[#EFE6D8] text-[#3D2314] font-bold py-2 rounded text-xs">
               + Incluir Peça na Maleta
             </button>
           </div>
@@ -163,32 +165,32 @@
             <div id="texto-termo-preview" class="bg-[#F9F6F0] p-2 text-xs rounded text-gray-700 italic border mb-2">
               Preencha os dados acima para gerar o termo automático.
             </div>
-            <input type="text" id="maleta-assinatura" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0] text-xs font-bold" placeholder="Digite o nome completo da revendedora como assinatura">
+            <input type="text" id="maleta-assinatura" required class="w-full p-2.5 border rounded border-[#EFE6D8] bg-[#F9F6F0] text-xs font-bold" placeholder="Digite o nome completo da revendedora como assinatura">
           </div>
 
-          <button type="submit" class="w-full bg-[#3D2314] text-[#D4AF37] font-bold py-2.5 rounded-lg border border-[#D4AF37] cursor-pointer">
+          <button type="submit" class="w-full bg-[#3D2314] text-[#D4AF37] font-bold py-3 rounded-lg border border-[#D4AF37]">
             Entregar e Gravar Maleta
           </button>
         </form>
       </div>
 
-      <!-- ACOMPANHAR VENDAS EM TEMPO REAL -->
+      <!-- ACOMPANHAR VENDAS -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <div class="flex justify-between items-center mb-3">
           <h3 class="font-bold text-[#3D2314] text-md">Acompanhar Vendas (Tempo Real)</h3>
-          <button type="button" onclick="carregarVendasMaster()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded cursor-pointer">Atualizar</button>
+          <button type="button" onclick="carregarVendasMaster()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
         </div>
         <div id="lista-vendas-master" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
           <p class="text-gray-500 py-2 text-center">Nenhuma venda registrada ainda.</p>
         </div>
       </div>
 
-      <!-- FECHAMENTO DE CICLO (MASTER) -->
+      <!-- FECHAMENTO DE CICLO MASTER -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <h3 class="font-bold text-[#3D2314] text-md mb-2">Fechamento de Ciclo (Acerto Master)</h3>
         <div class="space-y-2">
-          <input type="text" id="acerto-rev-nome" placeholder="Nome da Revendedora para Fechamento" class="w-full p-2 border rounded text-xs bg-[#F9F6F0]">
-          <button type="button" onclick="realizarFechamentoMaster()" class="w-full bg-[#3D2314] text-[#D4AF37] font-bold py-2 rounded text-xs cursor-pointer">
+          <input type="text" id="acerto-rev-nome" placeholder="Nome da Revendedora para Fechamento" class="w-full p-2.5 border rounded text-xs bg-[#F9F6F0]">
+          <button type="button" onclick="realizarFechamentoMaster()" class="w-full bg-[#3D2314] text-[#D4AF37] font-bold py-2.5 rounded text-xs">
             Gerar Prestação de Contas / Fechamento
           </button>
           <div id="resultado-fechamento-master" class="bg-[#F9F6F0] p-3 rounded text-xs border hidden"></div>
@@ -199,7 +201,7 @@
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <div class="flex justify-between items-center mb-3">
           <h3 class="font-bold text-[#3D2314] text-md">Estoque Geral Cadastrado</h3>
-          <button type="button" onclick="carregarEstoque()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded cursor-pointer">Atualizar</button>
+          <button type="button" onclick="carregarEstoque()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
         </div>
         <div id="lista-estoque" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
           <p class="text-gray-500 py-2 text-center">Nenhuma peça cadastrada.</p>
@@ -210,7 +212,7 @@
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <div class="flex justify-between items-center mb-3">
           <h3 class="font-bold text-[#3D2314] text-md">Revendedoras Cadastradas</h3>
-          <button type="button" onclick="carregarRevendedoras()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded cursor-pointer">Atualizar</button>
+          <button type="button" onclick="carregarRevendedoras()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
         </div>
         <div id="lista-revendedoras" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
           <p class="text-gray-500 py-2 text-center">Nenhuma revendedora cadastrada.</p>
@@ -220,13 +222,13 @@
     </div>
 
     <!-- APP REVENDEDORA -->
-    <div id="view-revendedora" style="display: none;" class="space-y-6">
+    <div id="view-revendedora" class="space-y-6" style="display: none;">
       
       <div class="bg-[#2A180E] text-[#F9F6F0] p-4 rounded-xl shadow border border-[#D4AF37] space-y-3">
         <p class="text-xs text-[#D4AF37] font-bold">Identificação da Revendedora</p>
         <div class="flex gap-2">
-          <input type="text" id="rev-nome-input" class="w-full p-2 rounded text-[#2A180E] font-bold text-sm bg-white" placeholder="Digite seu Nome Cadastrado">
-          <button type="button" onclick="carregarMaletaRevendedora()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-4 py-2 rounded text-xs cursor-pointer">Acessar</button>
+          <input type="text" id="rev-nome-input" class="w-full p-2.5 rounded text-[#2A180E] font-bold text-sm bg-white" placeholder="Digite seu Nome Cadastrado">
+          <button type="button" onclick="carregarMaletaRevendedora()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-4 py-2 rounded text-xs">Acessar</button>
         </div>
         <p id="rev-status-txt" class="text-xs text-yellow-300 font-bold hidden"></p>
       </div>
@@ -249,26 +251,26 @@
       </div>
 
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8] space-y-3">
-        <h3 class="font-bold text-[#3D2314] text-md">Registrar Nova Venda</h3>
+        <h3 class="font-bold text-[#3D2314] text-md text-green-700">Registrar Nova Venda</h3>
         <form onsubmit="registrarVendaRevendedora(event)" class="space-y-2">
-          <input type="text" id="venda-peca" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]" placeholder="Nome da Peça Vendida">
+          <input type="text" id="venda-peca" required class="w-full p-2.5 border rounded text-xs bg-[#F9F6F0]" placeholder="Nome da Peça Vendida">
           <div class="grid grid-cols-2 gap-2">
-            <input type="number" id="venda-qtd" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]" placeholder="Quantidade">
-            <input type="number" step="0.01" id="venda-valor" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]" placeholder="Valor Total (R$)">
+            <input type="number" id="venda-qtd" required class="w-full p-2.5 border rounded text-xs bg-[#F9F6F0]" placeholder="Quantidade">
+            <input type="number" step="0.01" id="venda-valor" required class="w-full p-2.5 border rounded text-xs bg-[#F9F6F0]" placeholder="Valor Total (R$)">
           </div>
           <div>
             <label class="block text-[10px] font-bold text-[#3D2314]">Data Nasc. Cliente:</label>
-            <input type="date" id="venda-cliente-nasc" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]">
+            <input type="date" id="venda-cliente-nasc" required class="w-full p-2.5 border rounded text-xs bg-[#F9F6F0]">
           </div>
           <div>
             <label class="block text-[10px] font-bold text-[#3D2314]">Pagamento:</label>
-            <select id="venda-pagamento" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]">
+            <select id="venda-pagamento" required class="w-full p-2.5 border rounded text-xs bg-[#F9F6F0]">
               <option value="PIX">Pix</option>
               <option value="Débito">Débito</option>
               <option value="Crédito">Crédito</option>
             </select>
           </div>
-          <button type="submit" class="w-full bg-green-700 text-white font-bold py-2.5 rounded text-xs shadow cursor-pointer">
+          <button type="submit" class="w-full bg-green-700 text-white font-bold py-3 rounded text-xs shadow">
             Confirmar Venda
           </button>
         </form>
@@ -276,7 +278,7 @@
 
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <h3 class="font-bold text-[#3D2314] text-md mb-2">Meu Fechamento de Ciclo</h3>
-        <button type="button" onclick="realizarFechamentoRevendedora()" class="w-full bg-[#3D2314] text-[#D4AF37] font-bold py-2 rounded text-xs cursor-pointer">
+        <button type="button" onclick="realizarFechamentoRevendedora()" class="w-full bg-[#3D2314] text-[#D4AF37] font-bold py-2.5 rounded text-xs">
           Ver Resumo do Meu Acerto
         </button>
         <div id="resultado-fechamento-rev" class="bg-[#F9F6F0] p-3 rounded text-xs border mt-2 hidden"></div>
@@ -293,14 +295,13 @@
   <script>
     let itemsMaletaTemporaria = [];
 
+    // Mudar Abas
     function mudarModo(modo) {
       const prop = document.getElementById('view-proprietaria');
       const rev = document.getElementById('view-revendedora');
       const label = document.getElementById('mod-label');
       const btnP = document.getElementById('btn-prop');
       const btnR = document.getElementById('btn-rev');
-
-      if (!prop || !rev) return;
 
       if (modo === 'proprietaria') {
         prop.style.display = 'block';
@@ -324,6 +325,7 @@
       }
     }
 
+    // Salvar Peça
     function salvarProduto(e) {
       e.preventDefault();
       const codigo = document.getElementById('prod-codigo').value.trim();
@@ -336,11 +338,12 @@
       produtos.unshift({ codigo_barras: codigo, nome, preco_custo: custo, preco_venda: venda, estoque_geral: estoque });
       localStorage.setItem('agda_produtos', JSON.stringify(produtos));
 
-      alert('Peça salva com sucesso!');
+      alert('Peça salva no estoque!');
       e.target.reset();
       carregarEstoque();
     }
 
+    // Salvar Revendedora
     function salvarRevendedora(e) {
       e.preventDefault();
       const nome = document.getElementById('rev-cad-nome').value.trim();
@@ -351,11 +354,12 @@
       revendedoras.unshift({ nome, cpf, whatsapp: whats });
       localStorage.setItem('agda_revendedoras', JSON.stringify(revendedoras));
 
-      alert('Revendedora cadastrada com sucesso!');
+      alert('Revendedora cadastrada!');
       e.target.reset();
       carregarRevendedoras();
     }
 
+    // Carregar Listas
     function carregarEstoque() {
       const container = document.getElementById('lista-estoque');
       if (!container) return;
@@ -365,9 +369,14 @@
         return;
       }
       container.innerHTML = produtos.map(p => `
-        <div class="py-2 flex justify-between items-center">
+        <div class="py-2 flex justify-between items-center border-b">
           <div>
             <span class="font-bold text-[#3D2314]">${p.nome}</span>
             <span class="text-gray-500 block">Cód: ${p.codigo_barras} | Qtd: ${p.estoque_geral}</span>
           </div>
-          <span class="font-b
+          <span class="font-bold text-[#2A180E]">R$ ${parseFloat(p.preco_venda).toFixed(2)}</span>
+        </div>
+      `).join('');
+    }
+
+    functi
