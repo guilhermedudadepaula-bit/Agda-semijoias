@@ -142,12 +142,12 @@
 
   <script>
     const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
-    // Certifique-se de usar a chave pública 'anon' do seu Supabase aqui:
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZXR5c3l6ZGpjZmFudnRhZXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyMzg2Mzh9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
+    // Coloque aqui a sua chave pública 'anon' real do Supabase:
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZXR5c3l6ZGpjZmFudnRhZXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5MjM4MTYsImV4cCI6MjEwODQ5OTgxNn0.wx9a9lJdKF3-LAWRrREO1f97FnyUESSq8q8FbC_T81s';
 
     let _supabase = null;
     try {
-      if (window.supabase && SUPABASE_KEY) {
+      if (window.supabase && SUPABASE_KEY && !SUPABASE_KEY.includes('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZXR5c3l6ZGpjZmFudnRhZXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5MjM4MTYsImV4cCI6MjEwODQ5OTgxNn0.wx9a9lJdKF3-LAWRrREO1f97FnyUESSq8q8FbC_T81s')) {
         _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       }
     } catch (err) {
@@ -159,6 +159,24 @@
         lucide.createIcons();
       }
     } catch(e) {}
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+
+    async function instalarAppPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          deferredPrompt = null;
+        }
+      } else {
+        alert("Para instalar no telemóvel:\n\n1. No Android (Chrome): Toque nos 3 pontos verticais (canto superior direito) e selecione 'Adicionar ao ecrã inicial'.\n2. No iPhone (Safari): Toque no botão de partilha e selecione 'Adicionar ao ecrã principal'.");
+      }
+    }
 
     function mudarModo(modo) {
       const prop = document.getElementById('view-proprietaria');
@@ -187,7 +205,7 @@
     async function salvarProduto(e) {
       e.preventDefault();
       if (!_supabase) {
-        alert('Erro: Conexão com o banco não inicializada.');
+        alert('Erro: Chave pública do Supabase não configurada no código.');
         return;
       }
       
@@ -216,7 +234,7 @@
     async function salvarRevendedora(e) {
       e.preventDefault();
       if (!_supabase) {
-        alert('Erro: Conexão com o banco não inicializada.');
+        alert('Erro: Chave pública do Supabase não configurada no código.');
         return;
       }
       const nome = document.getElementById('rev-cad-nome').value;
