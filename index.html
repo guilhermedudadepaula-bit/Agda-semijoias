@@ -1,81 +1,239 @@
--- 1. Tabela de Produtos / Estoque Central
-create table if not exists produtos (
-  id uuid primary key default gen_random_uuid(),
-  codigo_barras text unique not null,
-  nome text not null,
-  categoria text default 'Geral',
-  preco_custo numeric default 0,
-  preco_venda numeric not null,
-  estoque_geral integer default 0,
-  foto_url text,
-  created_at timestamp with time zone default timezone('utc'::text, now())
-);
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AGDA Semijoias</title>
+  <link rel="manifest" href="data:application/json,{
+    %22name%22:%22AGDA%20Semijoias%22,
+    %22short_name%22:%22AGDA%22,
+    %22start_url%22:%22/%22,
+    %22display%22:%22standalone%22,
+    %22background_color%22:%22%232A180E%22,
+    %22theme_color%22:%22%232A180E%22
+  }">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { background-color: #F9F6F0; color: #2A180E; font-family: sans-serif; }
+  </style>
+</head>
+<body class="pb-10">
 
--- 2. Tabela de Revendedoras
-create table if not exists revendedoras (
-  id uuid primary key default gen_random_uuid(),
-  nome text not null,
-  cpf text unique,
-  whatsapp text,
-  email text,
-  status text default 'ativa',
-  comissao_pct numeric default 30,
-  created_at timestamp with time zone default timezone('utc'::text, now())
-);
+  <!-- Header -->
+  <header class="bg-[#2A180E] text-[#F9F6F0] p-4 shadow-md flex justify-between items-center border-b-2 border-[#D4AF37]">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-full bg-[#D4AF37] flex items-center justify-center text-[#2A180E] font-bold">A</div>
+      <h1 class="text-xl font-bold tracking-wide text-[#D4AF37]">AGDA Semijoias</h1>
+    </div>
+    <span id="mod-label" class="text-xs bg-[#3D2314] px-2 py-1 rounded text-[#EFE6D8] border border-[#D4AF37]">Painel Proprietária</span>
+  </header>
 
--- 3. Tabela de Maletas / Consignações
-create table if not exists maletas (
-  id uuid primary key default gen_random_uuid(),
-  revendedora_id uuid references revendedoras(id),
-  codigo_maleta text not null,
-  status text default 'aberta',
-  data_envio timestamp with time zone default timezone('utc'::text, now()),
-  data_fechamento timestamp with time zone
-);
+  <!-- Navegação de Módulos -->
+  <div class="p-4 max-w-2xl mx-auto flex gap-2">
+    <button onclick="mudarModo('proprietaria')" id="btn-prop" class="flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]">
+      Painel Proprietária
+    </button>
+    <button onclick="mudarModo('revendedora')" id="btn-rev" class="flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]">
+      App Revendedora
+    </button>
+  </div>
 
--- 4. Tabela de Itens na Maleta
-create table if not exists maleta_itens (
-  id uuid primary key default gen_random_uuid(),
-  maleta_id uuid references maletas(id),
-  produto_id uuid references produtos(id),
-  qtd_enviada integer not null,
-  qtd_vendida integer default 0,
-  qtd_devolvida integer default 0
-);
+  <main class="max-w-2xl mx-auto px-4">
+    
+    <!-- MÓDULO PROPRIETÁRIA -->
+    <div id="view-proprietaria" class="space-y-6">
+      
+      <!-- Formulário Novo Produto -->
+      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
+        <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center gap-2">
+          <i data-lucide="plus-circle" class="text-[#D4AF37]"></i> Cadastrar Novo Produto
+        </h2>
+        <form id="form-produto" onsubmit="salvarProduto(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-[#3D2314]">Código de Barras / SKU</label>
+            <input type="text" id="prod-codigo" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: AGDA-001">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#3D2314]">Nome do Produto</label>
+            <input type="text" id="prod-nome" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Ex: Anel Solitário Folheado">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-bold text-[#3D2314]">Preço de Custo (R$)</label>
+              <input type="number" step="0.01" id="prod-custo" class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="25.00">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#3D2314]">Preço de Venda (R$)</label>
+              <input type="number" step="0.01" id="prod-venda" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="89.90">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#3D2314]">Estoque Geral Inicial</label>
+            <input type="number" id="prod-estoque" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="10">
+          </div>
+          <button type="submit" class="w-full bg-[#2A180E] hover:bg-[#3D2314] text-[#D4AF37] font-bold py-2.5 rounded-lg border border-[#D4AF37]">
+            Salvar no Banco de Dados
+          </button>
+        </form>
+      </div>
 
--- 5. Tabela de Vendas
-create table if not exists vendas (
-  id uuid primary key default gen_random_uuid(),
-  revendedora_id uuid references revendedoras(id),
-  cliente_nome text,
-  cliente_cpf text,
-  cliente_whatsapp text,
-  cliente_email text,
-  cliente_endereco text,
-  valor_total numeric not null,
-  comissao_valor numeric not null,
-  forma_pagamento text default 'PIX',
-  created_at timestamp with time zone default timezone('utc'::text, now())
-);
+      <!-- Lista de Produtos -->
+      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
+        <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center justify-between">
+          <span>Estoque Geral</span>
+          <button onclick="carregarProdutos()" class="text-xs bg-[#EFE6D8] px-2 py-1 rounded text-[#3D2314]">Atualizar</button>
+        </h2>
+        <div id="lista-produtos" class="divide-y divide-[#EFE6D8] text-sm">
+          <p class="text-gray-500 py-2 text-center">Carregando estoque...</p>
+        </div>
+      </div>
 
--- Liberar acesso de leitura e escrita pública para o App
-alter table produtos enable row level security;
-alter table revendedoras enable row level security;
-alter table maletas enable row level security;
-alter table maleta_itens enable row level security;
-alter table vendas enable row level security;
+    </div>
 
-drop policy if exists "Permitir Acesso Total Produtos" on produtos;
-create policy "Permitir Acesso Total Produtos" on produtos for all using (true) with check (true);
+    <!-- MÓDULO REVENDEDORA -->
+    <div id="view-revendedora" class="hidden space-y-6">
+      
+      <!-- Card de Resumo da Revendedora -->
+      <div class="bg-[#2A180E] text-[#F9F6F0] p-4 rounded-xl shadow border border-[#D4AF37]">
+        <p class="text-xs text-[#D4AF37]">Minha Maleta / Consignado</p>
+        <h3 class="text-lg font-bold">Comissão Fixa: 30%</h3>
+        <p class="text-xs text-gray-300 mt-1">Gere recibos e registre suas vendas direto pelo celular.</p>
+      </div>
 
-drop policy if exists "Permitir Acesso Total Revendedoras" on revendedoras;
-create policy "Permitir Acesso Total Revendedoras" on revendedoras for all using (true) with check (true);
+      <!-- Botões de Ação / Recibo / NFF -->
+      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8] space-y-3">
+        <h3 class="font-bold text-[#3D2314]">Ações Rápidas</h3>
+        <button onclick="gerarReciboSimples()" class="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-[#2A180E] font-bold py-3 px-4 rounded-xl shadow transition-all flex items-center justify-center gap-2">
+          <i data-lucide="file-text" class="w-5 h-5"></i>
+          Gerar Recibo Simples da Cliente
+        </button>
+        <button onclick="abrirNFF()" class="w-full bg-[#3D2314] hover:bg-[#2A180E] text-[#F9F6F0] font-bold py-3 px-4 rounded-xl shadow transition-all flex items-center justify-center gap-2 border border-[#D4AF37]">
+          <i data-lucide="external-link" class="w-5 h-5 text-[#D4AF37]"></i>
+          Emitir Nota Fiscal (NFF)
+        </button>
+      </div>
 
-drop policy if exists "Permitir Acesso Total Maletas" on maletas;
-create policy "Permitir Acesso Total Maletas" on maletas for all using (true) with check (true);
+    </div>
 
-drop policy if exists "Permitir Acesso Total MaletaItens" on maleta_itens;
-create policy "Permitir Acesso Total MaletaItens" on maleta_itens for all using (true) with check (true);
+  </main>
 
-drop policy if exists "Permitir Acesso Total Vendas" on vendas;
-create policy "Permitir Acesso Total Vendas" on vendas for all using (true) with check (true);
+  <script>
+    // Inicialização Supabase Real
+    const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_XcogKbHnk59a9knNworgeg_DJlow...'; // Sua chave
+    const _supabase = supabase.createClient(SUPABASE_URL, 'sb_publishable_XcogKbHnk59a9knNworgeg_DJlow...');
+
+    lucide.createIcons();
+
+    function mudarModo(modo) {
+      const prop = document.getElementById('view-proprietaria');
+      const rev = document.getElementById('view-revendedora');
+      const label = document.getElementById('mod-label');
+      const btnP = document.getElementById('btn-prop');
+      const btnR = document.getElementById('btn-rev');
+
+      if (modo === 'proprietaria') {
+        prop.classList.remove('hidden');
+        rev.classList.add('hidden');
+        label.innerText = 'Painel Proprietária';
+        btnP.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]';
+        btnR.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]';
+      } else {
+        prop.classList.add('hidden');
+        rev.classList.remove('hidden');
+        label.innerText = 'App Revendedora';
+        btnR.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]';
+        btnP.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]';
+      }
+    }
+
+    async function salvarProduto(e) {
+      e.preventDefault();
+      const codigo = document.getElementById('prod-codigo').value;
+      const nome = document.getElementById('prod-nome').value;
+      const custo = parseFloat(document.getElementById('prod-custo').value || 0);
+      const venda = parseFloat(document.getElementById('prod-venda').value);
+      const estoque = parseInt(document.getElementById('prod-estoque').value);
+
+      const { data, error } = await _supabase.from('produtos').insert([
+        { codigo_barras: codigo, nome: nome, preco_custo: custo, preco_venda: venda, estoque_geral: estoque }
+      ]);
+
+      if (error) {
+        alert('Erro ao salvar produto: ' + error.message);
+      } else {
+        alert('Produto cadastrado com sucesso!');
+        document.getElementById('form-produto').reset();
+        carregarProdutos();
+      }
+    }
+
+    async function carregarProdutos() {
+      const container = document.getElementById('lista-produtos');
+      container.innerHTML = '<p class="text-gray-500 py-2 text-center">Buscando...</p>';
+
+      const { data, error } = await _supabase.from('produtos').select('*').order('created_at', { ascending: false });
+
+      if (error) {
+        container.innerHTML = '<p class="text-red-500 py-2">Erro ao carregar dados.</p>';
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhum produto cadastrado ainda.</p>';
+        return;
+      }
+
+      container.innerHTML = data.map(p => `
+        <div class="py-2.5 flex justify-between items-center">
+          <div>
+            <p class="font-bold text-[#3D2314]">${p.nome}</p>
+            <p class="text-xs text-gray-500">Cód: ${p.codigo_barras} | Qtd: ${p.estoque_geral}</p>
+          </div>
+          <span class="font-bold text-[#2A180E]">R$ ${parseFloat(p.preco_venda).toFixed(2)}</span>
+        </div>
+      `).join('');
+    }
+
+    function abrirNFF() {
+      window.open("https://www.gov.br/receitafederal/pt-br/assuntos/nota-fiscal-facil-nff", "_blank");
+    }
+
+    function gerarReciboSimples() {
+      const nome = prompt("Nome da Cliente:", "Maria Silva") || "Cliente";
+      const cpf = prompt("CPF da Cliente:", "000.000.000-00") || "";
+      const email = prompt("E-mail:", "maria@email.com") || "";
+      const whats = prompt("WhatsApp:", "(11) 99999-9999") || "";
+      const end = prompt("Endereço de Entrega:", "Rua Exemplo, 123") || "";
+      const valor = prompt("Valor Total (R$):", "150,00") || "0,00";
+
+      const win = window.open('', '', 'width=600,height=600');
+      win.document.write(`
+        <html>
+        <head><title>Recibo AGDA Semijoias</title></head>
+        <body style="font-family:sans-serif; padding:20px; background:#F9F6F0; color:#2A180E;">
+          <div style="background:#fff; border:2px solid #D4AF37; border-radius:12px; padding:24px;">
+            <h2 style="text-align:center; color:#3D2314;">AGDA Semijoias - Recibo</h2>
+            <hr style="border:0.5px solid #D4AF37; margin-bottom:15px;">
+            <p><strong>Cliente:</strong> ${nome}</p>
+            <p><strong>CPF:</strong> ${cpf}</p>
+            <p><strong>E-mail:</strong> ${email}</p>
+            <p><strong>WhatsApp:</strong> ${whats}</p>
+            <p><strong>Endereço:</strong> ${end}</p>
+            <hr style="border:0.5px solid #EFE6D8; margin:15px 0;">
+            <p style="font-size:18px;"><strong>Valor Total:</strong> R$ ${valor}</p>
+          </div>
+          <script>window.print();<\/script>
+        </body>
+        </html>
+      `);
+      win.document.close();
+    }
+
+    // Carregar na abertura
+    carregarProdutos();
+  </script>
+</body>
+</html>
