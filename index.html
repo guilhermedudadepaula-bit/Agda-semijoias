@@ -12,6 +12,22 @@
   
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%232A180E'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-weight='bold' font-size='160' fill='%23FFFFFF'%3EAGDA%3C/text%3E%3C/svg%3E">
   
+  <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
+    %22name%22: %22AGDA Semijoias%22,
+    %22short_name%22: %22AGDA%22,
+    %22start_url%22: %22/%22,
+    %22display%22: %22standalone%22,
+    %22background_color%22: %22%232A180E%22,
+    %22theme_color%22: %22%232A180E%22,
+    %22icons%22: [
+      {
+        %22src%22: %22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%232A180E'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-weight='bold' font-size='160' fill='%23FFFFFF'%3EAGDA%3C/text%3E%3C/svg%3E%22,
+        %22sizes%22: %22512x512%22,
+        %22type%22: %22image/svg+xml%22
+      }
+    ]
+  }">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -119,7 +135,6 @@
     </div>
 
     <div id="view-revendedora" class="hidden space-y-6">
-      
       <div class="bg-[#2A180E] text-[#F9F6F0] p-4 rounded-xl shadow border border-[#D4AF37] space-y-3">
         <p class="text-xs text-[#D4AF37]">Identificação da Revendedora</p>
         <div>
@@ -131,7 +146,6 @@
         </div>
         <p id="rev-logada-txt" class="text-xs text-green-400 font-bold hidden">Revendedora ativa: <span id="span-nome-rev"></span></p>
       </div>
-
     </div>
 
   </main>
@@ -142,12 +156,11 @@
 
   <script>
     const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
-    // Coloque aqui a sua chave pública 'anon' real do Supabase:
-    const SUPABASE_KEY = 'SUA_CHAVE_ANON_PUBLICA_AQUI';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZXR5c3l6ZGpjZmFudnRhZXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyMzg2Mzh9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
 
     let _supabase = null;
     try {
-      if (window.supabase && SUPABASE_KEY && !SUPABASE_KEY.includes('SUA_CHAVE')) {
+      if (window.supabase) {
         _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       }
     } catch (err) {
@@ -160,7 +173,7 @@
       }
     } catch(e) {}
 
-    let deferredPrompt;
+    let deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
@@ -174,7 +187,7 @@
           deferredPrompt = null;
         }
       } else {
-        alert("Para instalar no telemóvel:\n\n1. No Android (Chrome): Toque nos 3 pontos verticais (canto superior direito) e selecione 'Adicionar ao ecrã inicial'.\n2. No iPhone (Safari): Toque no botão de partilha e selecione 'Adicionar ao ecrã principal'.");
+        alert("Para instalar direto no celular:\n\n1. No Android (Chrome): Toque nos 3 pontinhos no canto superior direito e toque em 'Adicionar à tela inicial' ou 'Instalar aplicativo'.\n2. No iPhone (Safari): Toque no ícone de compartilhamento e em 'Adicionar à Tela de Início'.");
       }
     }
 
@@ -204,10 +217,6 @@
 
     async function salvarProduto(e) {
       e.preventDefault();
-      if (!_supabase) {
-        alert('Erro: Chave pública do Supabase não configurada no código.');
-        return;
-      }
       
       const codigo = document.getElementById('prod-codigo').value;
       const nome = document.getElementById('prod-nome').value;
@@ -221,22 +230,18 @@
         ]);
 
         if (error) {
-          alert('Erro ao salvar no Supabase: ' + error.message);
+          alert('Atenção: Verifique se a chave anon no Supabase está correta. Detalhes: ' + error.message);
         } else {
           alert('Peça cadastrada com sucesso!');
           document.getElementById('form-produto').reset();
         }
       } catch (err) {
-        alert('Erro inesperado: ' + err.message);
+        alert('Erro de conexão: ' + err.message);
       }
     }
 
     async function salvarRevendedora(e) {
       e.preventDefault();
-      if (!_supabase) {
-        alert('Erro: Chave pública do Supabase não configurada no código.');
-        return;
-      }
       const nome = document.getElementById('rev-cad-nome').value;
       const cpf = document.getElementById('rev-cad-cpf').value;
       const whats = document.getElementById('rev-cad-whats').value;
@@ -248,13 +253,13 @@
         ]);
 
         if (error) {
-          alert('Erro ao registar revendedora: ' + error.message);
+          alert('Atenção: ' + error.message);
         } else {
-          alert('Revendedora registada com sucesso!');
+          alert('Revendedora registrada com sucesso!');
           document.getElementById('form-revendedora').reset();
         }
       } catch (err) {
-        alert('Erro inesperado: ' + err.message);
+        alert('Erro de conexão: ' + err.message);
       }
     }
 
@@ -271,11 +276,7 @@
       const txtEl = document.getElementById('rev-logada-txt');
       if (spanEl) spanEl.innerText = nome;
       if (txtEl) txtEl.classList.remove('hidden');
-      alert('Revendedora identificada com sucesso!');
-    }
-
-    function instalarAppPWA() {
-      alert("Para instalar no telemóvel:\n\n1. No Android (Chrome): Toque nos 3 pontos verticais (canto superior direito) e selecione 'Adicionar ao ecrã inicial'.\n2. No iPhone (Safari): Toque no botão de partilha e selecione 'Adicionar ao ecrã principal'.");
+      alert('Revendedora identificada!');
     }
 
     function lerCodigoBarrasCam(event) {
