@@ -78,8 +78,8 @@
 
         <div class="flex gap-2 mb-3">
           <label class="flex-1 bg-[#3D2314] text-[#D4AF37] text-xs font-bold py-2 px-3 rounded text-center cursor-pointer border border-[#D4AF37]">
-            📂 Importar Planilha (Excel/CSV)
-            <input type="file" accept=".csv, .xlsx" class="hidden" onchange="importarPlanilhaTiny(event)">
+            📂 Importar Planilha (CSV)
+            <input type="file" accept=".csv" class="hidden" onchange="importarPlanilhaTiny(event)">
           </label>
           <button type="button" onclick="exportarPlanilhaTiny()" class="flex-1 bg-[#EFE6D8] text-[#3D2314] text-xs font-bold py-2 px-3 rounded border border-[#3D2314]">
             📥 Exportar Estoque CSV
@@ -358,4 +358,4 @@
     let itemsMaletaTemporaria = [];
 
     // --- FUNÇÕES DE IMPORTAÇÃO / EXPORTAÇÃO EXCEL / TINY ---
-    async function impor
+    async function importarPlanilhaTi
