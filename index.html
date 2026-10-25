@@ -100,7 +100,24 @@
             <input type="number" id="prod-estoque" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="10">
           </div>
           <button type="submit" class="w-full bg-[#2A180E] text-[#D4AF37] font-bold py-2.5 rounded-lg border border-[#D4AF37]">
-            Salvar Peça
+            Salvar Peça no Estoque
+          </button>
+        </form>
+      </div>
+
+      <!-- Cadastrar Revendedora -->
+      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
+        <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center gap-2">
+          <i data-lucide="user-plus" class="text-[#D4AF37]"></i> Cadastrar Revendedora
+        </h2>
+        <form id="form-revendedora" onsubmit="salvarRevendedora(event)" class="space-y-3">
+          <input type="text" id="rev-cad-nome" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]" placeholder="Nome Completo">
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" id="rev-cad-cpf" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]" placeholder="CPF">
+            <input type="text" id="rev-cad-whats" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]" placeholder="WhatsApp">
+          </div>
+          <button type="submit" class="w-full bg-[#3D2314] text-[#D4AF37] font-bold py-2 rounded text-xs">
+            Cadastrar Revendedora
           </button>
         </form>
       </div>
@@ -167,21 +184,30 @@
         </form>
       </div>
 
-      <!-- Cadastrar Nova Revendedora -->
+      <!-- VISUALIZAR ESTOQUE GERAL -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
-        <h2 class="text-lg font-bold text-[#3D2314] mb-3 flex items-center gap-2">
-          <i data-lucide="user-plus" class="text-[#D4AF37]"></i> Cadastrar Revendedora
-        </h2>
-        <form onsubmit="salvarRevendedora(event)" class="space-y-3">
-          <input type="text" id="rev-cad-nome" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]" placeholder="Nome Completo">
-          <div class="grid grid-cols-2 gap-2">
-            <input type="text" id="rev-cad-cpf" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]" placeholder="CPF">
-            <input type="text" id="rev-cad-whats" required class="w-full p-2 border rounded text-xs bg-[#F9F6F0]" placeholder="WhatsApp">
-          </div>
-          <button type="submit" class="w-full bg-[#3D2314] text-[#D4AF37] font-bold py-2 rounded text-xs">
-            Cadastrar Revendedora
-          </button>
-        </form>
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="font-bold text-[#3D2314] text-md flex items-center gap-1">
+            <i data-lucide="box" class="w-4 h-4 text-[#D4AF37]"></i> Estoque Geral Cadastrado
+          </h3>
+          <button type="button" onclick="carregarEstoque()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
+        </div>
+        <div id="lista-estoque" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
+          <p class="text-gray-500 py-2 text-center">Carregando estoque...</p>
+        </div>
+      </div>
+
+      <!-- VISUALIZAR REVENDEDORAS CADASTRADAS -->
+      <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="font-bold text-[#3D2314] text-md flex items-center gap-1">
+            <i data-lucide="users" class="w-4 h-4 text-[#D4AF37]"></i> Revendedoras Cadastradas
+          </h3>
+          <button type="button" onclick="carregarRevendedoras()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
+        </div>
+        <div id="lista-revendedoras" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
+          <p class="text-gray-500 py-2 text-center">Carregando revendedoras...</p>
+        </div>
       </div>
 
     </div>
@@ -260,7 +286,7 @@
 
   <script>
     const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZXR5c3l6ZGpjZmFudnRhZXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5MjM4MTYsImV4cCI6MjEwODQ5OTgxNn0.wx9a9lJdKF3-LAWRrREO1f97FnyUESSq8q8FbC_T81s';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmZXR5c3l6ZGpjZmFudnRhZXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyMzg2Mzh9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
 
     let _supabase = null;
     try {
@@ -288,3 +314,62 @@
       }
 
       itemsMaletaTemporaria.push({ nome, qtd, preco, total: qtd * preco });
+      document.getElementById('item-nome').value = '';
+      document.getElementById('item-qtd').value = '';
+      document.getElementById('item-preco').value = '';
+      atualizarListaPreviewMaleta();
+    }
+
+    function atualizarListaPreviewMaleta() {
+      const container = document.getElementById('lista-temp-maleta');
+      let valorTotal = 0;
+
+      if (itemsMaletaTemporaria.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center">Nenhuma peça adicionada ainda.</p>';
+        document.getElementById('maleta-valor-total').innerText = '0.00';
+        return;
+      }
+
+      container.innerHTML = itemsMaletaTemporaria.map((it) => {
+        valorTotal += it.total;
+        return `<div class="flex justify-between items-center py-1 border-b">
+          <span><b>${it.qtd}x</b> ${it.nome} (R$ ${it.preco.toFixed(2)})</span>
+          <span class="font-bold">R$ ${it.total.toFixed(2)}</span>
+        </div>`;
+      }).join('');
+
+      document.getElementById('maleta-valor-total').innerText = valorTotal.toFixed(2);
+      atualizarTextoTermo();
+    }
+
+    function atualizarTextoTermo() {
+      const revNome = document.getElementById('maleta-revendedora-nome').value || '[Nome]';
+      const dataInic = document.getElementById('maleta-data-inicio').value || '[Data]';
+      const dataFim = document.getElementById('maleta-data-fim').value || '[Data Final]';
+      const totalPecas = itemsMaletaTemporaria.reduce((acc, curr) => acc + curr.qtd, 0);
+      const valorTotal = itemsMaletaTemporaria.reduce((acc, curr) => acc + curr.total, 0).toFixed(2);
+
+      const termoText = `Eu ${revNome}, estou recebendo a maleta com ${totalPecas} peças no valor total de R$ ${valorTotal} no dia ${dataInic}, com finalização da coleção no dia ${dataFim}.`;
+      document.getElementById('texto-termo-preview').innerText = termoText;
+    }
+
+    document.getElementById('maleta-revendedora-nome').addEventListener('input', atualizarTextoTermo);
+    document.getElementById('maleta-data-inicio').addEventListener('change', atualizarTextoTermo);
+    document.getElementById('maleta-data-fim').addEventListener('change', atualizarTextoTermo);
+
+    async function finalizarMontagemMaleta(e) {
+      e.preventDefault();
+      if (itemsMaletaTemporaria.length === 0) {
+        alert('Adicione pelo menos uma peça na maleta!');
+        return;
+      }
+
+      const revNome = document.getElementById('maleta-revendedora-nome').value;
+      const dataInicio = document.getElementById('maleta-data-inicio').value;
+      const dataFim = document.getElementById('maleta-data-fim').value;
+      const comissaoPct = parseFloat(document.getElementById('maleta-comissao-pct').value);
+      const assinatura = document.getElementById('maleta-assinatura').value;
+      const valorTotal = parseFloat(document.getElementById('maleta-valor-total').innerText);
+
+      try {
+        const { error } = await
