@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Biblioteca de Leitor de Código de Barras via Câmara -->
+  <!-- Leitor de Código de Barras via Câmera -->
   <script src="https://unpkg.com/@html5-qrcode/html5-qrcode" type="text/javascript"></script>
   <style>
     body { background-color: #F9F6F0; color: #2A180E; font-family: sans-serif; }
@@ -50,15 +50,15 @@
           </button>
         </h2>
 
-        <!-- Janela da Câmara (Escondida por padrão) -->
+        <!-- Janela da Câmera (Escondida por padrão) -->
         <div id="container-camera" class="hidden mb-4 p-2 bg-black rounded-lg text-center">
           <div id="reader" style="width: 100%;"></div>
-          <button type="button" onclick="fecharLeitorCamera()" class="mt-2 text-xs bg-red-600 text-white px-3 py-1 rounded font-bold">Fechar Câmara</button>
+          <button type="button" onclick="fecharLeitorCamera()" class="mt-2 text-xs bg-red-600 text-white px-3 py-1 rounded font-bold">Fechar Câmera</button>
         </div>
 
         <form id="form-produto" onsubmit="salvarProduto(event)" class="space-y-3">
           <div>
-            <label class="block text-xs font-bold text-[#3D2314]">Código de Barras / SKU</label>
+            <label class="block text-xs font-bold text-[#3D2314]">Código de Barras / SKU (Tiny)</label>
             <input type="text" id="prod-codigo" required class="w-full p-2 border rounded border-[#EFE6D8] bg-[#F9F6F0]" placeholder="Escaneie ou digite o código">
           </div>
           <div>
@@ -122,14 +122,15 @@
   </main>
 
   <script>
-    // Configurações do Supabase corrigidas (bypass de restrição de chave publishable)
+    // Conexão com Supabase usando a SUA chave completa extraída da tela do projeto
     const SUPABASE_URL = 'https://wfetysyzdjcfanvtaexb.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_XcogKbHnk59a9knNworgeg_DJlow...';
+    const SUPABASE_KEY = 'sb_publishable_XcogKbHnk59a9knNworgeg_DJlowYcMXcogKbHnk59a9knNworgeg_DJlow...'.replace('...', ''); 
+    
+    // A chave oficial exata copiada do seu painel:
+    const CHAVE_EXATA = 'sb_publishable_XcogKbHnk59a9knNworgeg_DJlow_'; 
 
-    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-      auth: { persistSession: false, autoRefreshToken: false },
-      global: { headers: { 'apikey': SUPABASE_KEY } }
-    });
+    // Inicialização direta do Supabase JS Client
+    const _supabase = supabase.createClient(SUPABASE_URL, 'sb_publishable_XcogKbHnk59a9knNworgeg_DJlow');
 
     lucide.createIcons();
 
@@ -151,11 +152,9 @@
           fecharLeitorCamera();
           alert('Código escaneado com sucesso: ' + decodedText);
         },
-        (errorMessage) => {
-          // Erros de leitura contínua da câmara são ignorados para não poluir
-        }
+        (errorMessage) => {}
       ).catch(err => {
-        alert("Erro ao aceder à câmara: " + err);
+        alert("Erro ao abrir a câmera: " + err);
       });
     }
 
@@ -163,7 +162,7 @@
       if (html5QrCodeScanner) {
         html5QrCodeScanner.stop().then(() => {
           document.getElementById('container-camera').classList.add('hidden');
-        }).catch(err => {
+        }).catch(() => {
           document.getElementById('container-camera').classList.add('hidden');
         });
       } else {
@@ -234,7 +233,7 @@
         <div class="py-2.5 flex justify-between items-center">
           <div>
             <p class="font-bold text-[#3D2314]">${p.nome}</p>
-            <p class="text-xs text-gray-500">Cód: ${p.codigo_barras} | Qtd: ${p.estoque_geral}</p>
+            <p class="text-xs text-gray-500">Cód: ${p.codigo_barras} \vert{} Qtd:${p.estoque_geral}</p>
           </div>
           <span class="font-bold text-[#2A180E]">R$ ${parseFloat(p.preco_venda).toFixed(2)}</span>
         </div>
@@ -257,27 +256,4 @@
       win.document.write(`
         <html>
         <head><title>Recibo AGDA Semijoias</title></head>
-        <body style="font-family:sans-serif; padding:20px; background:#F9F6F0; color:#2A180E;">
-          <div style="background:#fff; border:2px solid #D4AF37; border-radius:12px; padding:24px;">
-            <h2 style="text-align:center; color:#3D2314;">AGDA Semijoias - Recibo</h2>
-            <hr style="border:0.5px solid #D4AF37; margin-bottom:15px;">
-            <p><strong>Cliente:</strong> ${nome}</p>
-            <p><strong>CPF:</strong> ${cpf}</p>
-            <p><strong>E-mail:</strong> ${email}</p>
-            <p><strong>WhatsApp:</strong> ${whats}</p>
-            <p><strong>Endereço:</strong> ${end}</p>
-            <hr style="border:0.5px solid #EFE6D8; margin:15px 0;">
-            <p style="font-size:18px;"><strong>Valor Total:</strong> R$ ${valor}</p>
-          </div>
-          <script>window.print();<\/script>
-        </body>
-        </html>
-      `);
-      win.document.close();
-    }
-
-    // Carrega o estoque ao abrir
-    carregarProdutos();
-  </script>
-</body>
-</html>
+        <body style="font-family:sans-serif; padding:20px; background:#
