@@ -152,7 +152,7 @@
           <button type="button" onclick="carregarEstoque()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
         </div>
         <div id="lista-estoque" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
-          <p class="text-gray-500 py-2 text-center">A carregar...</p>
+          <p class="text-gray-500 py-2 text-center">Nenhuma peça no estoque.</p>
         </div>
       </div>
 
@@ -163,7 +163,7 @@
           <button type="button" onclick="carregarRevendedoras()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
         </div>
         <div id="lista-revendedoras" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
-          <p class="text-gray-500 py-2 text-center">A carregar...</p>
+          <p class="text-gray-500 py-2 text-center">Nenhuma revendedora cadastrada.</p>
         </div>
       </div>
 
@@ -268,10 +268,10 @@
       const estoque = parseInt(document.getElementById('prod-estoque').value);
 
       let produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
-      produtos.unshift({ codigo_barras: codigo, nome, preco_custo: custo, preco_venda: venda, estoque_geral: estoque, created_at: new Date().toISOString() });
+      produtos.unshift({ codigo_barras: codigo, nome, preco_custo: custo, preco_venda: venda, estoque_geral: estoque });
       localStorage.setItem('agda_produtos', JSON.stringify(produtos));
 
-      alert('Peça salva com sucesso no estoque!');
+      alert('Peça salva com sucesso!');
       e.target.reset();
       carregarEstoque();
     }
@@ -283,4 +283,119 @@
       const whats = document.getElementById('rev-cad-whats').value.trim();
 
       let revendedoras = JSON.parse(localStorage.getItem('agda_revendedoras') || '[]');
-      revendedoras.unshift({ nome, cpf, whatsapp: whats,
+      revendedoras.unshift({ nome, cpf, whatsapp: whats });
+      localStorage.setItem('agda_revendedoras', JSON.stringify(revendedoras));
+
+      alert('Revendedora cadastrada com sucesso!');
+      e.target.reset();
+      carregarRevendedoras();
+    }
+
+    function carregarEstoque() {
+      const container = document.getElementById('lista-estoque');
+      const produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+      if (produtos.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhuma peça no estoque.</p>';
+        return;
+      }
+      container.innerHTML = produtos.map(p => `
+        <div class="py-2 flex justify-between items-center">
+          <div>
+            <span class="font-bold text-[#3D2314]">${p.nome}</span>
+            <span class="text-gray-500 block">Cód: ${p.codigo_barras} | Qtd: ${p.estoque_geral}</span>
+          </div>
+          <span class="font-bold text-[#2A180E]">R$ ${parseFloat(p.preco_venda).toFixed(2)}</span>
+        </div>
+      `).join('');
+    }
+
+    function carregarRevendedoras() {
+      const container = document.getElementById('lista-revendedoras');
+      const revendedoras = JSON.parse(localStorage.getItem('agda_revendedoras') || '[]');
+      if (revendedoras.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhuma revendedora cadastrada.</p>';
+        return;
+      }
+      container.innerHTML = revendedoras.map(r => `
+        <div class="py-2 flex justify-between items-center">
+          <div>
+            <span class="font-bold text-[#3D2314]">${r.nome}</span>
+            <span class="text-gray-500 block">WhatsApp: ${r.whatsapp} | CPF: ${r.cpf}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function adicionarItemMaleta() {
+      const nome = document.getElementById('item-nome').value.trim();
+      const qtd = parseInt(document.getElementById('item-qtd').value);
+      const preco = parseFloat(document.getElementById('item-preco').value);
+
+      if (!nome || isNaN(qtd) || isNaN(preco)) {
+        alert('Preencha o nome, quantidade e preço da peça.');
+        return;
+      }
+
+      itemsMaletaTemporaria.push({ nome, qtd, preco, total: qtd * preco });
+      document.getElementById('item-nome').value = '';
+      document.getElementById('item-qtd').value = '';
+      document.getElementById('item-preco').value = '';
+      
+      const container = document.getElementById('lista-temp-maleta');
+      let valorTotal = 0;
+      container.innerHTML = itemsMaletaTemporaria.map((it) => {
+        valorTotal += it.total;
+        return `<div class="flex justify-between py-1 border-b">
+          <span><b>${it.qtd}x</b> ${it.nome}</span>
+          <span>R$ ${it.total.toFixed(2)}</span>
+        </div>`;
+      }).join('');
+      document.getElementById('maleta-valor-total').innerText = valorTotal.toFixed(2);
+    }
+
+    function finalizarMontagemMaleta(e) {
+      e.preventDefault();
+      if (itemsMaletaTemporaria.length === 0) {
+        alert('Adicione pelo menos uma peça na maleta!');
+        return;
+      }
+
+      const revNome = document.getElementById('maleta-revendedora-nome').value;
+      const dataInicio = document.getElementById('maleta-data-inicio').value;
+      const dataFim = document.getElementById('maleta-data-fim').value;
+      const comissaoPct = parseFloat(document.getElementById('maleta-comissao-pct').value);
+      const assinatura = document.getElementById('maleta-assinatura').value;
+      const valorTotal = parseFloat(document.getElementById('maleta-valor-total').innerText);
+
+      let maletas = JSON.parse(localStorage.getItem('agda_maletas') || '[]');
+      maletas.unshift({
+        revendedora_nome: revNome,
+        data_inicio: dataInicio,
+        data_fim: dataFim,
+        comissao_pct: comissaoPct,
+        assinatura,
+        valor_total: valorTotal,
+        items: itemsMaletaTemporaria,
+        status: 'ativa'
+      });
+      localStorage.setItem('agda_maletas', JSON.stringify(maletas));
+
+      alert('Maleta gravada com sucesso!');
+      itemsMaletaTemporaria = [];
+      document.getElementById('lista-temp-maleta').innerHTML = '<p class="text-gray-500 text-center">Nenhuma peça adicionada ainda.</p>';
+      document.getElementById('maleta-valor-total').innerText = '0.00';
+      e.target.reset();
+    }
+
+    function carregarMaletaRevendedora() {
+      const nome = document.getElementById('rev-nome-input').value.trim();
+      const statusTxt = document.getElementById('rev-status-txt');
+      if (!nome) {
+        alert('Digite o seu nome.');
+        return;
+      }
+      statusTxt.innerText = 'Buscando...';
+      statusTxt.classList.remove('hidden');
+
+      const maletas = JSON.parse(localStorage.getItem('agda_maletas') || '[]');
+      const maleta = maletas.find(m => m.reve
