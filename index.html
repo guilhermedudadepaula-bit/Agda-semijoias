@@ -5,10 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>AGDA Semijoias</title>
 
+  <!-- Configurações PWA e Ícone de Instalação Nativa -->
   <meta name="theme-color" content="#2A180E">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="AGDA">
+
+  <!-- Manifest dinâmico embutido para criar o ícone AGDA marrom -->
+  <link rel="manifest" href='data:application/manifest+json;charset=utf-8,{"name":"AGDA Semijoias","short_name":"AGDA","start_url":".","display":"standalone","background_color":"%232A180E","theme_color":"%232A180E","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=\x22http://www.w3.org/2000/svg\x22 viewBox=\x220 0 512 512\x22%3E%3Crect width=\x22512\x22 height=\x22512\x22 rx=\x22110\x22 fill=\x22%232A180E\x22/%3E%3Ctext x=\x2250%25\x22 y=\x2254%25\x22 font-family=\x22Arial, sans-serif\x22 font-weight=\x22bold\x22 font-size=\x22160\x22 fill=\x22%23D4AF37\x22 text-anchor=\x22middle\x22 dominant-baseline=\x22middle\x22%3EAGDA%3C/text%3E%3C/svg%3E","sizes":"512x512","type":"image/svg+xml"}]}'>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -27,10 +31,10 @@
     <span id="mod-label" class="text-xs bg-[#3D2314] px-2 py-1 rounded text-[#EFE6D8] border border-[#D4AF37]">Painel Proprietária</span>
   </header>
 
-  <!-- BANNER INSTALAÇÃO -->
+  <!-- BANNER DE INSTALAÇÃO AUTOMÁTICA / MANUAL -->
   <div class="bg-[#3D2314] text-[#F9F6F0] p-3 text-center text-xs flex justify-between items-center px-4 border-b border-[#D4AF37]">
-    <span>💡 Como instalar o app no telemóvel?</span>
-    <button type="button" onclick="instalarAppPWA()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded shadow">Ver Como Instalar</button>
+    <span>💡 Deseja baixar o Aplicativo AGDA?</span>
+    <button type="button" id="btn-instalar-app" onclick="dispararInstalacao()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded shadow">Baixar App AGDA</button>
   </div>
 
   <!-- NAVEGAÇÃO ENTRE PAINÉIS -->
@@ -48,7 +52,7 @@
     <!-- PAINEL PROPRIETÁRIA -->
     <div id="view-proprietaria" class="space-y-6" style="display: block;">
       
-      <!-- CADASTRAR PEÇA COM TINY / CSV / CÂMERA -->
+      <!-- CADASTRAR PEÇA -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <div class="flex justify-between items-center mb-3">
           <h2 class="text-lg font-bold text-[#3D2314]">Cadastrar Peça / Planilha Tiny</h2>
@@ -174,6 +178,29 @@
   </footer>
 
   <script>
+    var deferredPrompt;
+
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      var btn = document.getElementById('btn-instalar-app');
+      if(btn) btn.innerText = "Baixar App AGDA";
+    });
+
+    function dispararInstalacao() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(function(choiceResult) {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('Utilizador aceitou instalar');
+          }
+          deferredPrompt = null;
+        });
+      } else {
+        alert("Para instalar o app AGDA no telemóvel:\n\n1. No Android (Chrome): Toque nos 3 pontinhos no canto superior direito e selecione 'Adicionar à tela inicial' ou 'Instalar aplicativo'[cite: 3].\n2. No iPhone (Safari): Toque no botão de partilha e selecione 'Adicionar à Tela de Início'[cite: 3].");
+      }
+    }
+
     function mudarModo(modo) {
       var prop = document.getElementById('view-proprietaria');
       var rev = document.getElementById('view-revendedora');
@@ -235,7 +262,6 @@
       carregarRevendedoras();
     }
 
-    // Leitor de Câmera SKU
     function lerCodigoBarrasCam(event) {
       var file = event.target.files[0];
       if (file) {
@@ -245,7 +271,6 @@
       }
     }
 
-    // Importar Planilha CSV (Tiny)
     function importarPlanilhaCSV(e) {
       var file = e.target.files[0];
       if (!file) return;
@@ -277,7 +302,6 @@
       reader.readAsText(file);
     }
 
-    // Exportar Planilha CSV
     function exportarPlanilhaCSV() {
       var produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
       if (produtos.length === 0) {
@@ -297,18 +321,17 @@
       a.click();
     }
 
-    // Carregar Aniversariantes do Mês Atual
     function carregarAniversariantes() {
       var container = document.getElementById('lista-aniversariantes');
       if (!container) return;
       var vendas = JSON.parse(localStorage.getItem('agda_vendas') || '[]');
-      var mesAtual = new Date().getMonth() + 1; // Mês atual de 1 a 12
+      var mesAtual = new Date().getMonth() + 1;
 
       var aniversariantes = [];
       for (var i = 0; i < vendas.length; i++) {
         var v = vendas[i];
         if (v.cliente_nascimento) {
-          var partes = v.cliente_nascimento.split('-'); // Formato AAAA-MM-DD
+          var partes = v.cliente_nascimento.split('-');
           if (partes.length === 3) {
             var mesNasc = parseInt(partes[1], 10);
             if (mesNasc === mesAtual) {
@@ -376,10 +399,6 @@
       }
       statusTxt.innerText = 'Bem-vinda, ' + nome + '!';
       statusTxt.classList.remove('hidden');
-    }
-
-    function instalarAppPWA() {
-      alert("Para instalar o app no telemóvel:\n\n1. No Android (Chrome): Toque nos 3 pontinhos verticais no canto superior direito e selecione 'Adicionar à tela inicial' ou 'Instalar aplicativo'.\n2. No iPhone (Safari): Toque no ícone de partilha e selecione 'Adicionar à Tela de Início'.");
     }
 
     window.onload = function() {
