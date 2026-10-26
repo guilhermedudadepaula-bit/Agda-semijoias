@@ -27,6 +27,12 @@
     <span id="mod-label" class="text-xs bg-[#3D2314] px-2 py-1 rounded text-[#EFE6D8] border border-[#D4AF37]">Painel Proprietária</span>
   </header>
 
+  <!-- BANNER DE INSTALAÇÃO DO APP -->
+  <div class="bg-[#3D2314] text-[#F9F6F0] p-3 text-center text-xs flex justify-between items-center px-4 border-b border-[#D4AF37]">
+    <span>📱 Instalar App na Tela Inicial:</span>
+    <button type="button" id="btn-instalar-pwa" onclick="instalarAppPWA()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded shadow animate-pulse">📲 Baixar App</button>
+  </div>
+
   <!-- NAVEGAÇÃO ENTRE PAINÉIS -->
   <div class="p-4 max-w-2xl mx-auto flex gap-2 w-full">
     <button type="button" onclick="mudarModo('proprietaria')" id="btn-prop" class="flex-1 py-3 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]">
@@ -42,7 +48,7 @@
     <!-- PAINEL PROPRIETÁRIA -->
     <div id="view-proprietaria" class="space-y-6" style="display: block;">
       
-      <!-- CADASTRAR PEÇA / TINY -->
+      <!-- CADASTRAR PEÇA / INTEGRAÇÃO TINY -->
       <div class="bg-white p-4 rounded-xl shadow border border-[#EFE6D8]">
         <div class="flex justify-between items-center mb-3">
           <h2 class="text-lg font-bold text-[#3D2314]">Cadastrar Peça / Planilha Tiny</h2>
@@ -55,10 +61,10 @@
         <div class="flex gap-2 mb-3">
           <label class="flex-1 bg-[#3D2314] text-[#D4AF37] text-xs font-bold py-2 px-3 rounded text-center cursor-pointer border border-[#D4AF37]">
             📂 Importar CSV (Tiny)
-            <input type="file" accept=".csv" class="hidden" onchange="importarPlanilhaCSV(event)">
+            <input type="file" accept=".csv,.txt" class="hidden" onchange="importarPlanilhaCSV(event)">
           </label>
           <button type="button" onclick="exportarPlanilhaCSV()" class="flex-1 bg-[#EFE6D8] text-[#3D2314] text-xs font-bold py-2 px-3 rounded border border-[#3D2314]">
-            📥 Exportar CSV
+            📥 Exportar CSV (Tiny)
           </button>
         </div>
 
@@ -199,6 +205,26 @@
   </footer>
 
   <script>
+    var deferredPrompt;
+
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      var btn = document.getElementById('btn-instalar-pwa');
+      if(btn) btn.style.display = "inline-block";
+    });
+
+    function instalarAppPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(function(choiceResult) {
+          deferredPrompt = null;
+        });
+      } else {
+        alert("✨ Para fixar o atalho do App na sua tela inicial:\n\n1. No Android (Chrome): Toque nos 3 pontinhos no canto superior direito e selecione 'Adicionar à tela inicial' ou 'Instalar aplicativo'.\n2. No iPhone (Safari): Toque no botão de partilha e selecione 'Adicionar à Tela de Início'.");
+      }
+    }
+
     function mudarModo(modo) {
       var prop = document.getElementById('view-proprietaria');
       var rev = document.getElementById('view-revendedora');
@@ -287,6 +313,7 @@
       }
     }
 
+    // Integração Tiny ERP: Importação de CSV padrão
     function importarPlanilhaCSV(e) {
       var file = e.target.files[0];
       if (!file) return;
@@ -312,12 +339,13 @@
           }
         }
         localStorage.setItem('agda_produtos', JSON.stringify(produtos));
-        alert(contador + ' peças importadas da planilha com sucesso!');
+        alert(contador + ' peças importadas da planilha Tiny com sucesso!');
         carregarTudo();
       };
       reader.readAsText(file);
     }
 
+    // Integração Tiny ERP: Exportação de CSV padrão
     function exportarPlanilhaCSV() {
       var produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
       if (produtos.length === 0) {
@@ -388,33 +416,4 @@
       var html = '';
       for (var i = 0; i < maletas.length; i++) {
         var m = maletas[i];
-        html += '<div class="py-2 flex justify-between items-center border-b"><div><span class="font-bold text-[#3D2314]">Revendedora: ' + m.revendedora + '</span><span class="text-gray-500 block">Peça: ' + m.produto + ' | Qtd: ' + m.quantidade + '</span></div></div>';
-      }
-      container.innerHTML = html;
-    }
-
-    function carregarSelectsMaleta() {
-      var selRev = document.getElementById('maleta-revendedora');
-      var selProd = document.getElementById('maleta-produto');
-      if(!selRev || !selProd) return;
-
-      var revendedoras = JSON.parse(localStorage.getItem('agda_revendedoras') || '[]');
-      var produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
-
-      var htmlRev = '<option value="">Selecione a Revendedora...</option>';
-      for(var i=0; i<revendedoras.length; i++) {
-        htmlRev += '<option value="' + revendedoras[i].nome + '">' + revendedoras[i].nome + '</option>';
-      }
-      selRev.innerHTML = htmlRev;
-
-      var htmlProd = '<option value="">Selecione a Peça...</option>';
-      for(var j=0; j<produtos.length; j++) {
-        htmlProd += '<option value="' + produtos[j].nome + ' (' + produtos[j].codigo_barras + ')">' + produtos[j].nome + ' - R$ ' + produtos[j].preco_venda + '</option>';
-      }
-      selProd.innerHTML = htmlProd;
-    }
-
-    function carregarAniversariantes() {
-      var container = document.getElementById('lista-aniversariantes');
-      if (!container) return;
-      var vendas = JSON.parse(localStorage.getItem('agda_v
+        html += '<div class="py-2 flex justify-between items-center border-b"><div><span class="font-bold text-[#3D2314]">Revendedora: ' + m.revendedora + '</span
