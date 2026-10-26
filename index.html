@@ -27,10 +27,10 @@
     <span id="mod-label" class="text-xs bg-[#3D2314] px-2 py-1 rounded text-[#EFE6D8] border border-[#D4AF37]">Painel Proprietária</span>
   </header>
 
-  <!-- BANNER DE DOWNLOAD DIRETO DO APP -->
+  <!-- BANNER DE INSTALAÇÃO RÁPIDA -->
   <div class="bg-[#3D2314] text-[#F9F6F0] p-3 text-center text-xs flex justify-between items-center px-4 border-b border-[#D4AF37]">
-    <span>💡 Tenha o app no seu telemóvel:</span>
-    <button type="button" onclick="baixarAtalhoApp()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded shadow">📥 Baixar App AGDA</button>
+    <span>📱 Quer o ícone do App na sua tela inicial?</span>
+    <button type="button" onclick="mostrarGuiaInstalacao()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded shadow animate-pulse">📲 Adicionar à Tela Inicial</button>
   </div>
 
   <!-- NAVEGAÇÃO ENTRE PAINÉIS -->
@@ -174,34 +174,8 @@
   </footer>
 
   <script>
-    // Função para baixar o atalho direto do App AGDA
-    function baixarAtalhoApp() {
-      var urlAtual = window.location.href.split('?')[0];
-      var conteudoAtalho = `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AGDA Semijoias</title>
-  <meta http-equiv="refresh" content="0;url=${urlAtual}">
-</head>
-<body style="background:#2A180E; color:#D4AF37; display:flex; justify-content:center; align-items:center; height:100vh; font-family:sans-serif; text-align:center;">
-  <div>
-    <h2>A a abrir AGDA Semijoias...</h2>
-    <p style="color:#FFF; font-size:12px;">Se não abrir automaticamente, <a href="${urlAtual}" style="color:#D4AF37;">clique aqui</a>.</p>
-  </div>
-</body>
-</html>`;
-
-      var blob = new Blob([conteudoAtalho], { type: 'text/html;charset=utf-8;' });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = 'AGDA_Semijoias.html';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      alert('Aplicativo AGDA baixado com sucesso! Agora basta abrir o arquivo baixado no seu telemóvel para usar o app.');
+    function mostrarGuiaInstalacao() {
+      alert("✨ PARA COLOCAR O ÍCONE DO APP NA TELA INICIAL:\n\n1️⃣ No Android (Google Chrome):\nToque nos 3 pontinhos (canto superior direito)[cite: 3, 5] e selecione 'Adicionar à tela inicial' ou 'Instalar aplicativo'[cite: 3].\n\n2️⃣ No iPhone (Safari):\nToque no botão de partilha (quadrado com seta para cima)[cite: 3] e selecione 'Adicionar à Tela de Início'[cite: 3].\n\nPronto! O ícone AGDA com fundo marrom ficará fixo no seu telemóvel igualzinho a um app normal!");
     }
 
     function mudarModo(modo) {
