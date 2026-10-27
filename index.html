@@ -4,400 +4,678 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>AGDA Semijoias</title>
-  <link rel="manifest" href='data:application/manifest+json;charset=utf-8,{"name":"AGDA Semijoias","short_name":"AGDA","start_url":".","display":"standalone","background_color":"%232A180E","theme_color":"%232A180E"}'>
+  <!-- Manifest PWA mantido para a instalação na tela inicial -->
+  <link rel="manifest" href='data:application/manifest+json;charset=utf-8,{"name":"AGDA Semijoias","short_name":"AGDA","start_url":".","display":"standalone","background_color":"%232A180E","theme_color":"%232A180E","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=\x22http://www.w3.org/2000/svg\x22 viewBox=\x220 0 512 512\x22%3E%3Crect width=\x22512\x22 height=\x22512\x22 rx=\x22110\x22 fill=\x22%232A180E\x22/%3E%3Ctext x=\x2250%25\x22 y=\x2254%25\x22 font-family=\x22Arial, sans-serif\x22 font-weight=\x22bold\x22 font-size=\x22160\x22 fill=\x22%23D4AF37\x22 text-anchor=\x22middle\x22 dominant-baseline=\x22middle\x22%3EAGDA%3C/text%3E%3C/svg%3E","sizes":"512x512","type":"image/svg+xml"}]}'>
+
   <meta name="theme-color" content="#2A180E">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="AGDA">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background-color: #F9F6F0; color: #2A180E; font-family: system-ui, sans-serif; }
+    body { background-color: #F9F6F0; color: #2A180E; font-family: system-ui, -apple-system, sans-serif; }
     button, input, select, label { touch-action: manipulation; cursor: pointer; }
-    .card { background: #fff; padding: 16px; border-radius: 12px; border: 1px solid #EFE6D8; box-shadow: 0 1px 3px #0000001a; margin-bottom: 16px; }
-    .btn-main { background: #2A180E; color: #D4AF37; font-weight: bold; width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #D4AF37; }
-    .btn-sub { background: #3D2314; color: #D4AF37; font-weight: bold; padding: 8px 12px; border-radius: 6px; font-size: 12px; }
-    .input-field { width: 100%; padding: 10px; border: 1px solid #EFE6D8; background: #F9F6F0; border-radius: 6px; margin-top: 4px; font-size: 14px; }
+    .card { background-color: #FFFFFF; padding: 16px; border-radius: 12px; border: 1px solid #EFE6D8; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; }
+    .btn-main { background-color: #2A180E; color: #D4AF37; font-weight: bold; width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #D4AF37; }
+    .btn-sub { background-color: #3D2314; color: #D4AF37; font-weight: bold; padding: 8px 12px; border-radius: 6px; font-size: 12px; }
+    .input-field { width: 100%; padding: 10px; border: 1px solid #EFE6D8; background-color: #F9F6F0; border-radius: 6px; margin-top: 4px; font-size: 14px; }
     .btn-sub:disabled { opacity: .45; cursor: not-allowed; }
   </style>
 </head>
 <body class="pb-10 flex flex-col min-h-screen">
 
-<header class="bg-[#2A180E] text-[#F9F6F0] p-4 shadow-md flex justify-between items-center border-b-2 border-[#D4AF37]">
-  <div class="flex items-center gap-2">
-    <div class="w-8 h-8 rounded-full bg-[#D4AF37] flex items-center justify-center text-[#2A180E] font-bold">A</div>
-    <h1 class="text-xl font-bold tracking-wide text-[#D4AF37]">AGDA Semijoias</h1>
-  </div>
-  <span id="mod-label" class="text-xs bg-[#3D2314] px-2 py-1 rounded text-[#EFE6D8] border border-[#D4AF37]">Painel Proprietária</span>
-</header>
-
-<div class="bg-[#3D2314] text-[#F9F6F0] p-3 text-center text-xs flex justify-between items-center px-4 border-b border-[#D4AF37]">
-  <span>📱 Instalar App na Tela Inicial</span>
-  <button type="button" onclick="instalarAppPWA()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">📲 Baixar App</button>
-</div>
-
-<div role="note" class="max-w-2xl mx-auto mt-4 px-4 py-3 rounded-lg border border-amber-400 bg-amber-50 text-amber-900 text-sm">
-  <strong>Modo demonstração:</strong> os dados ficam somente neste navegador/aparelho. Esta versão ainda não está conectada ao Tiny ERP, não possui login seguro e não sincroniza entre aparelhos.
-</div>
-
-<div class="p-4 max-w-2xl mx-auto flex gap-2 w-full">
-  <button type="button" onclick="mudarModo('proprietaria')" id="btn-prop" class="flex-1 py-3 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]">Painel Proprietária</button>
-  <button type="button" onclick="mudarModo('revendedora')" id="btn-rev" class="flex-1 py-3 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]">App Revendedora</button>
-</div>
-
-<main class="max-w-2xl mx-auto px-4 flex-grow w-full space-y-6">
-
-<div id="view-proprietaria">
-
-  <div class="card">
-    <h2 class="text-lg font-bold mb-3">Cadastrar Peça / Planilha Tiny</h2>
-    <div class="flex gap-2 mb-3">
-      <label class="flex-1 text-center btn-sub">
-        📂 Importar CSV
-        <input type="file" accept=".csv,.txt" class="hidden" onchange="importarPlanilhaCSV(event)">
-      </label>
-      <button type="button" onclick="exportarPlanilhaCSV()" class="flex-1 bg-[#EFE6D8] text-[#3D2314] text-xs font-bold py-2 px-3 rounded">📥 Exportar CSV</button>
+  <!-- CABEÇALHO -->
+  <header class="bg-[#2A180E] text-[#F9F6F0] p-4 shadow-md flex justify-between items-center border-b-2 border-[#D4AF37]">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-full bg-[#D4AF37] flex items-center justify-center text-[#2A180E] font-bold">A</div>
+      <h1 class="text-xl font-bold tracking-wide text-[#D4AF37]">AGDA Semijoias</h1>
     </div>
-    <form onsubmit="salvarProduto(event)" class="space-y-3">
-      <div><label class="block text-xs font-bold">Código / SKU</label><input id="prod-codigo" required class="input-field" placeholder="Código de barras"></div>
-      <div><label class="block text-xs font-bold">Nome da Peça</label><input id="prod-nome" required class="input-field" placeholder="Ex.: Colar Coração"></div>
-      <div class="grid grid-cols-2 gap-2">
-        <div><label class="block text-xs font-bold">Custo (R$)</label><input type="number" min="0" step="0.01" id="prod-custo" class="input-field" placeholder="15,00"></div>
-        <div><label class="block text-xs font-bold">Preço Venda (R$)</label><input type="number" min="0.01" step="0.01" id="prod-venda" required class="input-field" placeholder="35,00"></div>
+    <span id="mod-label" class="text-xs bg-[#3D2314] px-2 py-1 rounded text-[#EFE6D8] border border-[#D4AF37]">Painel Proprietária</span>
+  </header>
+
+  <!-- BANNER DE INSTALAÇÃO DO APP -->
+  <div class="bg-[#3D2314] text-[#F9F6F0] p-3 text-center text-xs flex justify-between items-center px-4 border-b border-[#D4AF37]">
+    <span>📱 Instalar App na Tela Inicial:</span>
+    <button type="button" onclick="instalarAppPWA()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded shadow animate-pulse">📲 Baixar App</button>
+  </div>
+
+
+  <div role="note" class="max-w-2xl mx-auto mx-4 mt-4 px-4 py-3 rounded-lg border border-amber-400 bg-amber-50 text-amber-900 text-sm">
+    <strong>Modo demonstração:</strong> os dados ficam somente neste navegador/aparelho. Esta página ainda não está conectada ao Tiny ERP, não possui login seguro e não sincroniza entre proprietária e revendedoras.
+  </div>
+\n  <!-- NAVEGAÇÃO ENTRE PAINÉIS -->
+  <div class="p-4 max-w-2xl mx-auto flex gap-2 w-full">
+    <button type="button" onclick="mudarModo('proprietaria')" id="btn-prop" class="flex-1 py-3 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]">
+      Painel Proprietária
+    </button>
+    <button type="button" onclick="mudarModo('revendedora')" id="btn-rev" class="flex-1 py-3 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]">
+      App Revendedora
+    </button>
+  </div>
+
+  <main class="max-w-2xl mx-auto px-4 flex-grow w-full space-y-6">
+    
+    <!-- PAINEL PROPRIETÁRIA -->
+    <div id="view-proprietaria" style="display: block;">
+      
+      <!-- CADASTRAR PEÇA / TINY ERP -->
+      <div class="card">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-lg font-bold text-[#3D2314]">Cadastrar Peça / Planilha Tiny</h2>
+          <button type="button" onclick="abrirLeitorCodigo()" class="cursor-pointer text-xs bg-[#D4AF37] text-[#2A180E] px-3 py-1.5 rounded-lg font-bold shadow">📷 Ler código pela câmera</button>
+        </div>
+
+        <div class="flex gap-2 mb-3">
+          <label class="flex-1 text-center cursor-pointer btn-sub">
+            📂 Importar CSV (Tiny)
+            <input type="file" accept=".csv,.txt" class="hidden" onchange="importarPlanilhaCSV(event)">
+          </label>
+          <button type="button" onclick="exportarPlanilhaCSV()" class="flex-1 bg-[#EFE6D8] text-[#3D2314] text-xs font-bold py-2 px-3 rounded border border-[#3D2314]">
+            📥 Exportar CSV (Tiny)
+          </button>
+        </div>
+
+        <form onsubmit="salvarProduto(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-[#3D2314]">Código / SKU</label>
+            <input type="text" id="prod-codigo" required class="input-field" placeholder="Digite ou use a câmera SKU">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#3D2314]">Nome da Peça</label>
+            <input type="text" id="prod-nome" required class="input-field" placeholder="Ex: Colar Coração Banhado">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-bold text-[#3D2314]">Custo (R$)</label>
+              <input type="number" step="0.01" id="prod-custo" class="input-field" placeholder="15.00">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#3D2314]">Preço Venda (R$)</label>
+              <input type="number" step="0.01" id="prod-venda" required class="input-field" placeholder="35.00">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#3D2314]">Estoque Inicial</label>
+            <input type="number" id="prod-estoque" required class="input-field" placeholder="10">
+          </div>
+          <button type="submit" class="btn-main mt-2">
+            Salvar Peça no Estoque
+          </button>
+        </form>
+        <div id="leitor-camera" class="hidden mt-4 rounded-lg border border-[#D4AF37] bg-[#F9F6F0] p-3">
+          <p class="text-sm font-bold mb-2">Aponte a câmera para o código de barras</p>
+          <video id="video-codigo" class="w-full rounded-lg bg-black" autoplay muted playsinline></video>
+          <p id="camera-status" class="text-xs mt-2 text-gray-600">Preparando câmera…</p>
+          <button type="button" onclick="fecharLeitorCodigo()" class="btn-sub w-full mt-3">Fechar câmera</button>
+        </div>
       </div>
-      <div><label class="block text-xs font-bold">Estoque Inicial</label><input type="number" min="0" step="1" id="prod-estoque" required class="input-field" placeholder="10"></div>
-      <button type="submit" class="btn-main">Salvar Peça no Estoque</button>
-    </form>
-  </div>
 
-  <div class="card">
-    <h2 class="text-lg font-bold mb-3">💼 Montagem de Maleta</h2>
-    <form onsubmit="salvarMaleta(event)" class="space-y-3">
-      <div><label class="block text-xs font-bold">Revendedora</label><select id="maleta-revendedora" required class="input-field"><option value="">Selecione...</option></select></div>
-      <div><label class="block text-xs font-bold">Peça do Estoque</label><select id="maleta-produto" required class="input-field"><option value="">Selecione...</option></select></div>
-      <div><label class="block text-xs font-bold">Quantidade Enviada</label><input type="number" id="maleta-qtd" required value="1" min="1" step="1" class="input-field"></div>
-      <button type="submit" class="btn-sub w-full py-3">Enviar Peça para a Maleta</button>
-    </form>
-    <h3 class="font-bold text-sm mt-4 mb-2">Maletas Ativas</h3>
-    <div id="lista-maletas" class="divide-y divide-[#EFE6D8] text-xs max-h-60 overflow-y-auto"></div>
-  </div>
+      <!-- MONTAGEM DE MALETAS / CONSIGNAÇÃO -->
+      <div class="card">
+          <div class="flex justify-between items-center gap-2 mb-3">
+            <h2 class="text-lg font-bold text-[#3D2314]">💼 Montagem de Maleta (Consignação)</h2>
+            <button type="button" onclick="abrirLeitorCodigo('maleta')" class="cursor-pointer text-xs bg-[#D4AF37] text-[#2A180E] px-3 py-1.5 rounded-lg font-bold shadow">📷 Ler peça</button>
+          </div>
+        <form onsubmit="salvarMaleta(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-[#3D2314]">Selecionar Revendedora</label>
+            <select id="maleta-revendedora" required class="input-field">
+              <option value="">Selecione a Revendedora...</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#3D2314]">Selecionar Peça do Estoque</label>
+            <select id="maleta-produto" required class="input-field">
+              <option value="">Selecione a Peça...</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#3D2314]">Quantidade Enviada</label>
+            <input type="number" id="maleta-qtd" required value="1" min="1" class="input-field">
+          </div>
+          <button type="submit" class="btn-sub w-full py-3 mt-2">
+            Enviar Peça para a Maleta
+          </button>
+        </form>
+        <div id="leitor-camera-maleta" class="hidden mt-4 rounded-lg border border-[#D4AF37] bg-[#F9F6F0] p-3">
+          <p class="text-sm font-bold mb-2">Leia o código da peça para adicioná-la à maleta</p>
+          <video id="video-codigo-maleta" class="w-full rounded-lg bg-black" autoplay muted playsinline></video>
+          <p id="camera-status-maleta" class="text-xs mt-2 text-gray-600">Preparando câmera…</p>
+          <button type="button" onclick="fecharLeitorCodigo()" class="btn-sub w-full mt-3">Fechar câmera</button>
+        </div>
+        <div class="mt-4">
+          <h3 class="font-bold text-[#3D2314] text-sm mb-2">Maletas Ativas</h3>
+          <div id="lista-maletas" class="divide-y divide-[#EFE6D8] text-xs max-h-40 overflow-y-auto">
+            <p class="text-gray-500 py-2 text-center">Nenhuma peça consignada no momento.</p>
+          </div>
+        </div>
+      </div>
 
-  <div class="card">
-    <h2 class="text-lg font-bold mb-3">Cadastrar Revendedora</h2>
-    <form onsubmit="salvarRevendedora(event)" class="space-y-3">
-      <input id="rev-cad-nome" required class="input-field" placeholder="Nome completo">
-      <input id="rev-cad-cpf" required class="input-field" placeholder="CPF">
-      <input id="rev-cad-whats" required class="input-field" placeholder="WhatsApp">
-      <button type="submit" class="btn-sub w-full py-3">Cadastrar Revendedora</button>
-    </form>
-  </div>
+      <!-- CADASTRAR REVENDEDORA -->
+      <div class="card">
+        <h2 class="text-lg font-bold text-[#3D2314] mb-3">Cadastrar Revendedora</h2>
+        <form onsubmit="salvarRevendedora(event)" class="space-y-3">
+          <input type="text" id="rev-cad-nome" required class="input-field" placeholder="Nome Completo">
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" id="rev-cad-cpf" required class="input-field" placeholder="CPF">
+            <input type="text" id="rev-cad-whats" required class="input-field" placeholder="WhatsApp">
+          </div>
+          <button type="submit" class="btn-sub w-full py-3 mt-2">
+            Cadastrar Revendedora
+          </button>
+        </form>
+      </div>
 
-  <div class="card">
-    <div class="flex justify-between items-center mb-3">
-      <h3 class="font-bold">Estoque Geral</h3>
-      <button type="button" onclick="carregarTudo()" class="btn-sub">Atualizar</button>
+      <!-- ANIVERSARIANTES DO MÊS -->
+      <div class="card">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="font-bold text-[#3D2314] text-md">🎉 Aniversariantes do Mês (Clientes)</h3>
+          <button type="button" onclick="carregarAniversariantes()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
+        </div>
+        <div id="lista-aniversariantes" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
+          <p class="text-gray-500 py-2 text-center">Nenhuma aniversariante identificada neste mês.</p>
+        </div>
+      </div>
+
+      <!-- ESTOQUE GERAL -->
+      <div class="card">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="font-bold text-[#3D2314] text-md">Estoque Geral Cadastrado</h3>
+          <button type="button" onclick="carregarEstoque()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
+        </div>
+        <div id="lista-estoque" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
+          <p class="text-gray-500 py-2 text-center">Nenhuma peça cadastrada.</p>
+        </div>
+      </div>
+
+      <!-- REVENDEDORAS CADASTRADAS -->
+      <div class="card">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="font-bold text-[#3D2314] text-md">Revendedoras Cadastradas</h3>
+          <button type="button" onclick="carregarRevendedoras()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
+        </div>
+        <div id="lista-revendedoras" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
+          <p class="text-gray-500 py-2 text-center">Nenhuma revendedora cadastrada.</p>
+        </div>
+      </div>
+
     </div>
-    <div id="lista-estoque" class="divide-y divide-[#EFE6D8] text-xs"></div>
-  </div>
 
-  <div class="card">
-    <h3 class="font-bold mb-3">Revendedoras Cadastradas</h3>
-    <div id="lista-revendedoras" class="divide-y divide-[#EFE6D8] text-xs"></div>
-  </div>
+    <!-- APP REVENDEDORA -->
+    <div id="view-revendedora" style="display: none;">
+      <div class="bg-[#2A180E] text-[#F9F6F0] p-4 rounded-xl shadow border border-[#D4AF37] space-y-3 mb-4">
+        <p class="text-xs text-[#D4AF37] font-bold">Identificação da Revendedora</p>
+        <div class="flex gap-2">
+          <input type="text" id="rev-nome-input" class="w-full p-2.5 rounded text-[#2A180E] font-bold text-sm bg-white" placeholder="Digite seu Nome Cadastrado">
+          <button type="button" onclick="acessarRevendedora()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-4 py-2 rounded text-xs">Acessar</button>
+        </div>
+        <p id="rev-status-txt" class="text-xs text-yellow-300 font-bold hidden"></p>
+      </div>
 
-  <div class="card">
-    <h3 class="font-bold mb-3">🎉 Aniversariantes dos Clientes</h3>
-    <div id="lista-aniversariantes" class="text-xs"></div>
-  </div>
-
-</div>
-
-<div id="view-revendedora" style="display:none">
-  <div class="bg-[#2A180E] text-white p-4 rounded-xl border border-[#D4AF37] space-y-3 mb-4">
-    <p class="text-xs text-[#D4AF37] font-bold">Identificação da Revendedora</p>
-    <div class="flex gap-2">
-      <input id="rev-nome-input" class="w-full p-2.5 rounded text-[#2A180E] text-sm" placeholder="Digite seu nome cadastrado">
-      <button type="button" onclick="acessarRevendedora()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-4 rounded text-xs">Acessar</button>
+      <div class="card">
+        <h3 class="font-bold text-[#3D2314] text-md mb-2">Painel da Revendedora</h3>
+        <div id="painel-revendedora" class="space-y-3">
+          <p class="text-xs text-gray-600">Digite seu nome acima para verificar suas informações e vendas.</p>
+        </div>
+      </div>
     </div>
-    <p id="rev-status-txt" class="text-xs text-yellow-300 hidden"></p>
-  </div>
-  <div class="card">
-    <h3 class="font-bold mb-2">Painel da Revendedora</h3>
-    <div id="painel-revendedora" class="space-y-3">Digite seu nome acima para consultar suas maletas e vendas.</div>
-  </div>
-</div>
 
-</main>
+  </main>
 
-<footer class="text-center py-6 text-xs text-gray-500 mt-auto">AGDA Semijoias</footer>
+  <footer class="text-center py-6 text-xs text-gray-500 mt-auto">
+    App criado por Julia Agda
+  </footer>
 
-<script>
-const CHAVE = {
-  produtos: 'agda_produtos',
-  revendedoras: 'agda_revendedoras',
-  maletas: 'agda_maletas',
-  vendas: 'agda_vendas'
-};
-
-function ler(chave) {
-  try { return JSON.parse(localStorage.getItem(chave) || '[]'); }
-  catch (e) { return []; }
-}
-function gravar(chave, dados) {
-  localStorage.setItem(chave, JSON.stringify(dados));
-}
-function idNovo() {
-  return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random();
-}
-function escaparHTML(valor) {
-  return String(valor == null ? '' : valor).replace(/[&<>"']/g, c => ({
-    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
-  })[c]);
-}
-function dinheiro(valor) {
-  return Number(valor || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-}
-function instalarAppPWA() {
-  alert("Para instalar na tela inicial:\n\nAndroid: menu ⋮ do Chrome > Instalar aplicativo ou Adicionar à tela inicial.\n\niPhone: Safari > Compartilhar > Adicionar à Tela de Início.");
-}
-function mudarModo(modo) {
-  const proprietaria = modo === 'proprietaria';
-  document.getElementById('view-proprietaria').style.display = proprietaria ? 'block' : 'none';
-  document.getElementById('view-revendedora').style.display = proprietaria ? 'none' : 'block';
-  document.getElementById('mod-label').textContent = proprietaria ? 'Painel Proprietária' : 'App Revendedora';
-  document.getElementById('btn-prop').style.background = proprietaria ? '#3D2314' : '#EFE6D8';
-  document.getElementById('btn-prop').style.color = proprietaria ? '#D4AF37' : '#3D2314';
-  document.getElementById('btn-rev').style.background = proprietaria ? '#EFE6D8' : '#3D2314';
-  document.getElementById('btn-rev').style.color = proprietaria ? '#3D2314' : '#D4AF37';
-  if (proprietaria) carregarTudo();
-}
-
-function salvarProduto(event) {
-  event.preventDefault();
-  const codigo = document.getElementById('prod-codigo').value.trim();
-  const nome = document.getElementById('prod-nome').value.trim();
-  const custo = Number(document.getElementById('prod-custo').value || 0);
-  const venda = Number(document.getElementById('prod-venda').value);
-  const estoque = Number(document.getElementById('prod-estoque').value);
-  if (!codigo || !nome || !Number.isFinite(custo) || custo < 0 || !Number.isFinite(venda) || venda <= 0 || !Number.isInteger(estoque) || estoque < 0) {
-    alert('Confira o código, nome, custo, preço de venda e estoque.');
-    return;
-  }
-  const produtos = ler(CHAVE.produtos);
-  if (produtos.some(p => String(p.codigo_barras).toLowerCase() === codigo.toLowerCase())) {
-    alert('Esse código/SKU já está cadastrado.');
-    return;
-  }
-  produtos.unshift({id:idNovo(), codigo_barras:codigo, nome, preco_custo:custo, preco_venda:venda, estoque_geral:estoque});
-  gravar(CHAVE.produtos, produtos);
-  event.target.reset();
-  carregarTudo();
-  alert('Peça cadastrada neste aparelho.');
-}
-
-function salvarRevendedora(event) {
-  event.preventDefault();
-  const nome = document.getElementById('rev-cad-nome').value.trim();
-  const cpf = document.getElementById('rev-cad-cpf').value.trim();
-  const whatsapp = document.getElementById('rev-cad-whats').value.trim();
-  if (!nome || !cpf || !whatsapp) {
-    alert('Preencha nome, CPF e WhatsApp.');
-    return;
-  }
-  const revendedoras = ler(CHAVE.revendedoras);
-  if (revendedoras.some(r => String(r.cpf).replace(/\D/g,'') === cpf.replace(/\D/g,''))) {
-    alert('Já existe uma revendedora com esse CPF.');
-    return;
-  }
-  revendedoras.unshift({id:idNovo(), nome, cpf, whatsapp, ativo:true});
-  gravar(CHAVE.revendedoras, revendedoras);
-  event.target.reset();
-  carregarTudo();
-  alert('Revendedora cadastrada neste aparelho.');
-}
-
-function salvarMaleta(event) {
-  event.preventDefault();
-  const revId = document.getElementById('maleta-revendedora').value;
-  const codigo = document.getElementById('maleta-produto').value;
-  const quantidade = Number(document.getElementById('maleta-qtd').value);
-  if (!revId || !codigo || !Number.isInteger(quantidade) || quantidade < 1) {
-    alert('Selecione a revendedora, a peça e a quantidade.');
-    return;
-  }
-  const produtos = ler(CHAVE.produtos);
-  const produto = produtos.find(p => p.codigo_barras === codigo);
-  if (!produto) { alert('Peça não encontrada.'); return; }
-  if (produto.estoque_geral < quantidade) {
-    alert('Estoque insuficiente. Disponível: ' + produto.estoque_geral);
-    return;
-  }
-  const rev = ler(CHAVE.revendedoras).find(r => r.id === revId);
-  if (!rev) { alert('Revendedora não encontrada.'); return; }
-  produto.estoque_geral -= quantidade;
-  const maletas = ler(CHAVE.maletas);
-  maletas.unshift({
-    id:idNovo(), revendedora:revId, produto:codigo, produto_nome:produto.nome,
-    quantidade, quantidade_inicial:quantidade, data_envio:new Date().toISOString(),
-    status:'ativa'
-  });
-  gravar(CHAVE.produtos, produtos);
-  gravar(CHAVE.maletas, maletas);
-  event.target.reset();
-  carregarTudo();
-  alert('Maleta registrada. Estoque atualizado neste aparelho.');
-}
-
-function encerrarMaleta(maletaId) {
-  const maletas = ler(CHAVE.maletas);
-  const maleta = maletas.find(m => m.id === maletaId && m.status === 'ativa');
-  if (!maleta) { alert('Maleta não encontrada ou já encerrada.'); return; }
-  const produtos = ler(CHAVE.produtos);
-  const produto = produtos.find(p => p.codigo_barras === maleta.produto);
-  const restante = Number(maleta.quantidade || 0);
-  if (restante > 0 && !produto) { alert('Não foi possível encontrar a peça para devolver ao estoque.'); return; }
-  if (produto) produto.estoque_geral = Number(produto.estoque_geral || 0) + restante;
-  maleta.quantidade = 0;
-  maleta.status = 'encerrada';
-  maleta.data_fechamento = new Date().toISOString();
-  gravar(CHAVE.produtos, produtos);
-  gravar(CHAVE.maletas, maletas);
-  carregarTudo();
-  const nome = document.getElementById('rev-nome-input').value.trim();
-  if (nome) acessarRevendedora();
-  alert(restante + ' unidade(s) devolvida(s) ao estoque geral. Maleta encerrada.');
-}
-
-function importarPlanilhaCSV(event) {
-  const arquivo = event.target.files && event.target.files[0];
-  if (!arquivo) return;
-  const leitor = new FileReader();
-  leitor.onload = function(e) {
-    const linhas = String(e.target.result).split(/\r?\n/);
-    const produtos = ler(CHAVE.produtos);
-    let contador = 0;
-    for (let i = 1; i < linhas.length; i++) {
-      const linha = linhas[i].trim();
-      if (!linha) continue;
-      const sep = linha.includes(';') ? ';' : ',';
-      const colunas = linha.split(sep).map(c => c.replace(/^\s*["']|["']\s*$/g,'').trim());
-      if (colunas.length < 4 || !colunas[0] || !colunas[1]) continue;
-      const codigo = colunas[0];
-      if (produtos.some(p => String(p.codigo_barras) === codigo)) continue;
-      const custo = Number(String(colunas[2]).replace(',','.')) || 0;
-      const venda = Number(String(colunas[3]).replace(',','.')) || 0;
-      const estoque = Math.max(0, parseInt(colunas[4] || '0',10) || 0);
-      produtos.push({id:idNovo(), codigo_barras:codigo, nome:colunas[1], preco_custo:custo, preco_venda:venda, estoque_geral:estoque});
-      contador++;
+  <script>
+    function instalarAppPWA() {
+      alert("✨ Para instalar o App na sua Tela Inicial:\n\n1. No Android (Chrome): Toque nos 3 pontinhos (canto superior direito) e selecione 'Adicionar à tela inicial' ou 'Instalar aplicativo'.\n2. No iPhone (Safari): Toque no botão de partilha e selecione 'Adicionar à Tela de Início'.");
     }
-    gravar(CHAVE.produtos, produtos);
-    carregarTudo();
-    alert(contador + ' peça(s) importada(s). Confira os dados após a importação.');
-    event.target.value = '';
-  };
-  leitor.readAsText(arquivo);
-}
 
-function exportarPlanilhaCSV() {
-  const produtos = ler(CHAVE.produtos);
-  if (!produtos.length) { alert('Não há peças para exportar.'); return; }
-  let csv = 'Codigo;Nome;Custo;Venda;Estoque\n';
-  produtos.forEach(p => {
-    const nome = String(p.nome || '').replace(/"/g,'""');
-    csv += '"' + String(p.codigo_barras || '') + '";"' + nome + '";' +
-      Number(p.preco_custo || 0).toFixed(2).replace('.',',') + ';' +
-      Number(p.preco_venda || 0).toFixed(2).replace('.',',') + ';' +
-      Number(p.estoque_geral || 0) + '\n';
-  });
-  const blob = new Blob(['\ufeff' + csv], {type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'estoque_agda.csv';
-  link.click();
-  URL.revokeObjectURL(url);
-}
+    function mudarModo(modo) {
+      var prop = document.getElementById('view-proprietaria');
+      var rev = document.getElementById('view-revendedora');
+      var label = document.getElementById('mod-label');
+      var btnP = document.getElementById('btn-prop');
+      var btnR = document.getElementById('btn-rev');
 
-function carregarTudo() {
-  carregarEstoque();
-  carregarRevendedoras();
-  carregarMaletas();
-  carregarSelectsMaleta();
-  carregarAniversariantes();
-}
-function carregarEstoque() {
-  const container = document.getElementById('lista-estoque');
-  const produtos = ler(CHAVE.produtos);
-  if (!produtos.length) {
-    container.innerHTML = '<p class="py-2 text-gray-500">Nenhuma peça cadastrada.</p>';
-    return;
-  }
-  container.innerHTML = produtos.map(p =>
-    '<div class="py-2 flex justify-between gap-3 border-b border-[#EFE6D8]"><div><b>' + escaparHTML(p.nome) +
-    '</b><span class="block text-gray-500">SKU: ' + escaparHTML(p.codigo_barras) +
-    ' | Quantidade: ' + Number(p.estoque_geral) + '</span></div><b>' + dinheiro(p.preco_venda) + '</b></div>'
-  ).join('');
-}
-function carregarRevendedoras() {
-  const container = document.getElementById('lista-revendedoras');
-  const revendedoras = ler(CHAVE.revendedoras);
-  if (!revendedoras.length) {
-    container.innerHTML = '<p class="py-2 text-gray-500">Nenhuma revendedora cadastrada.</p>';
-    return;
-  }
-  container.innerHTML = revendedoras.map(r =>
-    '<div class="py-2 border-b border-[#EFE6D8]"><b>' + escaparHTML(r.nome) +
-    '</b><span class="block text-gray-500">WhatsApp: ' + escaparHTML(r.whatsapp) +
-    ' | CPF: ' + escaparHTML(r.cpf) + '</span></div>'
-  ).join('');
-}
-function carregarMaletas() {
-  const container = document.getElementById('lista-maletas');
-  const maletas = ler(CHAVE.maletas).filter(m => m.status === 'ativa');
-  if (!maletas.length) {
-    container.innerHTML = '<p class="py-2 text-gray-500">Nenhuma maleta ativa.</p>';
-    return;
-  }
-  container.innerHTML = maletas.map(m => {
-    const rev = ler(CHAVE.revendedoras).find(r => r.id === m.revendedora);
-    return '<div class="py-3 flex justify-between items-center gap-2 border-b border-[#EFE6D8]"><div><b>' +
-      escaparHTML(rev ? rev.nome : 'Revendedora') + '</b><span class="block text-gray-500">' +
-      escaparHTML(m.produto_nome) + ' | SKU: ' + escaparHTML(m.produto) +
-      ' | Restante: ' + Number(m.quantidade) + '</span></div><button type="button" class="btn-sub" onclick="encerrarMaleta(\'' +
-      escaparHTML(m.id) + '\')">Fechar e devolver</button></div>';
-  }).join('');
-}
-function carregarSelectsMaleta() {
-  const selectRev = document.getElementById('maleta-revendedora');
-  const selectProd = document.getElementById('maleta-produto');
-  const revendedoras = ler(CHAVE.revendedoras).filter(r => r.ativo !== false);
-  const produtos = ler(CHAVE.produtos);
-  selectRev.innerHTML = '<option value="">Selecione...</option>' + revendedoras.map(r =>
-    '<option value="' + escaparHTML(r.id) + '">' + escaparHTML(r.nome) + '</option>'
-  ).join('');
-  selectProd.innerHTML = '<option value="">Selecione...</option>' + produtos.map(p =>
-    '<option value="' + escaparHTML(p.codigo_barras) + '">' + escaparHTML(p.nome) + ' — ' +
-    escaparHTML(p.codigo_barras) + ' — ' + dinheiro(p.preco_venda) + ' (estoque: ' +
-    Number(p.estoque_geral) + ')</option>'
-  ).join('');
-}
-function carregarAniversariantes() {
-  const container = document.getElementById('lista-aniversariantes');
-  const mes = new Date().getMonth() + 1;
-  const aniversariantes = ler(CHAVE.vendas).filter(v => {
-    if (!v.cliente_nascimento) return false;
-    const partes = v.cliente_nascimento.split('-');
-    return partes.length === 3 && Number(partes[1]) === mes;
-  });
-  if (!aniversariantes.length) {
-    container.innerHTML = '<p class="py-2 text-gray-500">Nenhum aniversário de cliente identificado neste mês.</p>';
-    return;
-  }
-  container.innerHTML = aniversariantes.map(v =>
-    '<div class="py-2 border-b border-[#EFE6D8]"><b>' + escaparHTML(v.cliente_nome) +
-    '</b> — ' + escaparHTML(v.cliente_nascimento) + '<span class="block text-gray-500">Revendedora: ' +
-    escaparHTML(v.revendedora_nome || '') + '</span></div>'
-  ).join('');
-}
+      if (modo === 'proprietaria') {
+        prop.style.display = 'block';
+        rev.style.display = 'none';
+        label.innerText = 'Painel Proprietária';
+        btnP.style.background = '#3D2314';
+        btnP.style.color = '#D4AF37';
+        btnR.style.background = '#EFE6D8';
+        btnR.style.color = '#3D2314';
+        carregarTudo();
+      } else {
+        prop.style.display = 'none';
+        rev.style.display = 'block';
+        label.innerText = 'App Revendedora';
+        btnR.style.background = '#3D2314';
+        btnR.style.color = '#D4AF37';
+        btnP.style.background = '#EFE6D8';
+        btnP.style.color = '#3D2314';
+      }
+    }
 
-function acessarRevendedora() {
-  const nome = document.getElementById('rev-nome-input').value.trim();
-  const status = document.
+    function salvarProduto(e) {
+      e.preventDefault();
+      var codigo = document.getElementById('prod-codigo').value.trim();
+      var nome = document.getElementById('prod-nome').value.trim();
+      var custo = parseFloat(document.getElementById('prod-custo').value || 0);
+      var venda = parseFloat(document.getElementById('prod-venda').value);
+      var estoque = parseInt(document.getElementById('prod-estoque').value);
+
+      if (!codigo || !nome || !Number.isFinite(venda) || venda <= 0 || !Number.isInteger(estoque) || estoque < 0 || custo < 0) {
+        alert('Confira os dados: preço de venda deve ser maior que zero e estoque deve ser um número inteiro igual ou maior que zero.');
+        return;
+      }
+      var produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+      if (produtos.some(function(p) { return String(p.codigo_barras).toLowerCase() === codigo.toLowerCase(); })) {
+        alert('Já existe uma peça cadastrada com esse código/SKU. Use um código único.');
+        return;
+      }
+      produtos.unshift({ id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random(), codigo_barras: codigo, nome: nome, preco_custo: custo, preco_venda: venda, estoque_geral: estoque });
+      localStorage.setItem('agda_produtos', JSON.stringify(produtos));
+
+      alert('Peça salva com sucesso!');
+      e.target.reset();
+      carregarTudo();
+    }
+
+    function salvarRevendedora(e) {
+      e.preventDefault();
+      var nome = document.getElementById('rev-cad-nome').value.trim();
+      var cpf = document.getElementById('rev-cad-cpf').value.trim();
+      var whats = document.getElementById('rev-cad-whats').value.trim();
+
+      if (!nome || !cpf || !whats) {
+        alert('Preencha nome, CPF e WhatsApp.');
+        return;
+      }
+      var revendedoras = JSON.parse(localStorage.getItem('agda_revendedoras') || '[]');
+      if (revendedoras.some(function(r) { return String(r.cpf).replace(/\\D/g, '') === cpf.replace(/\\D/g, ''); })) {
+        alert('Já existe uma revendedora cadastrada com esse CPF.');
+        return;
+      }
+      revendedoras.unshift({ id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random(), nome: nome, cpf: cpf, whatsapp: whats, ativo: true });
+      localStorage.setItem('agda_revendedoras', JSON.stringify(revendedoras));
+
+      alert('Revendedora cadastrada com sucesso!');
+      e.target.reset();
+      carregarTudo();
+    }
+
+    function salvarMaleta(e) {
+      e.preventDefault();
+      var rev = document.getElementById('maleta-revendedora').value;
+      var prod = document.getElementById('maleta-produto').value;
+      var qtd = parseInt(document.getElementById('maleta-qtd').value);
+
+      if(!rev || !prod) {
+        alert('Selecione a revendedora e a peça.');
+        return;
+      }
+
+      if (!Number.isInteger(qtd) || qtd < 1) {
+        alert('A quantidade deve ser um número inteiro maior que zero.');
+        return;
+      }
+      var produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+      var produto = produtos.find(function(p) { return p.codigo_barras === prod; });
+      if (!produto) {
+        alert('Produto não encontrado. Atualize a página e tente novamente.');
+        return;
+      }
+      if (produto.estoque_geral < qtd) {
+        alert('Estoque insuficiente. Disponível no estoque geral: ' + produto.estoque_geral + '.');
+        return;
+      }
+      var maletas = JSON.parse(localStorage.getItem('agda_maletas') || '[]');
+      produto.estoque_geral -= qtd;
+      maletas.unshift({ id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random(), revendedora: rev, produto: prod, produto_nome: produto.nome, quantidade: qtd, quantidade_inicial: qtd, data_envio: new Date().toISOString(), status: 'ativa' });
+      localStorage.setItem('agda_produtos', JSON.stringify(produtos));
+      localStorage.setItem('agda_maletas', JSON.stringify(maletas));
+
+      alert('Maleta registrada e estoque geral atualizado neste aparelho/navegador.');
+      e.target.reset();
+      carregarTudo();
+    }
+
+    var cameraStream = null;
+    var detectorCodigo = null;
+    var leituraAtiva = false;
+    var destinoLeitorCodigo = 'cadastro';
+    async function abrirLeitorCodigo(destino) {
+      destinoLeitorCodigo = destino || 'cadastro';
+      var sufixo = destinoLeitorCodigo === 'maleta' ? '-maleta' : '';
+      var caixa = document.getElementById('leitor-camera' + sufixo);
+      var video = document.getElementById('video-codigo' + sufixo);
+      var status = document.getElementById('camera-status' + sufixo);
+      caixa.classList.remove('hidden');
+      if (!('BarcodeDetector' in window)) {
+        status.textContent = 'Este navegador não oferece leitura de código de barras integrada. Tente Chrome atualizado no Android ou digite o SKU manualmente.';
+        return;
+      }
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        status.textContent = 'A câmera precisa de uma conexão segura (HTTPS) e permissão do navegador.';
+        return;
+      }
+      try {
+        detectorCodigo = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'itf', 'qr_code'] });
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+        video.srcObject = cameraStream;
+        await video.play();
+        leituraAtiva = true;
+        status.textContent = 'Câmera ativa. Mantenha o código bem iluminado e dentro da imagem.';
+        procurarCodigoNaCamera();
+      } catch (err) {
+        status.textContent = 'Não foi possível abrir a câmera. Autorize o acesso nas configurações do navegador e tente novamente.';
+      }
+    }
+    async function procurarCodigoNaCamera() {
+      var video = document.getElementById('video-codigo');
+      if (!leituraAtiva || !detectorCodigo || !video || video.readyState < 2) {
+        if (leituraAtiva) requestAnimationFrame(procurarCodigoNaCamera);
+        return;
+      }
+      try {
+        var codigos = await detectorCodigo.detect(video);
+        if (codigos && codigos.length && codigos[0].rawValue) {
+          var codigoLido = codigos[0].rawValue;
+          if (destinoLeitorCodigo === 'maleta') {
+            var seletorProduto = document.getElementById('maleta-produto');
+            var opcao = Array.from(seletorProduto.options).find(function(item) { return item.value === codigoLido; });
+            if (!opcao) {
+              document.getElementById('camera-status-maleta').textContent = 'Código ' + codigoLido + ' não está cadastrado no estoque. Cadastre a peça primeiro.';
+              return;
+            }
+            seletorProduto.value = codigoLido;
+            document.getElementById('camera-status-maleta').textContent = 'Peça selecionada: ' + opcao.text;
+            fecharLeitorCodigo();
+            document.getElementById('maleta-qtd').focus();
+            return;
+          }
+          document.getElementById('prod-codigo').value = codigoLido;
+          document.getElementById('camera-status').textContent = 'Código lido: ' + codigoLido;
+          fecharLeitorCodigo();
+          document.getElementById('prod-nome').focus();
+          return;
+        }
+      } catch (err) {}
+      if (leituraAtiva) requestAnimationFrame(procurarCodigoNaCamera);
+    }
+    function fecharLeitorCodigo() {
+      leituraAtiva = false;
+      if (cameraStream) cameraStream.getTracks().forEach(function(track) { track.stop(); });
+      cameraStream = null;
+      var video = document.getElementById('video-codigo' + (destinoLeitorCodigo === 'maleta' ? '-maleta' : ''));
+      if (video) video.srcObject = null;
+      document.getElementById('leitor-camera' + (destinoLeitorCodigo === 'maleta' ? '-maleta' : '')).classList.add('hidden');
+    }
+
+    function importarPlanilhaCSV(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        var text = event.target.result;
+        var linhas = text.split('\n');
+        var produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+        var contador = 0;
+        for (var i = 1; i < linhas.length; i++) {
+          var linha = linhas[i].trim();
+          if (!linha) continue;
+          var delimitador = linha.indexOf(';') >= 0 ? ';' : ',';
+          var colunas = linha.split(delimitador).map(function(c) { return c.replace(/^\\s*["']|["']\\s*$/g, '').trim(); });
+          if (colunas.length >= 4 && colunas[0] && colunas[1]) {
+            var custoCSV = Number(String(colunas[2]).replace(/\\./g, '').replace(',', '.'));
+            var vendaCSV = Number(String(colunas[3]).replace(/\\./g, '').replace(',', '.'));
+            var estoqueCSV = colunas.length >= 5 ? parseInt(colunas[4], 10) : 0;
+            var codigoCSV = colunas[0];
+            if (produtos.some(function(p) { return String(p.codigo_barras) === codigoCSV; })) continue;
+            produtos.unshift({
+              id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random(),
+              codigo_barras: codigoCSV,
+              nome: colunas[1],
+              preco_custo: Number.isFinite(custoCSV) ? custoCSV : 0,
+              preco_venda: Number.isFinite(vendaCSV) ? vendaCSV : 0,
+              estoque_geral: Number.isInteger(estoqueCSV) && estoqueCSV >= 0 ? estoqueCSV : 0
+            });
+            contador++;
+          }
+        }
+        localStorage.setItem('agda_produtos', JSON.stringify(produtos));
+        alert(contador + ' peças importadas da planilha Tiny com sucesso!');
+        carregarTudo();
+      };
+      reader.readAsText(file);
+    }
+
+    function exportarPlanilhaCSV() {
+      var produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+      if (produtos.length === 0) {
+        alert('Sem peças para exportar.');
+        return;
+      }
+      var csv = 'Codigo;Nome;Custo;Venda;Estoque\n';
+      for (var i = 0; i < produtos.length; i++) {
+        var p = produtos[i];
+        var nomeCSV = String(p.nome || '').replace(/"/g, '""');
+        csv += '"' + String(p.codigo_barras || '').replace(/"/g, '""') + '";"' + nomeCSV + '";' + Number(p.preco_custo || 0).toFixed(2).replace('.', ',') + ';' + Number(p.preco_venda || 0).toFixed(2).replace('.', ',') + ';' + Number(p.estoque_geral || 0) + '\n';
+      }
+      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'estoque_tiny_agda.csv';
+      a.click();
+      setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+    }
+
+    function carregarTudo() {
+      carregarEstoque();
+      carregarRevendedoras();
+      carregarAniversariantes();
+      carregarMaletas();
+      carregarSelectsMaleta();
+    }
+
+    function escaparHTML(valor) {
+      return String(valor == null ? '' : valor).replace(/[&<>"']/g, function(c) {
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);
+      });
+    }
+
+    function carregarEstoque() {
+      var container = document.getElementById('lista-estoque');
+      if (!container) return;
+      var produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+      if (produtos.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhuma peça cadastrada.</p>';
+        return;
+      }
+      var html = '';
+      for (var i = 0; i < produtos.length; i++) {
+        var p = produtos[i];
+        html += '<div class="py-2 flex justify-between items-center border-b border-[#EFE6D8]"><div><span class="font-bold text-[#3D2314]">' + escaparHTML(p.nome) + '</span><span class="text-gray-500 block text-xs">Cód: ' + escaparHTML(p.codigo_barras) + ' | Qtd: ' + p.estoque_geral + '</span></div><span class="font-bold text-[#2A180E]">R$ ' + parseFloat(p.preco_venda).toFixed(2) + '</span></div>';
+      }
+      container.innerHTML = html;
+    }
+
+    function carregarRevendedoras() {
+      var container = document.getElementById('lista-revendedoras');
+      if (!container) return;
+      var revendedoras = JSON.parse(localStorage.getItem('agda_revendedoras') || '[]');
+      if (revendedoras.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhuma revendedora cadastrada.</p>';
+        return;
+      }
+      var html = '';
+      for (var i = 0; i < revendedoras.length; i++) {
+        var r = revendedoras[i];
+        html += '<div class="py-2 flex justify-between items-center border-b border-[#EFE6D8]"><div><span class="font-bold text-[#3D2314]">' + escaparHTML(r.nome) + '</span><span class="text-gray-500 block text-xs">WhatsApp: ' + escaparHTML(r.whatsapp) + ' | CPF: ' + escaparHTML(r.cpf) + '</span></div></div>';
+      }
+      container.innerHTML = html;
+    }
+
+    function carregarMaletas() {
+      var container = document.getElementById('lista-maletas');
+      if (!container) return;
+      var maletas = JSON.parse(localStorage.getItem('agda_maletas') || '[]').filter(function(m) { return m.status !== 'encerrada'; });
+      if (maletas.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhuma peça consignada no momento.</p>';
+        return;
+      }
+      var html = '';
+      for (var i = 0; i < maletas.length; i++) {
+        var m = maletas[i];
+        html += '<div class="py-2 flex justify-between items-center gap-2 border-b border-[#EFE6D8]"><div><span class="font-bold text-[#3D2314]">Revendedora: ' + escaparHTML(m.revendedora) + '</span><span class="text-gray-500 block text-xs">Peça: ' + escaparHTML(m.produto_nome || m.produto) + ' | Código: ' + escaparHTML(m.produto) + ' | Qtd. restante: ' + m.quantidade + '</span></div><button type="button" class="btn-sub" onclick="encerrarMaleta(\'' + escaparHTML(m.id) + '\')">Fechar e devolver</button></div>';
+      }
+      container.innerHTML = html;
+    }
+
+    function encerrarMaleta(maletaId) {
+      var maletas = JSON.parse(localStorage.getItem('agda_maletas') || '[]');
+      var maleta = maletas.find(function(m) { return m.id === maletaId && m.status !== 'encerrada'; });
+      if (!maleta) { alert('Maleta não encontrada ou já encerrada.'); return; }
+      var qtdRestante = Number(maleta.quantidade || 0);
+      var produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+      var produto = produtos.find(function(p) { return p.codigo_barras === maleta.produto; });
+      if (qtdRestante > 0 && !produto) { alert('Não foi possível devolver as peças: produto não encontrado.'); return; }
+      if (produto) produto.estoque_geral = Number(produto.estoque_geral || 0) + qtdRestante;
+      maleta.quantidade = 0;
+      maleta.status = 'encerrada';
+      maleta.data_fechamento = new Date().toISOString();
+      localStorage.setItem('agda_produtos', JSON.stringify(produtos));
+      localStorage.setItem('agda_maletas', JSON.stringify(maletas));
+      alert(qtdRestante + ' unidade(s) devolvida(s) ao estoque geral. Maleta encerrada.');
+      carregarTudo();
+      var revInput = document.getElementById('rev-nome-input').value.trim();
+      if (revInput) acessarRevendedora();
+    }
+
+    function carregarSelectsMaleta() {
+      var selRev = document.getElementById('maleta-revendedora');
+      var selProd = document.getElementById('maleta-produto');
+      if(!selRev || !selProd) return;
+
+      var revendedoras = JSON.parse(localStorage.getItem('agda_revendedoras') || '[]');
+      var produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+
+      var htmlRev = '<option value="">Selecione a Revendedora...</option>';
+      for(var i=0; i<revendedoras.length; i++) {
+        htmlRev += '<option value="' + escaparHTML(revendedoras[i].id) + '">' + escaparHTML(revendedoras[i].nome) + '</option>';
+      }
+      selRev.innerHTML = htmlRev;
+
+      var htmlProd = '<option value="">Selecione a Peça...</option>';
+      for(var j=0; j<produtos.length; j++) {
+        htmlProd += '<option value="' + escaparHTML(produtos[j].codigo_barras) + '">' + escaparHTML(produtos[j].nome) + ' - cód. ' + escaparHTML(produtos[j].codigo_barras) + ' - R$ ' + Number(produtos[j].preco_venda).toFixed(2) + ' (estoque: ' + produtos[j].estoque_geral + ')</option>';
+      }
+      selProd.innerHTML = htmlProd;
+    }
+
+    function carregarAniversariantes() {
+      var container = document.getElementById('lista-aniversariantes');
+      if (!container) return;
+      var vendas = JSON.parse(localStorage.getItem('agda_vendas') || '[]');
+      var mesAtual = new Date().getMonth() + 1;
+
+      var aniversariantes = [];
+      for (var i = 0; i < vendas.length; i++) {
+        var v = vendas[i];
+        if (v.cliente_nascimento) {
+          var partes = v.cliente_nascimento.split('-');
+          if (partes.length === 3 && parseInt(partes[1], 10) === mesAtual) {
+            aniversariantes.push({ nomeCliente: v.cliente_nome || 'Cliente', nomeRevendedora: v.revendedora_nome || '', dataNasc: v.cliente_nascimento.split('-').reverse().join('/') });
+          }
+        }
+      }
+
+      if (aniversariantes.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhuma aniversariante identificada neste mês.</p>';
+        return;
+      }
+
+      var html = '';
+      for (var j = 0; j < aniversariantes.length; j++) {
+        var an = aniversariantes[j];
+        html += '<div class="py-2 flex justify-between items-center border-b border-[#EFE6D8]"><div><span class="font-bold text-[#3D2314]">' + escaparHTML(an.nomeCliente) + ' — ' + escaparHTML(an.dataNasc) + '</span><span class="text-gray-500 block text-xs">Revendedora: ' + escaparHTML(an.nomeRevendedora) + '</span></div><span class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-2 py-1 rounded">Aniversário 🎂</span></div>';
+      }
+      container.innerHTML = html;
+    }
+
+    function acessarRevendedora() {
+      var nome = document.getElementById('rev-nome-input').value.trim();
+      var statusTxt = document.getElementById('rev-status-txt');
+      var painel = document.getElementById('painel-revendedora');
+      if (!nome) {
+        alert('Digite o seu nome.');
+        return;
+      }
+      var revendedoras = JSON.parse(localStorage.getItem('agda_revendedoras') || '[]');
+      var rev = revendedoras.find(function(r) { return r.nome.toLowerCase() === nome.toLowerCase() && r.ativo !== false; });
+      if (!rev) {
+        statusTxt.innerText = 'Não encontramos uma revendedora ativa com esse nome. Confira com a proprietária.';
+        statusTxt.classList.remove('hidden');
+        painel.innerHTML = '<p class="text-sm text-red-700">Acesso não localizado. Cadastre a revendedora no painel da proprietária primeiro.</p>';
+        return;
+      }
+      statusTxt.innerText = 'Demonstração local: bem-vinda, ' + rev.nome + '!';
+      statusTxt.classList.remove('hidden');
+      renderizarPainelRevendedora(rev);
+    }
+
+    function renderizarPainelRevendedora(rev) {
+      var painel = document.getElementById('painel-revendedora');
+      var maletas = JSON.parse(localStorage.getItem('agda_maletas') || '[]').filter(function(m) { return m.revendedora === rev.id && m.status !== 'encerrada'; });
+      var vendas = JSON.parse(localStorage.getItem('agda_vendas') || '[]').filter(function(v) { return v.revendedora_id === rev.id; });
+      var total = vendas.reduce(function(s, v) { return s + Number(v.total || 0); }, 0);
+      var comissao = vendas.reduce(function(s, v) { return s + Number(v.comissao || 0); }, 0);
+      var html = '<div class="grid grid-cols-2 gap-2"><div class="rounded-lg bg-[#F9F6F0] p-3"><span class="text-xs text-gray-600">Total vendido</span><p class="font-bold text-lg">R$ ' + total.toFixed(2).replace('.', ',') + '</p></div><div class="rounded-lg bg-[#F9F6F0] p-3"><span class="text-xs text-gray-600">Comissão (30%)</span><p class="font-bold text-lg">R$ ' + comissao.toFixed(2).replace('.', ',') + '</p></div></div>';
+      html += '<h4 class="font-bold">Peças na sua maleta</h4>';
+      if (!maletas.length) html += '<p class="text-sm text-gray-500">Nenhuma peça consignada para esta revendedora.</p>';
+      maletas.forEach(function(m) {
+        var prod = JSON.parse(localStorage.getItem('agda_produtos') || '[]').find(function(p) { return p.codigo_barras === m.produto; });
+        var disponivel = Number(m.quantidade || 0);
+        html += '<div class="border rounded-lg p-3 space-y-2"><div class="font-bold">' + escaparHTML(m.produto_nome || m.produto) + '</div><div class="text-xs text-gray-600">SKU: ' + escaparHTML(m.produto) + ' · Disponível: ' + disponivel + '</div><button type="button" class="btn-sub w-full" ' + (disponivel < 1 ? 'disabled' : '') + ' onclick="registrarVenda(\'' + escaparHTML(m.id) + '\',\'' + escaparHTML(rev.id) + '\')">Registrar venda</button></div>';
+      });
+      html += '<h4 class="font-bold mt-4">Minhas vendas</h4>';
+      if (!vendas.length) html += '<p class="text-sm text-gray-500">Nenhuma venda registrada.</p>';
+      vendas.slice().reverse().forEach(function(v) { html += '<div class="border-b py-2 text-sm"><b>' + escaparHTML(v.cliente_nome) + '</b> — R$ ' + Number(v.total).toFixed(2).replace('.', ',') + '<div class="text-xs text-gray-500">' + escaparHTML(v.data || '') + ' · ' + escaparHTML(v.pagamento || '') + '</div></div>'; });
+      painel.innerHTML = html;
+    }
+
+    function registrarVenda(maletaId, revId) {
+      var maletas = JSON.parse(localStorage.getItem('agda_maletas') || '[]');
+      var maleta = maletas.find(function(m) { return m.id === maletaId && m.revendedora === revId; });
+      if (!maleta || Number(maleta.quantidade) < 1) { alert('Não há unidades disponíveis nessa maleta.'); return; }
+      var produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+      var produto = produtos.find(function(p) { return p.codigo_barras === maleta.produto; });
+      if (!produto) { alert('Produto não encontrado no estoque local.'); return; }
+      var cliente = prompt('Nome do cliente:'); if (!cliente || !cliente.trim()) return;
+      var cpf = prompt('CPF do cliente (opcional):') || '';
+      var telefone = prompt('Telefone/WhatsApp do cliente (opcional):') || '';
+      var nascimento = prompt('Data de nascimento (AAAA-MM-DD, opcional):') || '';
+      var pagamento = prompt('Forma de pagamento: Pix, débito ou crédito', 'Pix') || '';
+      if (!['pix','débito','debito','crédito','credito'].includes(pagamento.trim().toLowerCase())) { alert('Forma de pagamento não reconhecida. Venda cancelada.'); return; }
+      var total = Number(produto.preco_venda);
+      var vendas = JSON.parse(localStorage.getItem('agda_vendas') || '[]');
+      vendas.push({ id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()), revendedora_id: revId, revendedora_nome: (JSON.parse(localStorage.getItem('agda_revendedoras') || '[]').find(function(r) { return r.id === revId; }) || {}).nome || '', maleta_id: maletaId, produto: produto.codigo_barras, cliente_nome: cliente.trim(), cliente_cpf: cpf.trim(), cliente_telefone: telefone.trim(), cliente_nascimento: nascimento.trim(), pagamento: pagamento.trim(), total: total, comissao: total * 0.30, data: new Date().toLocaleDateString('pt-BR') });
+      maleta.quantidade = Number(maleta.quantidade) - 1;
+      localStorage.setItem('agda_maletas', JSON.stringify(maletas));
+      localStorage.setItem('agda_vendas', JSON.stringify(vendas));
+      alert('Venda registrada nesta demonstração. Comissão calculada em 30%.');
+      var rev = JSON.parse(localStorage.getItem('agda_revendedoras') || '[]').find(function(r) { return r.id === revId; });
+      if (rev) renderizarPainelRevendedora(rev);
+      carregarTudo();
+    }
+
+    window.onload = function() {
+      carregarTudo();
+    };
+  </script>
+</body>
+</html>
