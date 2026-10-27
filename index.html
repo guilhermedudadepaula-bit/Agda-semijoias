@@ -2,402 +2,171 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>AGDA Semijoias</title>
-  <link rel="manifest" href='data:application/manifest+json;charset=utf-8,{"name":"AGDA Semijoias","short_name":"AGDA","start_url":".","display":"standalone","background_color":"%232A180E","theme_color":"%232A180E"}'>
   <meta name="theme-color" content="#2A180E">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="AGDA">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { background-color: #F9F6F0; color: #2A180E; font-family: system-ui, sans-serif; }
-    button, input, select, label { touch-action: manipulation; cursor: pointer; }
-    .card { background: #fff; padding: 16px; border-radius: 12px; border: 1px solid #EFE6D8; box-shadow: 0 1px 3px #0000001a; margin-bottom: 16px; }
-    .btn-main { background: #2A180E; color: #D4AF37; font-weight: bold; width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #D4AF37; }
-    .btn-sub { background: #3D2314; color: #D4AF37; font-weight: bold; padding: 8px 12px; border-radius: 6px; font-size: 12px; }
-    .input-field { width: 100%; padding: 10px; border: 1px solid #EFE6D8; background: #F9F6F0; border-radius: 6px; margin-top: 4px; font-size: 14px; }
-    .btn-sub:disabled { opacity: .45; cursor: not-allowed; }
+    body{background:#F9F6F0;color:#2A180E;font-family:system-ui,sans-serif}
+    .card{background:#fff;padding:16px;border-radius:12px;border:1px solid #EFE6D8;box-shadow:0 1px 3px #00000012;margin-bottom:16px}
+    .btn-main{background:#2A180E;color:#D4AF37;font-weight:700;width:100%;padding:12px;border-radius:8px;border:1px solid #D4AF37}
+    .btn-sub{background:#3D2314;color:#D4AF37;font-weight:700;padding:8px 12px;border-radius:6px;font-size:12px}
+    .input-field{width:100%;padding:10px;border:1px solid #EFE6D8;background:#F9F6F0;border-radius:6px;margin-top:4px;font-size:14px}
+    button:disabled{opacity:.5;cursor:not-allowed}
   </style>
 </head>
-<body class="pb-10 flex flex-col min-h-screen">
-
-<header class="bg-[#2A180E] text-[#F9F6F0] p-4 shadow-md flex justify-between items-center border-b-2 border-[#D4AF37]">
-  <div class="flex items-center gap-2">
-    <div class="w-8 h-8 rounded-full bg-[#D4AF37] flex items-center justify-center text-[#2A180E] font-bold">A</div>
-    <h1 class="text-xl font-bold tracking-wide text-[#D4AF37]">AGDA Semijoias</h1>
-  </div>
-  <span id="mod-label" class="text-xs bg-[#3D2314] px-2 py-1 rounded text-[#EFE6D8] border border-[#D4AF37]">Painel Proprietária</span>
+<body class="min-h-screen">
+<header class="bg-[#2A180E] text-[#F9F6F0] p-4 border-b-2 border-[#D4AF37] flex items-center justify-between">
+  <div class="flex items-center gap-2"><div class="w-9 h-9 rounded-full bg-[#D4AF37] flex items-center justify-center font-bold">A</div><h1 class="text-xl font-bold text-[#D4AF37]">AGDA Semijoias</h1></div>
+  <span id="role-label" class="text-xs">Acesso seguro</span>
 </header>
-
-<div class="bg-[#3D2314] text-[#F9F6F0] p-3 text-center text-xs flex justify-between items-center px-4 border-b border-[#D4AF37]">
-  <span>📱 Instalar App na Tela Inicial</span>
-  <button type="button" onclick="instalarAppPWA()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">📲 Baixar App</button>
-</div>
-
-<div role="note" class="max-w-2xl mx-auto mt-4 px-4 py-3 rounded-lg border border-amber-400 bg-amber-50 text-amber-900 text-sm">
-  <strong>Modo demonstração:</strong> os dados ficam somente neste navegador/aparelho. Esta versão ainda não está conectada ao Tiny ERP, não possui login seguro e não sincroniza entre aparelhos.
-</div>
-
-<div class="p-4 max-w-2xl mx-auto flex gap-2 w-full">
-  <button type="button" onclick="mudarModo('proprietaria')" id="btn-prop" class="flex-1 py-3 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]">Painel Proprietária</button>
-  <button type="button" onclick="mudarModo('revendedora')" id="btn-rev" class="flex-1 py-3 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]">App Revendedora</button>
-</div>
-
-<main class="max-w-2xl mx-auto px-4 flex-grow w-full space-y-6">
-
-<div id="view-proprietaria">
-
-  <div class="card">
-    <h2 class="text-lg font-bold mb-3">Cadastrar Peça / Planilha Tiny</h2>
-    <div class="flex gap-2 mb-3">
-      <label class="flex-1 text-center btn-sub">
-        📂 Importar CSV
-        <input type="file" accept=".csv,.txt" class="hidden" onchange="importarPlanilhaCSV(event)">
-      </label>
-      <button type="button" onclick="exportarPlanilhaCSV()" class="flex-1 bg-[#EFE6D8] text-[#3D2314] text-xs font-bold py-2 px-3 rounded">📥 Exportar CSV</button>
-    </div>
-    <form onsubmit="salvarProduto(event)" class="space-y-3">
-      <div><label class="block text-xs font-bold">Código / SKU</label><input id="prod-codigo" required class="input-field" placeholder="Código de barras"></div>
-      <div><label class="block text-xs font-bold">Nome da Peça</label><input id="prod-nome" required class="input-field" placeholder="Ex.: Colar Coração"></div>
-      <div class="grid grid-cols-2 gap-2">
-        <div><label class="block text-xs font-bold">Custo (R$)</label><input type="number" min="0" step="0.01" id="prod-custo" class="input-field" placeholder="15,00"></div>
-        <div><label class="block text-xs font-bold">Preço Venda (R$)</label><input type="number" min="0.01" step="0.01" id="prod-venda" required class="input-field" placeholder="35,00"></div>
-      </div>
-      <div><label class="block text-xs font-bold">Estoque Inicial</label><input type="number" min="0" step="1" id="prod-estoque" required class="input-field" placeholder="10"></div>
-      <button type="submit" class="btn-main">Salvar Peça no Estoque</button>
+<div class="max-w-2xl mx-auto p-4">
+  <div class="rounded-lg border border-amber-400 bg-amber-50 text-amber-900 p-3 text-sm mb-4">
+    <b>Integração em etapas:</b> login, produtos e aprovação de revendedoras usam o Supabase. Maletas, vendas, comissões, leitura de código de barras e Tiny ERP ainda não foram liberados nesta etapa.
+  </div>
+  <div id="message" role="status" class="hidden rounded-lg p-3 mb-4 text-sm"></div>
+  <section id="login-view" class="card max-w-md mx-auto">
+    <h2 class="text-lg font-bold mb-1">Entrar no sistema</h2>
+    <p class="text-sm text-gray-600 mb-4">Use o e-mail e a senha cadastrados no Supabase.</p>
+    <form id="login-form" class="space-y-3">
+      <div><label for="email" class="text-sm font-semibold">E-mail</label><input id="email" type="email" autocomplete="username" required class="input-field"></div>
+      <div><label for="password" class="text-sm font-semibold">Senha</label><input id="password" type="password" autocomplete="current-password" required class="input-field"></div>
+      <button id="login-button" class="btn-main" type="submit">Entrar</button>
     </form>
-  </div>
+  </section>
 
-  <div class="card">
-    <h2 class="text-lg font-bold mb-3">💼 Montagem de Maleta</h2>
-    <form onsubmit="salvarMaleta(event)" class="space-y-3">
-      <div><label class="block text-xs font-bold">Revendedora</label><select id="maleta-revendedora" required class="input-field"><option value="">Selecione...</option></select></div>
-      <div><label class="block text-xs font-bold">Peça do Estoque</label><select id="maleta-produto" required class="input-field"><option value="">Selecione...</option></select></div>
-      <div><label class="block text-xs font-bold">Quantidade Enviada</label><input type="number" id="maleta-qtd" required value="1" min="1" step="1" class="input-field"></div>
-      <button type="submit" class="btn-sub w-full py-3">Enviar Peça para a Maleta</button>
-    </form>
-    <h3 class="font-bold text-sm mt-4 mb-2">Maletas Ativas</h3>
-    <div id="lista-maletas" class="divide-y divide-[#EFE6D8] text-xs max-h-60 overflow-y-auto"></div>
-  </div>
+  <section id="blocked-view" class="card hidden">
+    <h2 class="text-lg font-bold">Acesso ainda não liberado</h2>
+    <p id="blocked-text" class="text-sm mt-2">Seu perfil está aguardando aprovação da proprietária.</p>
+    <button class="btn-sub mt-4" type="button" onclick="sair()">Sair</button>
+  </section>
 
-  <div class="card">
-    <h2 class="text-lg font-bold mb-3">Cadastrar Revendedora</h2>
-    <form onsubmit="salvarRevendedora(event)" class="space-y-3">
-      <input id="rev-cad-nome" required class="input-field" placeholder="Nome completo">
-      <input id="rev-cad-cpf" required class="input-field" placeholder="CPF">
-      <input id="rev-cad-whats" required class="input-field" placeholder="WhatsApp">
-      <button type="submit" class="btn-sub w-full py-3">Cadastrar Revendedora</button>
-    </form>
-  </div>
-
-  <div class="card">
-    <div class="flex justify-between items-center mb-3">
-      <h3 class="font-bold">Estoque Geral</h3>
-      <button type="button" onclick="carregarTudo()" class="btn-sub">Atualizar</button>
+  <section id="owner-view" class="hidden">
+    <div class="card">
+      <div class="flex justify-between items-center gap-3 mb-3"><div><h2 class="text-lg font-bold">Painel da proprietária</h2><p id="owner-email" class="text-xs text-gray-500"></p></div><button class="btn-sub" type="button" onclick="sair()">Sair</button></div>
+      <h3 class="font-bold mb-3">Cadastrar peça no estoque geral</h3>
+      <form id="product-form" class="space-y-3">
+        <div><label for="sku" class="text-sm font-semibold">Código / SKU</label><input id="sku" required class="input-field" maxlength="100"></div>
+        <div><label for="product-name" class="text-sm font-semibold">Nome da peça</label><input id="product-name" required class="input-field" maxlength="200"></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label for="cost-price" class="text-sm font-semibold">Custo (R$)</label><input id="cost-price" type="number" min="0" step="0.01" value="0" required class="input-field"></div>
+          <div><label for="sale-price" class="text-sm font-semibold">Preço de venda (R$)</label><input id="sale-price" type="number" min="0.01" step="0.01" required class="input-field"></div>
+        </div>
+        <div><label for="stock" class="text-sm font-semibold">Estoque geral</label><input id="stock" type="number" min="0" step="1" value="0" required class="input-field"></div>
+        <button id="product-button" type="submit" class="btn-main">Salvar no Supabase</button>
+      </form>
     </div>
-    <div id="lista-estoque" class="divide-y divide-[#EFE6D8] text-xs"></div>
-  </div>
-
-  <div class="card">
-    <h3 class="font-bold mb-3">Revendedoras Cadastradas</h3>
-    <div id="lista-revendedoras" class="divide-y divide-[#EFE6D8] text-xs"></div>
-  </div>
-
-  <div class="card">
-    <h3 class="font-bold mb-3">🎉 Aniversariantes dos Clientes</h3>
-    <div id="lista-aniversariantes" class="text-xs"></div>
-  </div>
-
-</div>
-
-<div id="view-revendedora" style="display:none">
-  <div class="bg-[#2A180E] text-white p-4 rounded-xl border border-[#D4AF37] space-y-3 mb-4">
-    <p class="text-xs text-[#D4AF37] font-bold">Identificação da Revendedora</p>
-    <div class="flex gap-2">
-      <input id="rev-nome-input" class="w-full p-2.5 rounded text-[#2A180E] text-sm" placeholder="Digite seu nome cadastrado">
-      <button type="button" onclick="acessarRevendedora()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-4 rounded text-xs">Acessar</button>
+    <div class="card">
+      <div class="flex justify-between items-center mb-3"><h3 class="font-bold">Estoque geral sincronizado</h3><button type="button" class="btn-sub" onclick="carregarProdutos()">Atualizar</button></div>
+      <div id="products-list" class="divide-y divide-[#EFE6D8] text-sm"><p class="text-gray-500 py-2">Carregando...</p></div>
     </div>
-    <p id="rev-status-txt" class="text-xs text-yellow-300 hidden"></p>
-  </div>
-  <div class="card">
-    <h3 class="font-bold mb-2">Painel da Revendedora</h3>
-    <div id="painel-revendedora" class="space-y-3">Digite seu nome acima para consultar suas maletas e vendas.</div>
-  </div>
+    <div class="card">
+      <div class="flex justify-between items-center mb-3"><h3 class="font-bold">Aprovação de revendedoras</h3><button type="button" class="btn-sub" onclick="carregarPerfis()">Atualizar</button></div>
+      <p class="text-xs text-gray-600 mb-3">Somente usuários que já têm perfil no Supabase aparecem aqui.</p>
+      <div id="profiles-list" class="divide-y divide-[#EFE6D8] text-sm"><p class="text-gray-500 py-2">Carregando...</p></div>
+    </div>
+  </section>
+
+  <section id="reseller-view" class="hidden">
+    <div class="card">
+      <div class="flex justify-between items-center"><h2 class="text-lg font-bold">Área da revendedora</h2><button class="btn-sub" type="button" onclick="sair()">Sair</button></div>
+      <p id="reseller-status" class="mt-3 text-sm"></p>
+      <p class="mt-3 text-sm text-gray-600">As maletas e vendas serão ativadas após a validação das permissões de estoque e movimentação.</p>
+    </div>
+  </section>
 </div>
-
-</main>
-
-<footer class="text-center py-6 text-xs text-gray-500 mt-auto">AGDA Semijoias</footer>
-
+<footer class="text-center text-xs text-gray-500 py-6">AGDA Semijoias · acesso individual</footer>
 <script>
-const CHAVE = {
-  produtos: 'agda_produtos',
-  revendedoras: 'agda_revendedoras',
-  maletas: 'agda_maletas',
-  vendas: 'agda_vendas'
-};
-
-function ler(chave) {
-  try { return JSON.parse(localStorage.getItem(chave) || '[]'); }
-  catch (e) { return []; }
-}
-function gravar(chave, dados) {
-  localStorage.setItem(chave, JSON.stringify(dados));
-}
-function idNovo() {
-  return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random();
-}
-function escaparHTML(valor) {
-  return String(valor == null ? '' : valor).replace(/[&<>"']/g, c => ({
-    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
-  })[c]);
-}
-function dinheiro(valor) {
-  return Number(valor || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-}
-function instalarAppPWA() {
-  alert("Para instalar na tela inicial:\n\nAndroid: menu ⋮ do Chrome > Instalar aplicativo ou Adicionar à tela inicial.\n\niPhone: Safari > Compartilhar > Adicionar à Tela de Início.");
-}
-function mudarModo(modo) {
-  const proprietaria = modo === 'proprietaria';
-  document.getElementById('view-proprietaria').style.display = proprietaria ? 'block' : 'none';
-  document.getElementById('view-revendedora').style.display = proprietaria ? 'none' : 'block';
-  document.getElementById('mod-label').textContent = proprietaria ? 'Painel Proprietária' : 'App Revendedora';
-  document.getElementById('btn-prop').style.background = proprietaria ? '#3D2314' : '#EFE6D8';
-  document.getElementById('btn-prop').style.color = proprietaria ? '#D4AF37' : '#3D2314';
-  document.getElementById('btn-rev').style.background = proprietaria ? '#EFE6D8' : '#3D2314';
-  document.getElementById('btn-rev').style.color = proprietaria ? '#3D2314' : '#D4AF37';
-  if (proprietaria) carregarTudo();
-}
-
-function salvarProduto(event) {
-  event.preventDefault();
-  const codigo = document.getElementById('prod-codigo').value.trim();
-  const nome = document.getElementById('prod-nome').value.trim();
-  const custo = Number(document.getElementById('prod-custo').value || 0);
-  const venda = Number(document.getElementById('prod-venda').value);
-  const estoque = Number(document.getElementById('prod-estoque').value);
-  if (!codigo || !nome || !Number.isFinite(custo) || custo < 0 || !Number.isFinite(venda) || venda <= 0 || !Number.isInteger(estoque) || estoque < 0) {
-    alert('Confira o código, nome, custo, preço de venda e estoque.');
-    return;
+(function(){
+  const SUPABASE_URL = 'https://atrbkrrkwsebfgeslmok.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_m22hGgPEDKfV8ysDzs90cw_cGbGTzru';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  let currentUser = null;
+  let currentProfile = null;
+  const $ = id => document.getElementById(id);
+  const money = value => Number(value || 0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function showMessage(text, ok=false){
+    const el=$('message'); el.textContent=text; el.classList.remove('hidden','bg-red-50','text-red-800','bg-green-50','text-green-800');
+    el.classList.add(ok?'bg-green-50':'bg-red-50',ok?'text-green-800':'text-red-800');
   }
-  const produtos = ler(CHAVE.produtos);
-  if (produtos.some(p => String(p.codigo_barras).toLowerCase() === codigo.toLowerCase())) {
-    alert('Esse código/SKU já está cadastrado.');
-    return;
+  function clearMessage(){ $('message').classList.add('hidden'); }
+  function hideViews(){ ['login-view','blocked-view','owner-view','reseller-view'].forEach(id=>$(id).classList.add('hidden')); }
+  async function start(){
+    const {data,error}=await sb.auth.getSession();
+    if(error){showMessage('Não foi possível verificar a sessão: '+error.message);return;}
+    if(data.session) await loadProfile(data.session.user);
+    else {hideViews();$('login-view').classList.remove('hidden');}
   }
-  produtos.unshift({id:idNovo(), codigo_barras:codigo, nome, preco_custo:custo, preco_venda:venda, estoque_geral:estoque});
-  gravar(CHAVE.produtos, produtos);
-  event.target.reset();
-  carregarTudo();
-  alert('Peça cadastrada neste aparelho.');
-}
-
-function salvarRevendedora(event) {
-  event.preventDefault();
-  const nome = document.getElementById('rev-cad-nome').value.trim();
-  const cpf = document.getElementById('rev-cad-cpf').value.trim();
-  const whatsapp = document.getElementById('rev-cad-whats').value.trim();
-  if (!nome || !cpf || !whatsapp) {
-    alert('Preencha nome, CPF e WhatsApp.');
-    return;
-  }
-  const revendedoras = ler(CHAVE.revendedoras);
-  if (revendedoras.some(r => String(r.cpf).replace(/\D/g,'') === cpf.replace(/\D/g,''))) {
-    alert('Já existe uma revendedora com esse CPF.');
-    return;
-  }
-  revendedoras.unshift({id:idNovo(), nome, cpf, whatsapp, ativo:true});
-  gravar(CHAVE.revendedoras, revendedoras);
-  event.target.reset();
-  carregarTudo();
-  alert('Revendedora cadastrada neste aparelho.');
-}
-
-function salvarMaleta(event) {
-  event.preventDefault();
-  const revId = document.getElementById('maleta-revendedora').value;
-  const codigo = document.getElementById('maleta-produto').value;
-  const quantidade = Number(document.getElementById('maleta-qtd').value);
-  if (!revId || !codigo || !Number.isInteger(quantidade) || quantidade < 1) {
-    alert('Selecione a revendedora, a peça e a quantidade.');
-    return;
-  }
-  const produtos = ler(CHAVE.produtos);
-  const produto = produtos.find(p => p.codigo_barras === codigo);
-  if (!produto) { alert('Peça não encontrada.'); return; }
-  if (produto.estoque_geral < quantidade) {
-    alert('Estoque insuficiente. Disponível: ' + produto.estoque_geral);
-    return;
-  }
-  const rev = ler(CHAVE.revendedoras).find(r => r.id === revId);
-  if (!rev) { alert('Revendedora não encontrada.'); return; }
-  produto.estoque_geral -= quantidade;
-  const maletas = ler(CHAVE.maletas);
-  maletas.unshift({
-    id:idNovo(), revendedora:revId, produto:codigo, produto_nome:produto.nome,
-    quantidade, quantidade_inicial:quantidade, data_envio:new Date().toISOString(),
-    status:'ativa'
-  });
-  gravar(CHAVE.produtos, produtos);
-  gravar(CHAVE.maletas, maletas);
-  event.target.reset();
-  carregarTudo();
-  alert('Maleta registrada. Estoque atualizado neste aparelho.');
-}
-
-function encerrarMaleta(maletaId) {
-  const maletas = ler(CHAVE.maletas);
-  const maleta = maletas.find(m => m.id === maletaId && m.status === 'ativa');
-  if (!maleta) { alert('Maleta não encontrada ou já encerrada.'); return; }
-  const produtos = ler(CHAVE.produtos);
-  const produto = produtos.find(p => p.codigo_barras === maleta.produto);
-  const restante = Number(maleta.quantidade || 0);
-  if (restante > 0 && !produto) { alert('Não foi possível encontrar a peça para devolver ao estoque.'); return; }
-  if (produto) produto.estoque_geral = Number(produto.estoque_geral || 0) + restante;
-  maleta.quantidade = 0;
-  maleta.status = 'encerrada';
-  maleta.data_fechamento = new Date().toISOString();
-  gravar(CHAVE.produtos, produtos);
-  gravar(CHAVE.maletas, maletas);
-  carregarTudo();
-  const nome = document.getElementById('rev-nome-input').value.trim();
-  if (nome) acessarRevendedora();
-  alert(restante + ' unidade(s) devolvida(s) ao estoque geral. Maleta encerrada.');
-}
-
-function importarPlanilhaCSV(event) {
-  const arquivo = event.target.files && event.target.files[0];
-  if (!arquivo) return;
-  const leitor = new FileReader();
-  leitor.onload = function(e) {
-    const linhas = String(e.target.result).split(/\r?\n/);
-    const produtos = ler(CHAVE.produtos);
-    let contador = 0;
-    for (let i = 1; i < linhas.length; i++) {
-      const linha = linhas[i].trim();
-      if (!linha) continue;
-      const sep = linha.includes(';') ? ';' : ',';
-      const colunas = linha.split(sep).map(c => c.replace(/^\s*["']|["']\s*$/g,'').trim());
-      if (colunas.length < 4 || !colunas[0] || !colunas[1]) continue;
-      const codigo = colunas[0];
-      if (produtos.some(p => String(p.codigo_barras) === codigo)) continue;
-      const custo = Number(String(colunas[2]).replace(',','.')) || 0;
-      const venda = Number(String(colunas[3]).replace(',','.')) || 0;
-      const estoque = Math.max(0, parseInt(colunas[4] || '0',10) || 0);
-      produtos.push({id:idNovo(), codigo_barras:codigo, nome:colunas[1], preco_custo:custo, preco_venda:venda, estoque_geral:estoque});
-      contador++;
+  async function loadProfile(user){
+    currentUser=user;
+    const {data:profile,error}=await sb.from('profiles').select('id,full_name,role,status').eq('id',user.id).maybeSingle();
+    if(error){hideViews();$('login-view').classList.remove('hidden');showMessage('Login realizado, mas não foi possível ler o perfil. Confira as políticas RLS: '+error.message);return;}
+    if(!profile){await sb.auth.signOut();hideViews();$('login-view').classList.remove('hidden');showMessage('Usuário autenticado sem perfil em public.profiles. Peça à proprietária para configurar o cadastro.');return;}
+    currentProfile=profile; hideViews(); clearMessage();
+    if(profile.status!=='approved'){
+      $('blocked-view').classList.remove('hidden');
+      $('blocked-text').textContent=profile.status==='blocked'?'Seu acesso foi bloqueado. Fale com a proprietária.':'Seu perfil está aguardando aprovação da proprietária.';
+      $('role-label').textContent='Aguardando aprovação'; return;
     }
-    gravar(CHAVE.produtos, produtos);
-    carregarTudo();
-    alert(contador + ' peça(s) importada(s). Confira os dados após a importação.');
-    event.target.value = '';
+    if(profile.role==='owner'){
+      $('owner-view').classList.remove('hidden'); $('role-label').textContent='Proprietária'; $('owner-email').textContent=user.email||'';
+      await Promise.all([carregarProdutos(),carregarPerfis()]);
+    } else {
+      $('reseller-view').classList.remove('hidden'); $('role-label').textContent='Revendedora';
+      $('reseller-status').textContent='Olá, '+(profile.full_name||user.email)+'. Seu acesso está aprovado.';
+    }
+  }
+  $('login-form').addEventListener('submit',async e=>{
+    e.preventDefault(); clearMessage(); $('login-button').disabled=true; $('login-button').textContent='Entrando...';
+    try{
+      const {data,error}=await sb.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});
+      if(error) throw error;
+      await loadProfile(data.user);
+    }catch(error){showMessage('Não foi possível entrar: '+(error.message||'erro desconhecido'));}
+    finally{$('login-button').disabled=false;$('login-button').textContent='Entrar';}
+  });
+  $('product-form').addEventListener('submit',async e=>{
+    e.preventDefault(); clearMessage(); $('product-button').disabled=true;
+    const row={sku:$('sku').value.trim(),name:$('product-name').value.trim(),cost_price:Number($('cost-price').value),sale_price:Number($('sale-price').value),stock_general:Number($('stock').value),active:true};
+    if(!row.sku||!row.name||row.cost_price<0||row.sale_price<=0||!Number.isInteger(row.stock_general)||row.stock_general<0){showMessage('Confira os dados da peça.');$('product-button').disabled=false;return;}
+    try{
+      const {error}=await sb.from('products').insert(row);
+      if(error) throw error;
+      e.target.reset(); $('cost-price').value='0'; $('stock').value='0';
+      showMessage('Peça gravada no banco de dados do Supabase.',true); await carregarProdutos();
+    }catch(error){showMessage('Não foi possível salvar a peça: '+(error.message||'erro desconhecido'));}
+    finally{$('product-button').disabled=false;}
+  });
+  window.carregarProdutos=async function(){
+    const box=$('products-list'); box.innerHTML='<p class="text-gray-500 py-2">Carregando...</p>';
+    const {data,error}=await sb.from('products').select('id,sku,name,cost_price,sale_price,stock_general,active').order('created_at',{ascending:false});
+    if(error){box.innerHTML='<p class="text-red-700 py-2">Erro ao carregar produtos: '+esc(error.message)+'</p>';return;}
+    if(!data.length){box.innerHTML='<p class="text-gray-500 py-2">Nenhuma peça cadastrada no banco.</p>';return;}
+    box.innerHTML=data.map(p=>'<div class="py-3 flex justify-between gap-3"><div><b>'+esc(p.name)+'</b><span class="block text-xs text-gray-500">SKU: '+esc(p.sku)+' · Estoque: '+Number(p.stock_general)+'</span></div><div class="font-bold whitespace-nowrap">'+money(p.sale_price)+'</div></div>').join('');
   };
-  leitor.readAsText(arquivo);
-}
-
-function exportarPlanilhaCSV() {
-  const produtos = ler(CHAVE.produtos);
-  if (!produtos.length) { alert('Não há peças para exportar.'); return; }
-  let csv = 'Codigo;Nome;Custo;Venda;Estoque\n';
-  produtos.forEach(p => {
-    const nome = String(p.nome || '').replace(/"/g,'""');
-    csv += '"' + String(p.codigo_barras || '') + '";"' + nome + '";' +
-      Number(p.preco_custo || 0).toFixed(2).replace('.',',') + ';' +
-      Number(p.preco_venda || 0).toFixed(2).replace('.',',') + ';' +
-      Number(p.estoque_geral || 0) + '\n';
-  });
-  const blob = new Blob(['\ufeff' + csv], {type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'estoque_agda.csv';
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
-function carregarTudo() {
-  carregarEstoque();
-  carregarRevendedoras();
-  carregarMaletas();
-  carregarSelectsMaleta();
-  carregarAniversariantes();
-}
-function carregarEstoque() {
-  const container = document.getElementById('lista-estoque');
-  const produtos = ler(CHAVE.produtos);
-  if (!produtos.length) {
-    container.innerHTML = '<p class="py-2 text-gray-500">Nenhuma peça cadastrada.</p>';
-    return;
-  }
-  container.innerHTML = produtos.map(p =>
-    '<div class="py-2 flex justify-between gap-3 border-b border-[#EFE6D8]"><div><b>' + escaparHTML(p.nome) +
-    '</b><span class="block text-gray-500">SKU: ' + escaparHTML(p.codigo_barras) +
-    ' | Quantidade: ' + Number(p.estoque_geral) + '</span></div><b>' + dinheiro(p.preco_venda) + '</b></div>'
-  ).join('');
-}
-function carregarRevendedoras() {
-  const container = document.getElementById('lista-revendedoras');
-  const revendedoras = ler(CHAVE.revendedoras);
-  if (!revendedoras.length) {
-    container.innerHTML = '<p class="py-2 text-gray-500">Nenhuma revendedora cadastrada.</p>';
-    return;
-  }
-  container.innerHTML = revendedoras.map(r =>
-    '<div class="py-2 border-b border-[#EFE6D8]"><b>' + escaparHTML(r.nome) +
-    '</b><span class="block text-gray-500">WhatsApp: ' + escaparHTML(r.whatsapp) +
-    ' | CPF: ' + escaparHTML(r.cpf) + '</span></div>'
-  ).join('');
-}
-function carregarMaletas() {
-  const container = document.getElementById('lista-maletas');
-  const maletas = ler(CHAVE.maletas).filter(m => m.status === 'ativa');
-  if (!maletas.length) {
-    container.innerHTML = '<p class="py-2 text-gray-500">Nenhuma maleta ativa.</p>';
-    return;
-  }
-  container.innerHTML = maletas.map(m => {
-    const rev = ler(CHAVE.revendedoras).find(r => r.id === m.revendedora);
-    return '<div class="py-3 flex justify-between items-center gap-2 border-b border-[#EFE6D8]"><div><b>' +
-      escaparHTML(rev ? rev.nome : 'Revendedora') + '</b><span class="block text-gray-500">' +
-      escaparHTML(m.produto_nome) + ' | SKU: ' + escaparHTML(m.produto) +
-      ' | Restante: ' + Number(m.quantidade) + '</span></div><button type="button" class="btn-sub" onclick="encerrarMaleta(\'' +
-      escaparHTML(m.id) + '\')">Fechar e devolver</button></div>';
-  }).join('');
-}
-function carregarSelectsMaleta() {
-  const selectRev = document.getElementById('maleta-revendedora');
-  const selectProd = document.getElementById('maleta-produto');
-  const revendedoras = ler(CHAVE.revendedoras).filter(r => r.ativo !== false);
-  const produtos = ler(CHAVE.produtos);
-  selectRev.innerHTML = '<option value="">Selecione...</option>' + revendedoras.map(r =>
-    '<option value="' + escaparHTML(r.id) + '">' + escaparHTML(r.nome) + '</option>'
-  ).join('');
-  selectProd.innerHTML = '<option value="">Selecione...</option>' + produtos.map(p =>
-    '<option value="' + escaparHTML(p.codigo_barras) + '">' + escaparHTML(p.nome) + ' — ' +
-    escaparHTML(p.codigo_barras) + ' — ' + dinheiro(p.preco_venda) + ' (estoque: ' +
-    Number(p.estoque_geral) + ')</option>'
-  ).join('');
-}
-function carregarAniversariantes() {
-  const container = document.getElementById('lista-aniversariantes');
-  const mes = new Date().getMonth() + 1;
-  const aniversariantes = ler(CHAVE.vendas).filter(v => {
-    if (!v.cliente_nascimento) return false;
-    const partes = v.cliente_nascimento.split('-');
-    return partes.length === 3 && Number(partes[1]) === mes;
-  });
-  if (!aniversariantes.length) {
-    container.innerHTML = '<p class="py-2 text-gray-500">Nenhum aniversário de cliente identificado neste mês.</p>';
-    return;
-  }
-  container.innerHTML = aniversariantes.map(v =>
-    '<div class="py-2 border-b border-[#EFE6D8]"><b>' + escaparHTML(v.cliente_nome) +
-    '</b> — ' + escaparHTML(v.cliente_nascimento) + '<span class="block text-gray-500">Revendedora: ' +
-    escaparHTML(v.revendedora_nome || '') + '</span></div>'
-  ).join('');
-}
-
-function acessarRevendedora() {
-  const nome = document.getElementById('rev-nome-input').value.trim();
-  const status = document.
+  window.carregarPerfis=async function(){
+    const box=$('profiles-list'); box.innerHTML='<p class="text-gray-500 py-2">Carregando...</p>';
+    const {data,error}=await sb.from('profiles').select('id,full_name,cpf,whatsapp,role,status,created_at').order('created_at',{ascending:false});
+    if(error){box.innerHTML='<p class="text-red-700 py-2">Erro ao carregar perfis: '+esc(error.message)+'</p>';return;}
+    const list=(data||[]).filter(p=>p.id!==currentUser.id);
+    if(!list.length){box.innerHTML='<p class="text-gray-500 py-2">Nenhum perfil de revendedora cadastrado ainda.</p>';return;}
+    box.innerHTML=list.map(p=>'<div class="py-3"><div class="flex justify-between gap-2"><div><b>'+esc(p.full_name||'Sem nome')+'</b><span class="block text-xs text-gray-500">'+esc(p.whatsapp||'')+(p.cpf?' · CPF: '+esc(p.cpf):'')+'</span><span class="block text-xs mt-1">Situação: '+esc(p.status)+' · Perfil: '+esc(p.role)+'</span></div><div class="flex flex-col gap-2">'+(p.role==='reseller'&&p.status!=='approved'?'<button class="btn-sub" data-profile="'+esc(p.id)+'" data-status="approved">Aprovar</button>':'')+(p.role==='reseller'&&p.status!=='blocked'?'<button class="btn-sub" data-profile="'+esc(p.id)+'" data-status="blocked">Bloquear</button>':'')+(p.role==='reseller'&&p.status==='blocked'?'<button class="btn-sub" data-profile="'+esc(p.id)+'" data-status="pending">Reativar pendente</button>':'')+'</div></div></div>').join('');
+    box.querySelectorAll('button[data-profile]').forEach(button=>button.addEventListener('click',async()=>{
+      const id=button.dataset.profile,status=button.dataset.status;
+      if(!confirm('Confirmar alteração do acesso para "'+status+'"?'))return;
+      button.disabled=true;
+      const {error}=await sb.from('profiles').update({status}).eq('id',id).eq('role','reseller');
+      if(error)showMessage('Não foi possível alterar o acesso: '+error.message);
+      else {showMessage('Status atualizado.',true);await carregarPerfis();}
+      button.disabled=false;
+    }));
+  };
+  window.sair=async function(){await sb.auth.signOut();currentUser=null;currentProfile=null;hideViews();$('login-view').classList.remove('hidden');$('role-label').textContent='Acesso seguro';$('password').value='';clearMessage();};
+  sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'){currentUser=null;currentProfile=null;hideViews();$('login-view').classList.remove('hidden');}});
+  start();
+})();
+</script>
+</body>
+</html>
