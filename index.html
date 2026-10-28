@@ -3,8 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AGDA Semijoias</title>
   <meta name="theme-color" content="#2A180E">
+  <meta name="description" content="AGDA Semijoias — painel da proprietária e área das revendedoras.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="AGDA Semijoias">
+  <title>AGDA Semijoias</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -35,13 +40,11 @@
       <button id="login-button" class="btn-main" type="submit">Entrar</button>
     </form>
   </section>
-
   <section id="blocked-view" class="card hidden">
     <h2 class="text-lg font-bold">Acesso ainda não liberado</h2>
     <p id="blocked-text" class="text-sm mt-2">Seu perfil está aguardando aprovação da proprietária.</p>
     <button class="btn-sub mt-4" type="button" onclick="sair()">Sair</button>
   </section>
-
   <section id="owner-view" class="hidden">
     <div class="card">
       <div class="flex justify-between items-center gap-3 mb-3"><div><h2 class="text-lg font-bold">Painel da proprietária</h2><p id="owner-email" class="text-xs text-gray-500"></p></div><button class="btn-sub" type="button" onclick="sair()">Sair</button></div>
@@ -67,7 +70,6 @@
       <div id="profiles-list" class="divide-y divide-[#EFE6D8] text-sm"><p class="text-gray-500 py-2">Carregando...</p></div>
     </div>
   </section>
-
   <section id="reseller-view" class="hidden">
     <div class="card">
       <div class="flex justify-between items-center"><h2 class="text-lg font-bold">Área da revendedora</h2><button class="btn-sub" type="button" onclick="sair()">Sair</button></div>
@@ -166,6 +168,7 @@
   window.sair=async function(){await sb.auth.signOut();currentUser=null;currentProfile=null;hideViews();$('login-view').classList.remove('hidden');$('role-label').textContent='Acesso seguro';$('password').value='';clearMessage();};
   sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'){currentUser=null;currentProfile=null;hideViews();$('login-view').classList.remove('hidden');}});
   start();
+  if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
 })();
 </script>
 </body>
