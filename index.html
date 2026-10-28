@@ -20,7 +20,11 @@
 const SUPABASE_URL='https://atrbkrrkwsebfgeslmok.supabase.co';
 const SUPABASE_KEY='sb_publishable_m22HhGgPEDKfV8ysDzs90cw_cGbGTzru';
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-let user=null,profile=null,products=[],resellers=[],installPrompt=null;\nwindow.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installPrompt=e;$("installBtn").classList.remove("hidden");$("installHelp").classList.add("hidden")});\nwindow.addEventListener("appinstalled",()=>{$("installBtn").classList.add("hidden");$("installHelp").textContent="AGDA instalado no aparelho."});\nasync function instalarAGDA(){if(installPrompt){installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;return}if(/iphone|ipad|ipod/i.test(navigator.userAgent)){$("installHelp").textContent="No Safari: toque em Compartilhar e escolha “Adicionar à Tela de Início”."}else{$("installHelp").textContent="Abra o menu ⋮ do Chrome e escolha “Instalar app” ou “Adicionar à tela inicial”."}}\nif("serviceWorker" in navigator && location.protocol!=="file:"){window.addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}))}
+let user=null,profile=null,products=[],resellers=[],installPrompt=null;
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installPrompt=e;$("installBtn").classList.remove("hidden");$("installHelp").classList.add("hidden")});
+window.addEventListener("appinstalled",()=>{$("installBtn").classList.add("hidden");$("installHelp").textContent="AGDA instalado no aparelho."});
+async function instalarAGDA(){if(installPrompt){installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;return}if(/iphone|ipad|ipod/i.test(navigator.userAgent)){$("installHelp").textContent="No Safari: toque em Compartilhar e escolha “Adicionar à Tela de Início”."}else{$("installHelp").textContent="Abra o menu ⋮ do Chrome e escolha “Instalar app” ou “Adicionar à tela inicial”."}}
+if("serviceWorker" in navigator && location.protocol!=="file:"){window.addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}))}
 const $=id=>document.getElementById(id);
 const money=n=>Number(n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
