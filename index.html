@@ -28,7 +28,7 @@
 </header>
 <div class="max-w-2xl mx-auto p-4">
   <div class="rounded-lg border border-amber-400 bg-amber-50 text-amber-900 p-3 text-sm mb-4">
-    <b>Integração em etapas:</b> login, produtos, aprovação e movimentação de maletas usam o Supabase. Vendas, comissões, leitura de código de barras e Tiny ERP ainda estão pendentes.
+    <b>Integração em etapas:</b> login, estoque, aprovação e maletas usam o Supabase. O teste da Tiny é somente leitura; a sincronização automática de estoque ainda não foi ativada.
   </div>
   <div id="message" role="status" class="hidden rounded-lg p-3 mb-4 text-sm"></div>
   <section id="login-view" class="card max-w-md mx-auto">
@@ -48,6 +48,12 @@
   <section id="owner-view" class="hidden">
     <div class="card">
       <div class="flex justify-between items-center gap-3 mb-3"><div><h2 class="text-lg font-bold">Painel da proprietária</h2><p id="owner-email" class="text-xs text-gray-500"></p></div><button class="btn-sub" type="button" onclick="sair()">Sair</button></div>
+      <div class="rounded-lg border border-[#D4AF37] bg-[#F9F6F0] p-3 mb-4">
+        <h3 class="font-bold mb-1">Integração com Tiny ERP</h3>
+        <p class="text-sm text-gray-600 mb-3">Teste seguro de conexão usando sua sessão de proprietária. Esta consulta não altera produtos nem estoque.</p>
+        <button id="tiny-test-button" type="button" class="btn-main">Testar conexão com a Tiny</button>
+        <div id="tiny-test-result" role="status" class="text-sm mt-3" aria-live="polite">Ainda não testado.</div>
+      </div>
       <h3 class="font-bold mb-3">Cadastrar peça no estoque geral</h3>
       <form id="product-form" class="space-y-3">
         <div><label for="sku" class="text-sm font-semibold">Código / SKU</label><input id="sku" required class="input-field" maxlength="100"></div>
@@ -124,6 +130,37 @@
     el.classList.add(ok?'bg-green-50':'bg-red-50',ok?'text-green-800':'text-red-800');
   }
   function clearMessage(){ $('message').classList.add('hidden'); }
+  $('tiny-test-button').addEventListener('click', async ()=>{
+    const button=$('tiny-test-button'), result=$('tiny-test-result');
+    if(!currentUser || !currentProfile || currentProfile.role!=='owner' || currentProfile.status!=='approved'){
+      result.textContent='Entre com a conta aprovada da proprietária para testar a conexão.';
+      result.className='text-sm mt-3 text-red-700'; return;
+    }
+    button.disabled=true; button.textContent='Consultando Tiny...';
+    result.textContent='Verificando sessão e consultando a API em modo somente leitura...';
+    result.className='text-sm mt-3 text-gray-700';
+    try{
+      const {data,error}=await sb.auth.getSession();
+      if(error) throw error;
+      if(!data.session) throw new Error('Sua sessão expirou. Entre novamente no AGDA.');
+      const response=await fetch(SUPABASE_URL+'/functions/v1/tiny-readonly-test',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+data.session.access_token},
+        body:JSON.stringify({})
+      });
+      let payload;
+      try{payload=await response.json();}catch{throw new Error('Resposta inválida do serviço de integração.');}
+      if(!response.ok || payload.ok!==true) throw new Error(payload.error||'A conexão não foi validada.');
+      const sample=Array.isArray(payload.sample)?payload.sample:[];
+      result.className='text-sm mt-3 text-green-800';
+      result.textContent=(payload.message||'A API do Tiny respondeu.')+' Produtos retornados na amostra: '+sample.length+'.'+(sample.length?' Exemplos: '+sample.map(p=>[p.code,p.name].filter(Boolean).join(' — ')).join('; '):'');
+    }catch(error){
+      result.className='text-sm mt-3 text-red-700';
+      result.textContent='Teste não concluído: '+(error.message||'erro inesperado')+' Nenhum estoque foi alterado.';
+    }finally{
+      button.disabled=false; button.textContent='Testar conexão com a Tiny';
+    }
+  });
   function hideViews(){ ['login-view','blocked-view','owner-view','reseller-view'].forEach(id=>$(id).classList.add('hidden')); }
   async function start(){
     const {data,error}=await sb.auth.getSession();
