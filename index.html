@@ -13,6 +13,7 @@
   <meta name="apple-mobile-web-app-title" content="AGDA">
 
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
   <style>
     body { background-color: #F9F6F0; color: #2A180E; font-family: system-ui, -apple-system, sans-serif; }
     button, input, select, label { touch-action: manipulation; cursor: pointer; }
@@ -345,8 +346,35 @@
 
     var cameraStream = null;
     var detectorCodigo = null;
+    var leitorZXing = null;
+    var controleLeituraZXing = null;
     var leituraAtiva = false;
     var destinoLeitorCodigo = 'cadastro';
+
+    function processarCodigoLido(codigoLido) {
+      if (!leituraAtiva || !codigoLido) return;
+      leituraAtiva = false;
+      var sufixo = destinoLeitorCodigo === 'maleta' ? '-maleta' : '';
+      if (destinoLeitorCodigo === 'maleta') {
+        var seletorProduto = document.getElementById('maleta-produto');
+        var opcao = Array.from(seletorProduto.options).find(function(item) { return item.value === codigoLido; });
+        if (!opcao) {
+          document.getElementById('camera-status-maleta').textContent = 'Código ' + codigoLido + ' não está cadastrado no estoque. Cadastre a peça primeiro.';
+          leituraAtiva = true;
+          return;
+        }
+        seletorProduto.value = codigoLido;
+        document.getElementById('camera-status-maleta').textContent = 'Peça selecionada: ' + opcao.text;
+        fecharLeitorCodigo();
+        document.getElementById('maleta-qtd').focus();
+        return;
+      }
+      document.getElementById('prod-codigo').value = codigoLido;
+      document.getElementById('camera-status').textContent = 'Código lido: ' + codigoLido;
+      fecharLeitorCodigo();
+      document.getElementById('prod-nome').focus();
+    }
+
     async function abrirLeitorCodigo(destino) {
       destinoLeitorCodigo = destino || 'cadastro';
       var sufixo = destinoLeitorCodigo === 'maleta' ? '-maleta' : '';
@@ -354,65 +382,64 @@
       var video = document.getElementById('video-codigo' + sufixo);
       var status = document.getElementById('camera-status' + sufixo);
       caixa.classList.remove('hidden');
-      if (!('BarcodeDetector' in window)) {
-        status.textContent = 'Este navegador não oferece leitura de código de barras integrada. Tente Chrome atualizado no Android ou digite o SKU manualmente.';
-        return;
-      }
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        status.textContent = 'A câmera precisa de uma conexão segura (HTTPS) e permissão do navegador.';
+        status.textContent = 'A câmera exige HTTPS e permissão do navegador. Abra este app pelo link seguro e autorize a câmera.';
         return;
       }
+      leituraAtiva = true;
+      status.textContent = 'Solicitando acesso à câmera…';
       try {
-        detectorCodigo = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'itf', 'qr_code'] });
-        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
-        video.srcObject = cameraStream;
-        await video.play();
-        leituraAtiva = true;
-        status.textContent = 'Câmera ativa. Mantenha o código bem iluminado e dentro da imagem.';
-        procurarCodigoNaCamera();
+        if ('BarcodeDetector' in window) {
+          detectorCodigo = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'itf', 'qr_code'] });
+          cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+          video.srcObject = cameraStream;
+          await video.play();
+          status.textContent = 'Câmera ativa. Aponte para o código de barras.';
+          procurarCodigoNaCamera(video);
+        } else if (window.ZXing && window.ZXing.BrowserMultiFormatReader) {
+          leitorZXing = new window.ZXing.BrowserMultiFormatReader();
+          status.textContent = 'Leitor alternativo carregado. Aponte a câmera para o código.';
+          controleLeituraZXing = await leitorZXing.decodeFromVideoDevice(undefined, video, function(resultado, erro) {
+            if (resultado && resultado.getText) processarCodigoLido(resultado.getText());
+          });
+        } else {
+          leituraAtiva = false;
+          status.textContent = 'Não foi possível carregar o leitor alternativo. Verifique a internet e recarregue a página.';
+        }
       } catch (err) {
+        leituraAtiva = false;
         status.textContent = 'Não foi possível abrir a câmera. Autorize o acesso nas configurações do navegador e tente novamente.';
       }
     }
-    async function procurarCodigoNaCamera() {
-      var video = document.getElementById('video-codigo');
+
+    async function procurarCodigoNaCamera(video) {
       if (!leituraAtiva || !detectorCodigo || !video || video.readyState < 2) {
-        if (leituraAtiva) requestAnimationFrame(procurarCodigoNaCamera);
+        if (leituraAtiva) requestAnimationFrame(function() { procurarCodigoNaCamera(video); });
         return;
       }
       try {
         var codigos = await detectorCodigo.detect(video);
         if (codigos && codigos.length && codigos[0].rawValue) {
-          var codigoLido = codigos[0].rawValue;
-          if (destinoLeitorCodigo === 'maleta') {
-            var seletorProduto = document.getElementById('maleta-produto');
-            var opcao = Array.from(seletorProduto.options).find(function(item) { return item.value === codigoLido; });
-            if (!opcao) {
-              document.getElementById('camera-status-maleta').textContent = 'Código ' + codigoLido + ' não está cadastrado no estoque. Cadastre a peça primeiro.';
-              return;
-            }
-            seletorProduto.value = codigoLido;
-            document.getElementById('camera-status-maleta').textContent = 'Peça selecionada: ' + opcao.text;
-            fecharLeitorCodigo();
-            document.getElementById('maleta-qtd').focus();
-            return;
-          }
-          document.getElementById('prod-codigo').value = codigoLido;
-          document.getElementById('camera-status').textContent = 'Código lido: ' + codigoLido;
-          fecharLeitorCodigo();
-          document.getElementById('prod-nome').focus();
+          processarCodigoLido(codigos[0].rawValue);
           return;
         }
       } catch (err) {}
-      if (leituraAtiva) requestAnimationFrame(procurarCodigoNaCamera);
+      if (leituraAtiva) requestAnimationFrame(function() { procurarCodigoNaCamera(video); });
     }
+
     function fecharLeitorCodigo() {
       leituraAtiva = false;
+      if (controleLeituraZXing && controleLeituraZXing.stop) controleLeituraZXing.stop();
+      controleLeituraZXing = null;
+      if (leitorZXing && leitorZXing.reset) leitorZXing.reset();
+      leitorZXing = null;
       if (cameraStream) cameraStream.getTracks().forEach(function(track) { track.stop(); });
       cameraStream = null;
-      var video = document.getElementById('video-codigo' + (destinoLeitorCodigo === 'maleta' ? '-maleta' : ''));
+      var sufixo = destinoLeitorCodigo === 'maleta' ? '-maleta' : '';
+      var video = document.getElementById('video-codigo' + sufixo);
       if (video) video.srcObject = null;
-      document.getElementById('leitor-camera' + (destinoLeitorCodigo === 'maleta' ? '-maleta' : '')).classList.add('hidden');
+      var caixa = document.getElementById('leitor-camera' + sufixo);
+      if (caixa) caixa.classList.add('hidden');
     }
 
     function importarPlanilhaCSV(e) {
