@@ -90,6 +90,21 @@
         <div class="flex justify-between items-center mb-2"><h3 class="font-bold">Minha maleta</h3><button class="btn-sub" type="button" onclick="carregarMinhaMaleta()">Atualizar</button></div>
         <div id="my-kits-list" class="text-sm"><p class="text-gray-500">Carregando maletas...</p></div>
       </div>
+      <div class="mt-4 border-t pt-4">
+        <h3 class="font-bold mb-2">Registrar venda</h3>
+        <p class="text-xs text-gray-600 mb-3">Selecione uma peça disponível na sua maleta e registre os dados da cliente.</p>
+        <form id="sale-form" class="space-y-2">
+          <div><label for="sale-item" class="text-sm font-semibold">Peça da maleta</label><select id="sale-item" required class="input-field"><option value="">Carregando peças...</option></select></div>
+          <div><label for="sale-quantity" class="text-sm font-semibold">Quantidade vendida</label><input id="sale-quantity" type="number" min="1" step="1" value="1" required class="input-field"></div>
+          <div><label for="sale-customer" class="text-sm font-semibold">Nome da cliente</label><input id="sale-customer" required maxlength="160" class="input-field"></div>
+          <div><label for="sale-whatsapp" class="text-sm font-semibold">WhatsApp da cliente</label><input id="sale-whatsapp" type="tel" maxlength="30" class="input-field" placeholder="(11) 99999-9999"></div>
+          <div><label for="sale-cpf" class="text-sm font-semibold">CPF (opcional)</label><input id="sale-cpf" inputmode="numeric" maxlength="14" class="input-field"></div>
+          <div><label for="sale-birthday" class="text-sm font-semibold">Nascimento (opcional)</label><input id="sale-birthday" type="date" class="input-field"></div>
+          <div><label for="sale-payment" class="text-sm font-semibold">Forma de pagamento</label><select id="sale-payment" required class="input-field"><option value="pix">Pix</option><option value="credito">Crédito</option><option value="debito">Débito</option><option value="dinheiro">Dinheiro</option></select></div>
+          <button id="sale-button" type="submit" class="btn-main">Registrar venda e calcular comissão</button>
+        </form>
+        <div class="mt-4"><h4 class="font-bold mb-2">Minhas vendas</h4><div id="my-sales-list" class="text-sm"><p class="text-gray-500">Carregando vendas...</p></div></div>
+      </div>
     </div>
   </section>
 </div>
@@ -133,7 +148,7 @@
     } else {
       $('reseller-view').classList.remove('hidden'); $('role-label').textContent='Revendedora';
       $('reseller-status').textContent='Olá, '+(profile.full_name||user.email)+'. Seu acesso está aprovado.';
-      await carregarMinhaMaleta();
+      await Promise.all([carregarMinhaMaleta(),carregarVendas()]);
     }
   }
   $('login-form').addEventListener('submit',async e=>{
@@ -209,6 +224,44 @@
     if(!data||!data.length){box.innerHTML='<p class="text-gray-500">Você não tem peças em maletas ativas.</p>';return;}
     box.innerHTML=data.map(k=>'<div class="border rounded-lg p-3 mb-2"><b>Maleta '+esc(k.id.slice(0,8))+'</b><span class="block text-xs text-gray-500">'+new Date(k.created_at).toLocaleDateString('pt-BR')+'</span>'+(k.kit_items||[]).map(i=>'<div class="mt-2 border-t pt-2"><b>'+esc(i.products&&i.products.name||'Peça')+'</b><span class="block text-xs text-gray-600">SKU: '+esc(i.products&&i.products.sku||'')+' · Quantidade recebida: '+Number(i.quantity_sent)+' · Disponível: '+Number(i.quantity_available)+' · '+money(i.products&&i.products.sale_price)+'</span></div>').join('')+'</div>').join('');
   };
+  window.carregarVendas=async function(){
+    const [sales,items]=await Promise.all([
+      sb.from('sales').select('id,quantity,unit_price,commission_rate,payment_method,sold_at,products:product_id(name),customers:customer_id(name)').eq('reseller_id',currentUser.id).order('sold_at',{ascending:false}).limit(30),
+      sb.from('kit_items').select('id,quantity_available,products:product_id(name,sku,sale_price)').gt('quantity_available',0)
+    ]);
+    const list=$('my-sales-list'), select=$('sale-item');
+    if(sales.error){list.innerHTML='<p class="text-red-700">Não foi possível carregar vendas: '+esc(sales.error.message)+'</p>';}
+    else if(!sales.data||!sales.data.length){list.innerHTML='<p class="text-gray-500">Nenhuma venda registrada ainda.</p>';}
+    else{
+      const total=sales.data.reduce((sum,s)=>sum+Number(s.unit_price)*Number(s.quantity),0);
+      const commission=sales.data.reduce((sum,s)=>sum+Number(s.unit_price)*Number(s.quantity)*Number(s.commission_rate),0);
+      list.innerHTML='<div class="rounded-lg bg-amber-50 p-3 mb-3"><b>Vendas recentes: '+money(total)+'</b><span class="block text-sm">Comissão correspondente: '+money(commission)+'</span></div>'+sales.data.map(s=>'<div class="border-t py-2"><b>'+esc(s.products&&s.products.name||'Peça')+'</b><span class="block text-xs text-gray-600">'+esc(s.customers&&s.customers.name||'Cliente')+' · '+new Date(s.sold_at).toLocaleDateString('pt-BR')+' · '+Number(s.quantity)+' un.</span><span class="text-xs">'+money(Number(s.unit_price)*Number(s.quantity))+' · comissão '+money(Number(s.unit_price)*Number(s.quantity)*Number(s.commission_rate))+'</span></div>').join('');
+    }
+    if(items.error){select.innerHTML='<option value="">Erro ao carregar peças</option>';return;}
+    const available=(items.data||[]).filter(i=>i.products);
+    select.innerHTML='<option value="">Selecione uma peça...</option>'+available.map(i=>'<option value="'+esc(i.id)+'" data-qty="'+Number(i.quantity_available)+'">'+esc(i.products.name)+' · '+esc(i.products.sku)+' · disp. '+Number(i.quantity_available)+' · '+money(i.products.sale_price)+'</option>').join('');
+    if(!available.length)select.innerHTML='<option value="">Nenhuma peça disponível</option>';
+  };
+  $('sale-item').addEventListener('change',()=>{const opt=$('sale-item').selectedOptions[0];$('sale-quantity').max=opt&&opt.dataset.qty?opt.dataset.qty:'1';});
+  $('sale-form').addEventListener('submit',async e=>{
+    e.preventDefault();clearMessage();$('sale-button').disabled=true;
+    try{
+      const {data,error}=await sb.rpc('register_reseller_sale',{
+        p_kit_item_id:$('sale-item').value,
+        p_customer_name:$('sale-customer').value.trim(),
+        p_customer_whatsapp:$('sale-whatsapp').value.trim(),
+        p_customer_cpf:$('sale-cpf').value.trim(),
+        p_customer_birthday:$('sale-birthday').value||null,
+        p_payment_method:$('sale-payment').value,
+        p_quantity:Number($('sale-quantity').value)
+      });
+      if(error)throw error;
+      showMessage('Venda registrada. Comissão calculada em 30%.',true);
+      $('sale-form').reset();$('sale-quantity').value='1';
+      await Promise.all([carregarMinhaMaleta(),carregarVendas()]);
+    }catch(error){showMessage('Venda não registrada: '+(error.message||'A função segura de vendas ainda precisa ser instalada no banco.'));}
+    finally{$('sale-button').disabled=false;}
+  });
   window.carregarPerfis=async function(){
     const box=$('profiles-list'); box.innerHTML='<p class="text-gray-500 py-2">Carregando...</p>';
     const {data,error}=await sb.from('profiles').select('id,full_name,cpf,whatsapp,role,status,created_at').order('created_at',{ascending:false});
