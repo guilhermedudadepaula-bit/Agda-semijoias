@@ -96,7 +96,7 @@ body:has(#login:not(.hidden)) #notice{position:fixed;z-index:50;left:50%;bottom:
 .agda-privacy-disclaimer{margin:20px 0!important;padding:12px;border-radius:10px;background:#f3e8d9;color:#775c42;font-size:11px!important}
 @media(max-width:480px){.agda-share-header{font-size:10px!important;padding:8px!important}.agda-header-actions{gap:5px}.agda-privacy-overlay{padding:8px}.agda-privacy-card{max-height:94svh;border-radius:16px}}
 </style></head>
-<body><header class="agda-app-header bg-[#2A180E] text-[#D4AF37] p-4 border-b-2 border-[#D4AF37] flex justify-between items-center"><div class="agda-header-brand"><img src="/icon.svg" alt="AGDA Semijoias" width="42" height="42"><div><strong>AGDA</strong><span>SEMIJOIAS</span></div></div><div class="agda-header-actions"><button type="button" class="agda-share-header" onclick="compartilharApp()">↗ Enviar app</button><button id="logout" class="sub hidden" onclick="sair()">Sair</button></div></header>
+<body><header class="agda-app-header bg-[#2A180E] text-[#D4AF37] p-4 border-b-2 border-[#D4AF37] flex justify-between items-center"><div class="agda-header-brand"><img src="/icon.svg" alt="AGDA Semijoias" width="42" height="42"><div><strong>AGDA</strong><span>SEMIJOIAS</span></div></div><div class="agda-header-actions"><button type="button" class="agda-share-header" onclick="abrirPrivacidade()">Privacidade</button><button type="button" class="agda-share-header" onclick="compartilharApp()">↗ Enviar app</button><button id="logout" class="sub hidden" onclick="sair()">Sair</button></div></header>
 <div id="installBar" class="mx-auto max-w-3xl px-4 pt-3"><button id="installBtn" class="main w-full hidden" onclick="instalarAGDA()">📲 Instalar AGDA na tela do celular</button><p id="installHelp" class="text-xs text-center text-gray-600 mt-2">Para instalar: no menu do navegador escolha “Adicionar à tela inicial”.</p></div><main class="max-w-3xl mx-auto p-4">
 <div id="notice" class="card">Conectando ao sistema seguro AGDA…</div>
 <section id="login" class="hidden agda-login-shell">
@@ -115,9 +115,9 @@ body:has(#login:not(.hidden)) #notice{position:fixed;z-index:50;left:50%;bottom:
     <label for="email">E-mail</label><input id="email" type="email" autocomplete="username" placeholder="seu@email.com">
     <label for="password">Senha</label><input id="password" type="password" autocomplete="current-password" placeholder="Sua senha">
     <button class="main w-full agda-login-submit" onclick="entrar()">Entrar</button>
+    <div class="agda-register-separator"><span>OU</span></div>
     <button type="button" class="sub w-full agda-google-login" onclick="entrarGoogle()">◎ &nbsp; Continuar com Google</button>
     <p class="agda-legal-links"><button type="button" onclick="abrirPrivacidade()">Política de Privacidade</button><span>·</span><button type="button" onclick="compartilharApp()">Enviar link do app</button></p>
-    <div class="agda-register-separator"><span>OU</span></div>
     <details class="agda-register"><summary>Solicitar cadastro de revendedora</summary><div class="agda-register-fields"><p class="text-sm">Preencha os dados para solicitar acesso. A proprietária precisa aprovar seu cadastro.</p><label for="nome">Nome completo</label><input id="nome" placeholder="Seu nome completo" autocomplete="name"><label for="cpf">CPF</label><input id="cpf" placeholder="CPF" inputmode="numeric"><label for="whats">WhatsApp</label><input id="whats" placeholder="(DDD) 99999-9999" autocomplete="tel"><label for="emailNovo">E-mail</label><input id="emailNovo" type="email" placeholder="seu@email.com" autocomplete="email"><label for="senhaNova">Criar senha</label><input id="senhaNova" type="password" minlength="8" placeholder="Mínimo de 8 caracteres" autocomplete="new-password"><button class="sub w-full" onclick="cadastrar()">Solicitar cadastro</button></div></details>
     <p class="agda-login-foot">Acesso seguro · AGDA Semijoias</p>
   </div>
