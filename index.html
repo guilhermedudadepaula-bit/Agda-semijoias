@@ -1,75 +1,1000 @@
-<!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#2A180E"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="AGDA"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="/manifest.webmanifest"><link rel="icon" href="/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icon.svg"><title>AGDA Semijoias</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2'">
-/* AGDA: ferramentas CSV e seleção múltipla de maleta */
-function agdaCsvParse(text){text=String(text||'').replace(/^\uFEFF/,'');const first=(text.split(/\r?\n/)[0]||'');const semi=(first.match(/;/g)||[]).length,comma=(first.match(/,/g)||[]).length,sep=semi>=comma?';':',';const rows=[];let row=[],cell='',quoted=false;for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(c==='"'&&quoted&&n==='"'){cell+='"';i++;}else if(c==='"'){quoted=!quoted;}else if(c===sep&&!quoted){row.push(cell.trim());cell='';}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&n==='\n')i++;row.push(cell.trim());if(row.some(v=>v!==''))rows.push(row);row=[];cell='';}else cell+=c;}row.push(cell.trim());if(row.some(v=>v!==''))rows.push(row);return rows}
-function agdaDownloadCsv(name,rows){const csv='\\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\\r\\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1200)}
-function agdaInstallCsvButtons(){const form=$('productForm');if(form&&!$('agda-product-csv')){const box=document.createElement('div');box.id='agda-product-csv';box.className='grid grid-cols-2 gap-2 my-3';box.innerHTML='<label class="sub text-center cursor-pointer">📂 Importar CSV<input id="agdaCsvFile" type="file" accept=".csv,.txt,text/csv" class="hidden"></label><button type="button" class="sub" id="agdaCsvExport">📥 Exportar CSV</button>';form.insertAdjacentElement('afterend',box);$('agdaCsvFile').addEventListener('change',agdaImportProductsCsv);$('agdaCsvExport').addEventListener('click',()=>agdaDownloadCsv('agda-estoque.csv',[['SKU','Nome','Custo','Venda','Estoque'],...products.map(p=>[p.sku,p.name,p.cost_price,p.sale_price,p.stock_general])]));}
-const productArea=$('products');if(productArea&&!$('agda-stock-csv')){const box=document.createElement('div');box.id='agda-stock-csv';box.className='grid grid-cols-2 gap-2 mb-3';box.innerHTML='<button type="button" class="sub" id="agdaStockExport">📥 Exportar estoque CSV</button><label class="sub text-center cursor-pointer">📂 Importar estoque CSV<input id="agdaStockFile" type="file" accept=".csv,.txt,text/csv" class="hidden"></label>';productArea.parentElement.insertBefore(box,productArea);$('agdaStockExport').onclick=()=>$('agdaCsvExport')?.click();$('agdaStockFile').addEventListener('change',agdaImportProductsCsv);}
-const kit=$('kitProduct');if(kit&&!$('agda-kit-list')){kit.classList.add('hidden');const label=kit.previousElementSibling;if(label&&label.tagName==='LABEL')label.classList.add('hidden');const qty=$('kitQty');if(qty){qty.classList.add('hidden');const qlabel=qty.previousElementSibling;if(qlabel&&qlabel.tagName==='LABEL')qlabel.classList.add('hidden')}const list=document.createElement('div');list.id='agda-kit-list';list.className='border rounded-lg p-3 my-3 max-h-72 overflow-y-auto';kit.insertAdjacentElement('afterend',list);const search=document.createElement('input');search.id='agda-kit-search';search.placeholder='Buscar peça por nome ou SKU';search.oninput=agdaRenderKitList;list.insertAdjacentElement('beforebegin',search);const csv=document.createElement('div');csv.className='grid grid-cols-2 gap-2 my-2';csv.innerHTML='<label class="sub text-center cursor-pointer">📂 Importar lista CSV<input id="agdaKitCsv" type="file" accept=".csv,.txt,text/csv" class="hidden"></label><button type="button" class="sub" id="agdaKitExport">📥 Exportar seleção</button>';list.insertAdjacentElement('beforebegin',csv);$('agdaKitCsv').addEventListener('change',agdaImportKitCsv);$('agdaKitExport').onclick=()=>{const items=Array.from(document.querySelectorAll('.agda-kit-check:checked')).map(c=>{const p=products.find(x=>String(x.id)===c.value);return [p?.sku,p?.name,p?.sale_price,document.querySelector('[data-kit-qty="'+CSS.escape(String(c.value))+'"]')?.value||1]});if(!items.length){msg('Marque as peças para exportar.',true);return}agdaDownloadCsv('agda-maleta-selecao.csv',[['SKU','Nome','Valor','Quantidade'],...items])};}}
-function agdaRenderKitList(){const list=$('agda-kit-list');if(!list)return;const term=($('agda-kit-search')?.value||'').trim().toLocaleLowerCase('pt-BR');const selected=new Set(Array.from(document.querySelectorAll('.agda-kit-check:checked')).map(c=>c.value));const visible=products.filter(p=>!term||String(p.name||'').toLocaleLowerCase('pt-BR').includes(term)||String(p.sku||'').toLocaleLowerCase('pt-BR').includes(term));list.innerHTML=visible.map(p=>{const stock=Number(p.stock_general||0);return '<div class="flex items-center gap-3 py-3 border-b"><input class="agda-kit-check" type="checkbox" value="'+esc(p.id)+'" '+(selected.has(String(p.id))?'checked ':'')+(stock<1?'disabled':'')+' style="width:20px;margin:0"><div class="flex-1 min-w-0"><b>'+esc(p.name)+'</b><p class="text-xs text-gray-500">SKU: '+esc(p.sku)+' · Disponível: '+stock+'</p><p class="font-bold">R$ '+Number(p.sale_price||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+' cada</p></div><input data-kit-qty="'+esc(p.id)+'" type="number" min="1" max="'+stock+'" value="'+(Number($('[data-kit-qty="'+p.id+'"]')?.value)||1)+'" '+(stock<1?'disabled':'')+' style="width:82px;margin:0"></div>'}).join('')||'<p class="text-sm text-gray-500">Nenhuma peça encontrada.</p>'}
-async function agdaImportProductsCsv(e){const file=e.target.files?.[0];if(!file)return;try{const rows=agdaCsvParse((await file.text()).replace(/^\\uFEFF/,''));if(rows.length<2)throw new Error('O CSV precisa ter cabeçalho e pelo menos uma linha.');const headers=rows.shift().map(h=>h.toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9]/g,''));const idx=(...names)=>headers.findIndex(h=>names.includes(h));const si=idx('sku','codigo','codigobarras','codigoesku'),ni=idx('nome','name','produto','peca'),ci=idx('custo','precocusto','costprice'),pi=idx('venda','precovenda','saleprice','valor'),qi=idx('estoque','estoquegeral','stockgeneral','quantidade');if(si<0||ni<0)throw new Error('Cabeçalho obrigatório: SKU;Nome. Opcional: Custo;Venda;Estoque.');let inserted=0,updated=0,skipped=0;for(const row of rows){const sku=(row[si]||'').trim(),name=(row[ni]||'').trim();if(!sku||!name){skipped++;continue}const money=v=>{if(v===undefined||v==='')return null;let x=String(v).trim();if(x.includes(','))x=x.replace(/\\./g,'').replace(',','.');const n=Number(x);return Number.isFinite(n)&&n>=0?n:null};const payload={sku,name};if(ci>=0&&row[ci]!==undefined&&row[ci]!=='')payload.cost_price=money(row[ci]);if(pi>=0&&row[pi]!==undefined&&row[pi]!=='')payload.sale_price=money(row[pi]);if(qi>=0&&row[qi]!==undefined&&row[qi]!==''){const q=Number(row[qi]);if(!Number.isInteger(q)||q<0){skipped++;continue}payload.stock_general=q}const existing=products.find(p=>String(p.sku).toLowerCase()===sku.toLowerCase());let result;if(existing)result=await db.from('products').update(payload).eq('id',existing.id);else{if(payload.sale_price===undefined){skipped++;continue}payload.stock_general=payload.stock_general??0;payload.cost_price=payload.cost_price??0;result=await db.from('products').insert(payload)}if(result.error){msg('Importação interrompida em SKU '+sku+': '+result.error.message+'. '+inserted+' novos e '+updated+' atualizados.',true);await carregarOwner();return}if(existing)updated++;else inserted++}msg('CSV concluído: '+inserted+' novos, '+updated+' atualizados, '+skipped+' ignorados. Confira o estoque antes de distribuir.',false);await carregarOwner()}catch(err){msg('Não foi possível importar CSV: '+err.message,true)}finally{e.target.value=''}}
-async function agdaImportKitCsv(e){const file=e.target.files?.[0];if(!file)return;try{const rows=agdaCsvParse((await file.text()).replace(/^\\uFEFF/,''));if(rows.length<2)throw new Error('CSV vazio ou sem linhas de dados.');const heads=rows.shift().map(h=>h.toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9]/g,''));const si=heads.findIndex(h=>['sku','codigo','codigobarras'].includes(h)),qi=heads.findIndex(h=>['quantidade','qtd','quantity'].includes(h));if(si<0)throw new Error('Use cabeçalho SKU;Quantidade.');agdaRenderKitList();let count=0;for(const row of rows){const p=products.find(x=>String(x.sku).toLowerCase()===String(row[si]||'').trim().toLowerCase());if(!p)continue;const check=document.querySelector('.agda-kit-check[value="'+CSS.escape(String(p.id))+'"]'),q=$('[data-kit-qty="'+p.id+'"]');if(check&&!check.disabled){check.checked=true;q.value=Math.max(1,Math.min(Number(row[qi]||1),Number(p.stock_general||0)));count++}}msg(count+' peça(s) selecionada(s) no formulário de maleta. Revise antes de confirmar.')}catch(err){msg('Falha ao ler CSV da maleta: '+err.message,true)}finally{e.target.value=''}}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AGDA Semijoias</title>
+  <!-- Manifest PWA mantido para a instalação na tela inicial -->
+  <link rel="manifest" href='data:application/manifest+json;charset=utf-8,{"name":"AGDA Semijoias","short_name":"AGDA","start_url":".","display":"standalone","background_color":"%232A180E","theme_color":"%232A180E","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=\x22http://www.w3.org/2000/svg\x22 viewBox=\x220 0 512 512\x22%3E%3Crect width=\x22512\x22 height=\x22512\x22 rx=\x22110\x22 fill=\x22%232A180E\x22/%3E%3Ctext x=\x2250%25\x22 y=\x2254%25\x22 font-family=\x22Arial, sans-serif\x22 font-weight=\x22bold\x22 font-size=\x22160\x22 fill=\x22%23D4AF37\x22 text-anchor=\x22middle\x22 dominant-baseline=\x22middle\x22%3EAGDA%3C/text%3E%3C/svg%3E","sizes":"512x512","type":"image/svg+xml"}]}'>
 
-window.addEventListener("load",()=>{setTimeout(()=>{agdaInstallCsvButtons();agdaRenderKitList()},700)});
-</script><script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script><script src="https://cdn.tailwindcss.com"></script>
-<style>.dashboard-hero{background:linear-gradient(125deg,#24140c 0%,#50301d 58%,#6b4926 100%);color:#fffaf1;border-radius:22px;padding:22px;position:relative;overflow:hidden;box-shadow:0 18px 40px #2a180e22;margin:12px 0}.dashboard-hero:after{content:"✦";position:absolute;right:18px;top:-22px;font-size:120px;color:#d4af371f;pointer-events:none}.dash-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}.dash-kpi{background:#fff;border:1px solid #eadcc7;border-radius:16px;padding:15px;box-shadow:0 8px 22px #432a140d;min-width:0}.dash-label{color:#806b58;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}.dash-value{color:#2a180e;font-size:clamp(20px,5vw,27px);font-weight:850;margin-top:8px;overflow-wrap:anywhere}.dash-shortcuts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px}.dash-shortcuts button{background:#fffdfa;border:1px solid #eadcc7;color:#3d2314;text-align:left;font-size:12px;padding:12px}@media(min-width:640px){.dash-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}body{background:#f9f6f0;color:#2a180e;font-family:system-ui,sans-serif}.card{background:white;border:1px solid #efe6d8;border-radius:14px;padding:18px;margin:12px 0;box-shadow:0 2px 6px #0000000a}input,select{width:100%;padding:11px;border:1px solid #d9cbb8;border-radius:8px;margin:5px 0 12px;background:#fff}button{padding:10px 14px;border-radius:8px;font-weight:700}.main{background:#2a180e;color:#d4af37;border:1px solid #d4af37}.sub{background:#efe6d8;color:#2a180e}.gold{color:#9c7510}</style></head>
-<body><header class="bg-[#2A180E] text-[#D4AF37] p-4 border-b-2 border-[#D4AF37] flex justify-between"><strong class="text-xl">AGDA Semijoias</strong><button id="logout" class="sub hidden" onclick="sair()">Sair</button></header>
-<div id="installBar" class="mx-auto max-w-3xl px-4 pt-3"><button id="installBtn" class="main w-full hidden" onclick="instalarAGDA()">📲 Instalar AGDA na tela do celular</button><p id="installHelp" class="text-xs text-center text-gray-600 mt-2">Para instalar: no menu do navegador escolha “Adicionar à tela inicial”.</p></div><main class="max-w-3xl mx-auto p-4">
-<div id="notice" class="card">Conectando ao sistema seguro AGDA…</div>
-<section id="login" class="card hidden"><h1 class="text-xl font-bold mb-3">Entrar no AGDA</h1><label>E-mail</label><input id="email" type="email" autocomplete="username" placeholder="seu@email.com"><label>Senha</label><input id="password" type="password" autocomplete="current-password" placeholder="Sua senha"><button class="main w-full" onclick="entrar()">Entrar</button><hr class="my-4"><h2 class="font-bold">Solicitar acesso de revendedora</h2><input id="nome" placeholder="Nome completo"><input id="cpf" placeholder="CPF"><input id="whats" placeholder="WhatsApp"><input id="emailNovo" type="email" placeholder="E-mail"><input id="senhaNova" type="password" minlength="8" placeholder="Criar senha (mínimo 8 caracteres)"><button class="sub w-full" onclick="cadastrar()">Solicitar cadastro</button><p class="text-xs mt-2">O acesso de revendedora depende da aprovação da proprietária.</p></section>
-<section id="app" class="hidden"><div class="card"><div class="flex justify-between items-center"><div><p class="text-sm text-gray-500">Bem-vinda(o)</p><h1 id="welcome" class="text-xl font-bold">AGDA</h1></div><span id="role" class="gold font-bold"></span></div><p id="status" class="text-sm mt-2"></p></div>
-<div id="owner" class="hidden">\n<div id="ownerDashboard">
-<section class="dashboard-hero"><p class="text-xs uppercase tracking-widest text-[#E8C96A] font-bold">AGDA SEMIJOIAS · GESTÃO</p><div class="flex flex-wrap items-end justify-between gap-3 mt-2 relative z-10"><div><h2 class="text-2xl font-extrabold">Visão geral</h2><p class="text-sm text-[#F0E2CF] mt-1">Seu negócio em um só lugar.</p></div><button type="button" class="bg-[#D4AF37] text-[#2A180E] text-xs font-extrabold" onclick="carregarOwner()">↻ Atualizar painel</button></div><p id="dashboardUpdated" class="text-xs text-[#F9EAC0] mt-3">Resumo do banco compartilhado</p></section>
-<section class="dash-grid" aria-label="Indicadores do negócio"><div class="dash-kpi"><div class="dash-label">Produtos</div><div id="dashProducts" class="dash-value">—</div><p class="text-xs text-gray-500 mt-1">Modelos cadastrados</p></div><div class="dash-kpi"><div class="dash-label">Estoque geral</div><div id="dashStock" class="dash-value">—</div><p class="text-xs text-gray-500 mt-1">Unidades disponíveis</p></div><div class="dash-kpi"><div class="dash-label">Revendedoras</div><div id="dashResellers" class="dash-value">—</div><p class="text-xs text-gray-500 mt-1">Aprovadas</p></div><div class="dash-kpi"><div class="dash-label">Vendas do mês</div><div id="dashSales" class="dash-value">R$ 0,00</div><p id="dashSalesCount" class="text-xs text-gray-500 mt-1">0 vendas</p></div></section>
-<section class="card"><h2 class="font-bold text-lg">Acesso rápido</h2><p class="text-xs text-gray-500 mt-1">Atalhos para as tarefas do dia.</p><div class="dash-shortcuts"><button onclick="document.getElementById('productForm').scrollIntoView({behavior:'smooth',block:'center'})">✦ Cadastrar peça</button><button onclick="document.getElementById('kitReseller').scrollIntoView({behavior:'smooth',block:'center'})">▣ Montar maleta</button><button onclick="document.getElementById('filterProductText').scrollIntoView({behavior:'smooth',block:'center'});document.getElementById('filterProductText').focus({preventScroll:true})">⌕ Consultar estoque</button><button onclick="document.getElementById('filterResellerName').scrollIntoView({behavior:'smooth',block:'center'});document.getElementById('filterResellerName').focus({preventScroll:true})">♙ Revendedoras</button></div><div class="mt-4 rounded-xl border border-[#D4AF37] bg-[#F5EBDD] p-3 text-sm"><b>🎂 Aniversariantes do mês</b><p class="text-xs mt-1">Consulte a lista abaixo para acompanhar os clientes aniversariantes.</p></div></section>
-</div>
-<div class="card"><h2 class="text-lg font-bold mb-2">Integração com Tiny ERP</h2><p class="text-sm mb-3">Conecta o AGDA ao Tiny para importar produtos por SKU. A importação não altera o estoque geral do AGDA.</p><div class="grid grid-cols-1 sm:grid-cols-3 gap-2"><button class="sub" onclick="testarTiny()">Testar conexão</button><button class="sub" onclick="consultarEstoqueTiny()">Consultar estoque Tiny</button><button class="main" onclick="importarTiny()">Importar produtos</button></div><p id="tinyStatus" class="text-sm mt-3" role="status">Integração ainda não testada nesta sessão.</p><div id="tinyStockPreview" class="hidden mt-3 rounded-lg border border-[#D4AF37] p-3 text-sm"></div></div>
-<div class="card"><div class="flex justify-between items-center gap-2 mb-2"><h2 class="text-lg font-bold">Cadastrar produto</h2><button type="button" class="sub" onclick="abrirScanner(1)">📷 Ler código</button></div><form id="productForm"><label>Código de barras / SKU</label><input id="sku" required><div id="scanner-1" class="hidden my-3"><video id="video-1" class="w-full rounded bg-black" autoplay muted playsinline></video><p id="scan-status-1" class="text-xs my-2">Preparando câmera…</p><button type="button" class="sub" onclick="fecharScanner()">Fechar câmera</button></div><label>Nome da peça</label><input id="pname" required><div class="grid grid-cols-2 gap-2"><div><label>Preço de custo (R$)</label><input id="cost" type="number" min="0" step=".01" value="0"></div><div><label>Preço de venda (R$)</label><input id="price" type="number" min=".01" step=".01" required></div></div><label>Estoque geral</label><input id="stock" type="number" min="0" step="1" value="0" required><button class="main w-full">Salvar no banco compartilhado</button></form></div>
-<div class="card !p-0 overflow-hidden"><div class="bg-[#2A180E] text-[#F9F6F0] p-4 border-b-2 border-[#D4AF37]"><p class="text-[10px] uppercase tracking-[.18em] text-[#D4AF37] font-bold">Controle de produtos</p><h2 class="text-lg font-bold">Estoque geral</h2><p class="text-xs text-[#EFE6D8] mt-1">Banco compartilhado · busca por nome, SKU ou código de barras</p></div><div class="p-4"><label>🔎 Buscar peça</label><input id="filterProductText" placeholder="Digite nome, SKU ou código de barras" oninput="renderizarProdutos()"><div class="grid grid-cols-2 gap-3"><div><label>Preço mínimo (R$)</label><input id="filterPriceMin" type="number" min="0" step=".01" placeholder="0,00" oninput="renderizarProdutos()"></div><div><label>Preço máximo (R$)</label><input id="filterPriceMax" type="number" min="0" step=".01" placeholder="Sem limite" oninput="renderizarProdutos()"></div></div><button type="button" class="sub text-sm" onclick="limparFiltrosProdutos()">Limpar filtros</button><div id="stockSummary" class="hidden rounded-xl border border-[#D4AF37] bg-[#2A180E] text-[#F9F6F0] p-3 my-3 flex items-center justify-between gap-3"><div><span class="block text-xs text-[#EFE6D8]">Total de peças disponíveis</span><strong id="stockTotal" class="text-2xl text-[#D4AF37]">0</strong></div><span id="stockProductCount" class="text-xs text-right">0 produtos</span></div><div id="products" class="mt-3">Carregando…</div></div></div>
-<div class="card"><h2 class="text-lg font-bold mb-2">Revendedoras</h2><label>Filtrar pelo nome</label><input id="filterResellerName" placeholder="Digite o nome da revendedora" oninput="renderizarRevendedoras()"><div id="resellers">Carregando…</div></div>
-<div class="card"><div class="flex justify-between items-center gap-2 mb-2"><h2 class="text-lg font-bold">Montar maleta</h2><button type="button" class="sub" onclick="abrirScanner(2)">📷 Ler peça</button></div><div id="scanner-2" class="hidden my-3"><video id="video-2" class="w-full rounded bg-black" autoplay muted playsinline></video><p id="scan-status-2" class="text-xs my-2">Preparando câmera…</p><button type="button" class="sub" onclick="fecharScanner()">Fechar câmera</button></div><label>Revendedora aprovada</label><select id="kitReseller"></select><label>Produto</label><select id="kitProduct"></select><label>Quantidade</label><input id="kitQty" type="number" min="1" step="1" value="1"><button class="main w-full" onclick="montarMaleta()">Enviar peças para maleta</button><p class="text-xs mt-2">A quantidade é descontada do estoque geral no banco compartilhado.</p></div>
-<div class="card"><h2 class="text-lg font-bold mb-2">Maletas ativas · fechamento e devolução</h2><p class="text-xs text-gray-600 mb-3">Confirme o fechamento para devolver as peças restantes ao estoque geral compartilhado.</p><div id="activeKits">Carregando maletas…</div></div><div class="card"><h2 class="text-lg font-bold mb-2">Vendas registradas</h2><div id="allSales"></div></div><div class="card"><h2 class="text-lg font-bold mb-2">🏆 Ranking de vendas do mês</h2><div id="salesRanking">Carregando…</div></div><div class="card"><h2 class="text-lg font-bold mb-2">🎂 Aniversariantes do mês</h2><div id="birthdays">Carregando…</div></div></div>
-<div id="reseller" class="hidden"><div class="card"><h2 class="text-lg font-bold">Minha maleta</h2><div id="myKit"></div><div class="mt-4 rounded-xl border-2 border-[#D4AF37] bg-[#F9F6F0] p-4"><h3 class="font-bold text-base text-[#3D2314] mb-2">📩 Fechamento da maleta</h3><p class="text-sm text-gray-700 mb-3">Prepare um resumo das vendas, comissão de 30% e peças restantes para enviar à proprietária pelo WhatsApp.</p><button type="button" class="main w-full mt-2" style="min-height:64px;white-space:normal" onclick="prepararFechamentoMaleta()">📩 FECHAR MALETA E ENVIAR À PROPRIETÁRIA</button><p class="text-xs text-gray-600 mt-3">O botão prepara o relatório e abre o WhatsApp. A devolução do estoque e o encerramento definitivo da maleta ainda precisam ser concluídos pela proprietária no sistema.</p></div></div><div class="card"><h2 class="text-lg font-bold">Minhas vendas</h2><p id="myTotals" class="my-2"></p><div id="mySales"></div></div></div>
-</section></main>
-<script>
-const SUPABASE_URL='https://atrbkrrkwsebfgeslmok.supabase.co';
-const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0cmJrcnJrd3NlYmZnZXNsbW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwODMwNjksImV4cCI6MjEwODY1OTA2OX0.LaEbT9NGaaF9zZCqaW-n6xf2gNdthnKi8hzsA6Mk7Ds';
-const db=window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY) : null;
-let user=null,profile=null,products=[],resellers=[],installPrompt=null;
-window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installPrompt=e;$("installBtn").classList.remove("hidden");$("installHelp").classList.add("hidden")});
-window.addEventListener("appinstalled",()=>{$("installBtn").classList.add("hidden");$("installHelp").textContent="AGDA instalado no aparelho."});
-async function instalarAGDA(){if(installPrompt){installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;return}if(/iphone|ipad|ipod/i.test(navigator.userAgent)){$("installHelp").textContent="No Safari: toque em Compartilhar e escolha “Adicionar à Tela de Início”."}else{$("installHelp").textContent="Abra o menu ⋮ do Chrome e escolha “Instalar app” ou “Adicionar à tela inicial”."}}
-if("serviceWorker" in navigator && location.protocol!=="file:"){window.addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}))}
-const $=id=>document.getElementById(id);
-const money=n=>Number(n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function msg(t,error=false){$('notice').textContent=t;$('notice').classList.remove('hidden');$('notice').style.color=error?'#b91c1c':'#2a180e'}
-async function entrar(){msg('Validando acesso…');const {data,error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error){msg('Não foi possível entrar: '+error.message,true);return}await iniciar(data.user)}
-async function cadastrar(){const email=$('emailNovo').value.trim(),password=$('senhaNova').value,nome=$('nome').value.trim(),cpf=$('cpf').value.trim(),whatsapp=$('whats').value.trim();if(!nome||!email||password.length<8){msg('Preencha nome, e-mail e senha de pelo menos 8 caracteres.',true);return}msg('Enviando solicitação…');const {data,error}=await db.auth.signUp({email,password,options:{data:{full_name:nome,cpf,whatsapp}}});if(error){msg(error.message,true);return}if(!data.user){msg('Verifique seu e-mail para confirmar o cadastro.');return}msg('Conta criada e solicitação de acesso registrada. Se a confirmação por e-mail estiver ativa, confirme o e-mail e aguarde a aprovação da proprietária.')}
-async function sair(){await db.auth.signOut();user=null;profile=null;$('app').classList.add('hidden');$('login').classList.remove('hidden');$('logout').classList.add('hidden');msg('Você saiu do sistema.')}
-async function iniciar(u){user=u;const {data:p,error}=await db.from('profiles').select('*').eq('id',u.id).maybeSingle();if(error||!p){console.error('Falha ao carregar perfil AGDA',{userId:u.id,error:error?{message:error.message,code:error.code,details:error.details,hint:error.hint}:null,profileFound:!!p});$('app').classList.add('hidden');$('login').classList.remove('hidden');$('logout').classList.remove('hidden');msg(error?'O login foi validado, mas o banco recusou a leitura do perfil. Código: '+(error.code||'sem código')+'. Detalhe: '+error.message:'O login foi validado, mas não existe perfil AGDA com este ID: '+u.id+'. A proprietária precisa conferir o cadastro no Supabase.',true);return}profile=p;$('login').classList.add('hidden');$('app').classList.remove('hidden');$('logout').classList.remove('hidden');$('welcome').textContent=p.full_name||u.email;$('role').textContent=p.role==='owner'?'PROPRIETÁRIA':'REVENDEDORA';if(p.status!=='approved'){msg('Acesso pendente ou bloqueado. Aguarde a aprovação da proprietária.',true);$('owner').classList.add('hidden');$('reseller').classList.add('hidden');return}msg('Conectado ao banco compartilhado AGDA.');if(p.role==='owner'){$('owner').classList.remove('hidden');$('reseller').classList.add('hidden');await carregarOwner()}else{$('reseller').classList.remove('hidden');$('owner').classList.add('hidden');await carregarReseller()}}
-async function testarTiny(){$('tinyStatus').textContent='Testando acesso ao Tiny…';const {data,error}=await db.functions.invoke('tiny-readonly-test',{body:{}});if(error){$('tinyStatus').textContent='Falha na conexão: '+(error.message||'verifique o segredo TINY_API_TOKEN no Supabase.');return}if(data?.ok){$('tinyStatus').textContent='Conexão com Tiny confirmada. '+(data.message||'');}else{$('tinyStatus').textContent=(data?.error||'Tiny não confirmou a conexão.')+(data?.setup_required?' Configure TINY_API_TOKEN nos segredos do Supabase.':'');}}
-async function consultarEstoqueTiny(){const box=$('tinyStockPreview');box.classList.remove('hidden');box.textContent='Consultando saldos disponíveis na API Tiny…';$('tinyStatus').textContent='Consulta de estoque em andamento…';const {data,error}=await db.functions.invoke('tiny-stock-preview',{body:{}});if(error){box.textContent='Falha na consulta: '+(error.message||'verifique a sessão e a função tiny-stock-preview no Supabase.');$('tinyStatus').textContent='Consulta não concluída.';return}if(!data?.ok){box.textContent=data?.error||'O Tiny não retornou a consulta.';$('tinyStatus').textContent='Consulta não concluída.';return}const sample=Array.isArray(data.sample)?data.sample:[];const fields=sample.some(p=>p.stock_field_available?.length);box.innerHTML='<b>Consulta somente leitura concluída.</b><p class="mt-1">Produtos lidos: '+Number(data.products_read||0)+' · páginas consultadas: '+Number(data.pages_checked||0)+' · amostra exibida: '+sample.length+'</p><p class="mt-1">'+(fields?'A pesquisa retornou algum campo de saldo; confira os valores abaixo antes de sincronizar.':'A pesquisa de produtos não trouxe saldo de estoque nos campos esperados. Nenhuma quantidade foi alterada. Precisamos consultar o saldo pelo endpoint detalhado do Tiny antes de sincronizar.')+'</p>'+(sample.length?'<div class="mt-3 space-y-2">'+sample.map(p=>'<div class="border-t pt-2"><b>'+esc(p.name)+'</b><p class="text-xs text-gray-600">SKU: '+esc(p.sku)+' · ID Tiny: '+esc(p.tiny_id||'—')+'</p><p>Saldo na pesquisa: '+(p.tiny_stock_in_search===null?'não informado':esc(p.tiny_stock_in_search))+'</p></div>').join('')+'</div>':'');$('tinyStatus').textContent='Consulta concluída sem alterar estoque. Verifique se o Tiny retornou saldo real.'}
-async function importarTiny(){if(!confirm('Importar/atualizar os produtos do Tiny no AGDA? O estoque geral não será alterado.'))return;$('tinyStatus').textContent='Importando produtos do Tiny…';const {data,error}=await db.functions.invoke('tiny-import-products',{body:{}});if(error){$('tinyStatus').textContent='Falha na importação: '+(error.message||'verifique o segredo TINY_API_TOKEN e tente novamente.');return}if(data?.ok){$('tinyStatus').textContent='Importação concluída: '+data.imported+' produtos processados. Estoque geral preservado.';await carregarOwner();}else{$('tinyStatus').textContent=(data?.error||'Importação não concluída.')+(data?.setup_required?' Configure TINY_API_TOKEN nos segredos do Supabase.':'');}}
-async function carregarOwner(){let r=await db.from('products').select('*').order('name');if(r.error){msg('Erro ao ler produtos: '+r.error.message,true);return}products=r.data||[];renderizarProdutos();$('kitProduct').innerHTML=products.map(p=>'<option value="'+p.id+'">'+esc(p.name)+' · cód. '+esc(p.sku)+' · disponível '+p.stock_general+'</option>').join('');agdaRenderKitList();let rr=await db.from('profiles').select('id,full_name,cpf,whatsapp,status').eq('role','reseller').order('created_at');if(rr.error){msg('Erro ao ler revendedoras: '+rr.error.message,true);return}resellers=rr.data||[];renderizarRevendedoras();$('kitReseller').innerHTML=resellers.filter(r=>r.status==='approved').map(r=>'<option value="'+r.id+'">'+esc(r.full_name)+'</option>').join('');let s=await db.from('sales').select('*,products(name),profiles:reseller_id(full_name)').order('sold_at',{ascending:false}).limit(1000);const sales=s.data||[];atualizarDashboard(sales);$('allSales').innerHTML=s.error?'Não foi possível carregar vendas.':sales.map(v=>'<div class="border-b py-2"><b>'+esc(v.products?.name||'Peça')+'</b> · '+money(v.unit_price*v.quantity)+'<p class="text-xs">'+esc(v.profiles?.full_name||'Revendedora')+' · comissão '+money(v.unit_price*v.quantity*v.commission_rate)+'</p></div>').join('')||'Nenhuma venda.';renderizarRanking(sales);await carregarAniversariantes();await carregarMaletasOwner()}
-function limparFiltrosProdutos(){$('filterProductText').value='';$('filterPriceMin').value='';$('filterPriceMax').value='';renderizarProdutos()}
-function renderizarProdutos(){const term=($('filterProductText')?.value||'').trim().toLocaleLowerCase('pt-BR'),min=$('filterPriceMin')?.value,max=$('filterPriceMax')?.value;const summary=$('stockSummary');if(min!==''&&max!==''&&Number(min)>Number(max)){summary.classList.add('hidden');$('products').innerHTML='<p class="text-sm text-amber-800 py-3">O preço mínimo não pode ser maior que o preço máximo.</p>';return}const hasFilter=!!term||min!==''||max!=='';if(!hasFilter){summary.classList.add('hidden');$('products').innerHTML='<p class="text-sm text-gray-500 py-3">Digite uma busca ou informe uma faixa de preço para consultar o estoque.</p>';return}const list=products.filter(p=>(!term||String(p.name||'').toLocaleLowerCase('pt-BR').includes(term)||String(p.sku||'').toLocaleLowerCase('pt-BR').includes(term))&&(min===''||Number(p.sale_price)>=Number(min))&&(max===''||Number(p.sale_price)<=Number(max)));const units=list.reduce((n,p)=>n+Math.max(0,Number(p.stock_general||0)),0);summary.classList.remove('hidden');$('stockTotal').textContent=units.toLocaleString('pt-BR');$('stockProductCount').textContent=list.length+' '+(list.length===1?'produto encontrado':'produtos encontrados');$('products').innerHTML=list.length?list.map(p=>'<div class="border-b border-[#EFE6D8] py-3 flex justify-between items-center gap-3"><div class="min-w-0"><b class="block text-sm text-[#3D2314]">'+esc(p.name)+'</b><p class="text-xs text-gray-500 mt-1">SKU / código de barras: '+esc(p.sku)+'</p><span class="inline-block mt-2 rounded-full bg-[#F5EBDD] px-2 py-1 text-[11px] font-bold text-[#3D2314]">Disponíveis: '+Math.max(0,Number(p.stock_general||0))+' peças</span></div><div class="shrink-0 text-right"><span class="block text-[10px] text-gray-500">Preço</span><b class="text-sm text-[#2A180E]">'+money(p.sale_price)+'</b></div></div>').join(''):'<p class="text-sm text-gray-500 py-4 text-center">Nenhuma peça encontrada com esses filtros.</p>'}
-function renderizarRevendedoras(){const term=($('filterResellerName')?.value||'').trim().toLowerCase(),list=resellers.filter(r=>String(r.full_name||'').toLowerCase().includes(term));$('resellers').innerHTML=list.length?list.map(r=>'<div class="border-b py-3"><b>'+esc(r.full_name)+'</b><p class="text-xs">'+esc(r.whatsapp)+' · '+esc(r.status)+'</p>'+(r.status==='pending'?'<button class="sub mt-2" onclick="aprovar(\''+r.id+'\',\'approved\')">Aprovar</button> ':'')+(r.status==='approved'?'<button class="sub mt-2" onclick="aprovar(\''+r.id+'\',\'blocked\')">Bloquear</button>':'')+'</div>').join(''):'Nenhuma revendedora encontrada.'}
-function atualizarDashboard(sales){const now=new Date(),ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0'),monthSales=(sales||[]).filter(v=>String(v.sold_at||'').slice(0,7)===ym),total=monthSales.reduce((n,v)=>n+Number(v.unit_price||0)*Number(v.quantity||0),0);$('dashProducts').textContent=products.length.toLocaleString('pt-BR');$('dashStock').textContent=products.reduce((n,p)=>n+Math.max(0,Number(p.stock_general||0)),0).toLocaleString('pt-BR');$('dashResellers').textContent=resellers.filter(r=>r.status==='approved').length.toLocaleString('pt-BR');$('dashSales').textContent=money(total);$('dashSalesCount').textContent=monthSales.length+' '+(monthSales.length===1?'venda':'vendas')+' no mês';$('dashboardUpdated').textContent='Atualizado às '+now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+' · dados compartilhados';}
-function renderizarRanking(sales){const now=new Date(),ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0'),totals={};sales.forEach(v=>{if(String(v.sold_at||'').slice(0,7)!==ym)return;const id=v.reseller_id||'unknown';if(!totals[id])totals[id]={name:v.profiles?.full_name||'Revendedora',total:0,qty:0};totals[id].total+=Number(v.unit_price||0)*Number(v.quantity||0);totals[id].qty+=Number(v.quantity||0)});const ranked=Object.values(totals).sort((x,y)=>y.total-x.total);$('salesRanking').innerHTML=ranked.length?ranked.map((r,i)=>'<div class="flex justify-between gap-3 border-b py-2"><span><b>'+(i+1)+'. '+esc(r.name)+'</b><span class="block text-xs text-gray-500">'+r.qty+' peça(s) vendida(s)</span></span><b>'+money(r.total)+'</b></div>').join(''):'Ainda não há vendas neste mês.'}
-async function carregarAniversariantes(){const box=$('birthdays');if(!box)return;const {data,error}=await db.from('sales').select('customer_name,customer_birthday,customer_whatsapp,profiles:reseller_id(full_name)').not('customer_birthday','is',null).order('sold_at',{ascending:false}).limit(1000);if(error){box.innerHTML='<p class="text-sm text-gray-500">Não foi possível ler aniversários: '+esc(error.message)+'</p>';return}const month=new Date().getMonth()+1,seen=new Set(),people=[];(data||[]).forEach(v=>{if(!v.customer_birthday)return;const parts=String(v.customer_birthday).slice(0,10).split('-');if(parts.length!==3||Number(parts[1])!==month)return;const key=(v.customer_whatsapp||v.customer_name||'').toLowerCase()+'|'+parts[1]+parts[2];if(seen.has(key))return;seen.add(key);people.push({name:v.customer_name||'Cliente',date:parts[2]+'/'+parts[1],reseller:v.profiles?.full_name||'—',phone:v.customer_whatsapp||''})});box.innerHTML=people.length?people.sort((x,y)=>Number(x.date.split('/')[0])-Number(y.date.split('/')[0])).map(p=>'<div class="border-b py-2"><b>'+esc(p.name)+' · '+esc(p.date)+'</b><p class="text-xs text-gray-500">Revendedora: '+esc(p.reseller)+(p.phone?' · WhatsApp: '+esc(p.phone):'')+'</p></div>').join(''):'Nenhum aniversário de cliente neste mês.'}
-async function aprovar(id,status){const {error}=await db.from('profiles').update({status}).eq('id',id);if(error){msg('Não foi possível atualizar acesso: '+error.message,true);return}msg(status==='approved'?'Revendedora aprovada.':'Acesso bloqueado.');await carregarOwner()}
-$('productForm').addEventListener('submit',async e=>{e.preventDefault();const row={sku:$('sku').value.trim(),name:$('pname').value.trim(),cost_price:Number($('cost').value||0),sale_price:Number($('price').value),stock_general:Number($('stock').value),active:true};const {error}=await db.from('products').insert(row);if(error){msg('Produto não salvo: '+error.message,true);return}e.target.reset();msg('Produto salvo no banco compartilhado.');await carregarOwner()});
-async function abrirScanner(which){const box=$('scanner-'+which),video=$('video-'+which),status=$('scan-status-'+which);box.classList.remove('hidden');if(!navigator.mediaDevices?.getUserMedia){status.textContent='Câmera indisponível. Abra o app em HTTPS e permita acesso à câmera.';return}try{if(!window.ZXing?.BrowserMultiFormatReader){status.textContent='Leitor não carregou. Confira a internet e recarregue.';return}scannerReader=new ZXing.BrowserMultiFormatReader();status.textContent='Aponte a câmera para o código de barras…';scannerControl=await scannerReader.decodeFromVideoDevice(undefined,video,result=>{if(!result)return;const code=result.getText();if(which===1){$('sku').value=code;status.textContent='Código lido: '+code;setTimeout(fecharScanner,500);return}const p=products.find(x=>String(x.sku).trim().toLowerCase()===String(code).trim().toLowerCase());if(!p){status.textContent='Código '+code+' não encontrado no estoque geral.';return}$('kitProduct').value=p.id;status.textContent='Peça selecionada: '+p.name;setTimeout(fecharScanner,500)})}catch(e){status.textContent='Não foi possível abrir a câmera. Verifique a permissão e tente novamente.'}}
-function fecharScanner(){if(scannerControl&&scannerControl.stop)scannerControl.stop();scannerControl=null;if(scannerReader&&scannerReader.reset)scannerReader.reset();scannerReader=null;[1,2].forEach(k=>{const box=$('scanner-'+k),video=$('video-'+k);if(box)box.classList.add('hidden');if(video)video.srcObject=null})}
-async function montarMaleta(){const reseller=$('kitReseller').value;const chosen=Array.from(document.querySelectorAll('.agda-kit-check:checked')).map(c=>({product:c.value,quantity:Number(document.querySelector('[data-kit-qty="'+CSS.escape(String(c.value))+'"]').value)}));if(!reseller||!chosen.length){msg('Selecione a revendedora e marque pelo menos uma peça.',true);return}for(const item of chosen){const p=products.find(x=>String(x.id)===String(item.product));if(!Number.isInteger(item.quantity)||item.quantity<1||item.quantity>Number(p?.stock_general||0)){msg('Quantidade inválida ou estoque insuficiente para '+(p?.name||'uma peça')+'.',true);return}}let done=0;for(const item of chosen){const {error}=await db.rpc('create_reseller_kit',{p_reseller_id:reseller,p_product_id:item.product,p_quantity:item.quantity});if(error){msg('Foram processadas '+done+' de '+chosen.length+' peças. Erro na próxima operação: '+error.message+'. Confira a maleta antes de tentar novamente.',true);await carregarOwner();return}done++}msg('Maleta montada: '+done+' tipo(s) de peça enviado(s) e estoque atualizado.');await carregarOwner()}
-async function carregarReseller(){const {data:kit,error}=await db.from('kits').select('id,status,kit_items(id,quantity_sent,quantity_available,products(id,name,sku,sale_price,image_url))').eq('reseller_id',user.id).eq('status','active');if(error){msg('Erro ao carregar maleta: '+error.message,true);return}const items=(kit||[]).flatMap(k=>(k.kit_items||[]).map(i=>({...i,kit_id:k.id})));$('myKit').innerHTML=items.length?items.map(i=>'<div class="border-b py-3"><div class="w-full h-36 rounded-lg bg-[#F9F6F0] flex items-center justify-center overflow-hidden mb-2">'+(i.products?.image_url?'<img src="' + esc(i.products.image_url) + '" alt="' + esc(i.products?.name) + '" class="w-full h-full object-contain">':'<span class="text-4xl text-[#D4AF37]">✦</span>')+'</div><b>'+esc(i.products?.name)+'</b><p class="text-xs">SKU '+esc(i.products?.sku)+' · disponíveis: '+i.quantity_available+' · '+money(i.products?.sale_price)+'</p><label class="block text-xs mt-2">📷 Adicionar/alterar foto da peça<input type="file" accept="image/jpeg,image/png,image/webp" class="block w-full text-xs mt-1" onchange="uploadProductPhoto(event,\''+i.products?.id+'\')"></label><button class="main mt-2" '+(i.quantity_available<1?'disabled':'')+' onclick="vender(\''+i.id+'\')">Registrar venda</button></div>').join(''):'Nenhuma peça na maleta ativa.';const s=await db.from('sales').select('*,products(name)').eq('reseller_id',user.id).order('sold_at',{ascending:false});const sales=s.data||[];const total=sales.reduce((n,v)=>n+v.unit_price*v.quantity,0),comm=sales.reduce((n,v)=>n+v.unit_price*v.quantity*v.commission_rate,0);$('myTotals').textContent='Vendido: '+money(total)+' · Comissão (30%): '+money(comm);$('mySales').innerHTML=sales.map(v=>'<div class="border-b py-2"><b>'+esc(v.products?.name)+'</b> · '+money(v.unit_price*v.quantity)+'<p class="text-xs">'+new Date(v.sold_at).toLocaleDateString('pt-BR')+' · '+esc(v.payment_method)+'</p></div>').join('')||'Nenhuma venda registrada.'}
-async function carregarMaletasOwner(){const box=$('activeKits');if(!box)return;const {data,error}=await db.from('kits').select('id,created_at,profiles:reseller_id(full_name),kit_items(quantity_available,products(name,sku))').eq('status','active').order('created_at',{ascending:false});if(error){box.textContent='Erro ao carregar maletas: '+error.message;return}box.innerHTML=(data||[]).length?(data||[]).map(k=>{const remaining=(k.kit_items||[]).reduce((n,i)=>n+Number(i.quantity_available||0),0);const details=(k.kit_items||[]).map(i=>esc(i.products?.name||'Peça')+' · SKU '+esc(i.products?.sku||'—')+' · '+Number(i.quantity_available||0)+' restante(s)').join('<br>');return '<div class="border-b py-3"><b>'+esc(k.profiles?.full_name||'Revendedora')+'</b><p class="text-xs my-2">'+details+'</p><p class="text-xs text-gray-600 mb-2">Devolução prevista: '+remaining+' peça(s)</p><button class="main" onclick="fecharMaletaOwner(\''+k.id+'\')">Confirmar fechamento e devolver estoque</button></div>'}).join(''):'Nenhuma maleta ativa.'}
-async function fecharMaletaOwner(kitId){if(!confirm('Confirmar o fechamento? Todas as peças ainda disponíveis nesta maleta voltarão ao estoque geral compartilhado.'))return;const {data,error}=await db.rpc('close_reseller_kit',{p_kit_id:kitId});if(error){msg('Não foi possível fechar a maleta: '+error.message,true);return}msg('Maleta encerrada. '+Number(data||0)+' peça(s) devolvida(s) ao estoque geral.');await carregarOwner()}
-async function uploadProductPhoto(event,productId){const file=event.target.files?.[0];if(!file)return;if(!['image/jpeg','image/png','image/webp'].includes(file.type)){msg('Use uma foto JPG, PNG ou WebP.',true);event.target.value='';return}if(file.size>5*1024*1024){msg('A foto deve ter até 5 MB.',true);event.target.value='';return}const {data:product,error:findError}=await db.from('products').select('sku').eq('id',productId).single();if(findError){msg('Não foi possível localizar a peça: '+findError.message,true);return}const ext=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';const path=productId+'/'+Date.now()+'.'+ext;msg('Enviando foto para o armazenamento compartilhado…');const {error:uploadError}=await db.storage.from('agda-product-photos').upload(path,file,{contentType:file.type,upsert:true});if(uploadError){msg('Falha ao enviar foto: '+uploadError.message,true);return}const {data:urlData}=db.storage.from('agda-product-photos').getPublicUrl(path);const {error:updateError}=await db.from('products').update({image_url:urlData.publicUrl}).eq('id',productId);if(updateError){msg('Foto enviada, mas não foi possível vincular à peça: '+updateError.message,true);return}msg('Foto salva no banco compartilhado; estará disponível nos aparelhos autorizados.');await carregarReseller()}
-async function prepararFechamentoMaleta(){if(!user){msg('Entre no sistema para preparar o fechamento.',true);return}const {data:kits,error:kErr}=await db.from('kits').select('id,kit_items(quantity_available,products(name,sku))').eq('reseller_id',user.id).eq('status','active');if(kErr){msg('Não foi possível consultar a maleta: '+kErr.message,true);return}if(!kits?.length){msg('Você não tem maleta ativa para fechar.',true);return}const {data:sales,error:sErr}=await db.from('sales').select('unit_price,quantity,commission_rate,sold_at').eq('reseller_id',user.id);if(sErr){msg('Não foi possível consultar suas vendas: '+sErr.message,true);return}const total=(sales||[]).reduce((n,v)=>n+Number(v.unit_price||0)*Number(v.quantity||0),0),commission=(sales||[]).reduce((n,v)=>n+Number(v.unit_price||0)*Number(v.quantity||0)*Number(v.commission_rate||0),0);const items=kits.flatMap(k=>(k.kit_items||[]).map(i=>({name:i.products?.name||'Peça',sku:i.products?.sku||'—',qty:Number(i.quantity_available||0)})));const lines=items.map(i=>'- '+i.name+' (SKU '+i.sku+'): '+i.qty+' não vendida(s)').join('\n');const message='FECHAMENTO DE MALETA — AGDA SEMIJOIAS\nRevendedora: '+(profile?.full_name||user.email)+'\nData: '+new Date().toLocaleString('pt-BR')+'\nTotal vendido: '+money(total)+'\nComissão (30%): '+money(commission)+'\nPeças restantes para conferência:\n'+lines+'\n\nStatus: aguardando conferência da proprietária. Este relatório não encerra a maleta nem devolve o estoque automaticamente.';window.open('https://wa.me/?text='+encodeURIComponent(message),'_blank','noopener');}
-function normalizarDataNascimento(valor){const s=String(valor||'').trim();if(!s)return null;let ano,mes,dia;let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);if(m){ano=Number(m[1]);mes=Number(m[2]);dia=Number(m[3])}else{m=s.match(/^(\d{2})[\/.-]?(\d{2})[\/.-]?(\d{4})$/);if(!m)return false;dia=Number(m[1]);mes=Number(m[2]);ano=Number(m[3])}const d=new Date(Date.UTC(ano,mes-1,dia));if(d.getUTCFullYear()!==ano||d.getUTCMonth()!==mes-1||d.getUTCDate()!==dia||ano<1900||ano>new Date().getFullYear())return false;return String(ano).padStart(4,'0')+'-'+String(mes).padStart(2,'0')+'-'+String(dia).padStart(2,'0')}
-async function vender(itemId){const name=prompt('Nome do cliente:');if(!name||!name.trim())return;const whatsapp=prompt('WhatsApp do cliente (opcional):')||'';const cpf=prompt('CPF do cliente (opcional):')||'';const birthdayInput=prompt('Data de nascimento (DD/MM/AAAA ou AAAA-MM-DD, opcional):')||'';const birthday=normalizarDataNascimento(birthdayInput);if(birthday===false){msg('Data de nascimento inválida. Use DD/MM/AAAA ou AAAA-MM-DD. Venda não registrada; tente novamente.',true);return}const payment=prompt('Pagamento: Pix, débito ou crédito','Pix');if(!['pix','débito','debito','crédito','credito'].includes((payment||'').trim().toLowerCase())){msg('Forma de pagamento inválida.',true);return}const {error}=await db.rpc('register_reseller_sale',{p_kit_item_id:itemId,p_customer_name:name.trim(),p_customer_whatsapp:whatsapp.trim(),p_customer_cpf:cpf.trim(),p_customer_birthday:birthday,p_payment_method:payment.trim(),p_quantity:1});if(error){msg('Venda não registrada: '+error.message,true);return}msg('Venda registrada no banco compartilhado.');await carregarReseller()}
-if(!db){$('login').classList.remove('hidden');msg('Não foi possível carregar o módulo de conexão. Confira a internet e recarregue a página. Se continuar, tente abrir no Chrome atualizado.',true)}else{db.auth.getSession().then(async({data})=>{if(data.session)await iniciar(data.session.user);else{$('login').classList.remove('hidden');msg('Entre com seu e-mail e senha. Para primeira utilização, solicite cadastro de revendedora.')}}).catch(e=>{$('login').classList.remove('hidden');msg('Falha ao iniciar conexão: '+(e?.message||'verifique a internet e recarregue a página.'),true)})}
-</script></body></html>
+  <meta name="theme-color" content="#2A180E">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AGDA">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    body { background: radial-gradient(ellipse at top, #fffdf9 0%, #F7F0E6 48%, #F2E8D9 100%); color: #2A180E; font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; }
+    button, input, select, label { touch-action: manipulation; cursor: pointer; }
+    .card { background: rgba(255,255,255,.94); padding: 20px; border-radius: 20px; border: 1px solid #E8D9C2; box-shadow: 0 10px 28px rgba(67,42,20,.07); margin-bottom: 18px; }
+    .btn-main { background: linear-gradient(135deg,#2A180E,#51311E); color: #F1D889; font-weight: 750; width: 100%; padding: 13px 15px; border-radius: 12px; border: 1px solid #C8A64A; box-shadow: 0 5px 14px rgba(42,24,14,.12); }
+    .btn-sub { background-color: #3D2314; color: #D4AF37; font-weight: bold; padding: 8px 12px; border-radius: 6px; font-size: 12px; }
+    .input-field { width: 100%; padding: 12px; border: 1px solid #E5D7C2; background-color: #FFFDFA; border-radius: 10px; margin-top: 5px; font-size: 14px; outline-color: #C8A64A; }
+    .btn-sub:disabled { opacity: .45; cursor: not-allowed; }
+    .stock-filter-panel { background: linear-gradient(135deg, #fffdf9 0%, #F5EBDD 100%); border: 1px solid #E4D2B7; border-radius: 12px; padding: 12px; }
+    .stock-filter-panel input { background: #fff; }
+    .stock-summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: #2A180E; color: #F9F6F0; border: 1px solid #D4AF37; border-radius: 10px; padding: 12px; margin: 10px 0; }
+    .stock-summary strong { color: #D4AF37; font-size: 1.25rem; }
+    .stock-item { padding: 14px 12px; border-bottom: 1px solid #EFE6D8; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    header { box-shadow: 0 8px 24px rgba(42,24,14,.18); }
+    button { transition: transform .16s ease, box-shadow .16s ease, opacity .16s ease; }
+    button:active { transform: scale(.985); }
+    .stock-item:last-child { border-bottom: 0; }
+    .dashboard-hero { background: linear-gradient(125deg,#24140c 0%,#50301d 58%,#6b4926 100%); color:#fffaf1; border-radius:24px; padding:24px; position:relative; overflow:hidden; box-shadow:0 18px 40px rgba(42,24,14,.18); margin-bottom:18px; }
+    .dashboard-hero:after { content:'✦'; position:absolute; right:18px; top:-22px; font-size:130px; line-height:1; color:rgba(212,175,55,.12); pointer-events:none; }
+    .dash-kpi { background:rgba(255,255,255,.96); border:1px solid #eadcc7; border-radius:18px; padding:16px; box-shadow:0 8px 22px rgba(67,42,20,.05); min-width:0; }
+    .dash-kpi .dash-label { color:#806b58; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; }
+    .dash-kpi .dash-value { color:#2A180E; font-size:clamp(20px,5vw,28px); font-weight:800; margin-top:8px; line-height:1.15; overflow-wrap:anywhere; }
+    .dash-link { display:flex; align-items:center; gap:10px; padding:12px 14px; border:1px solid #eadcc7; border-radius:14px; background:#fffdfa; color:#3D2314; font-size:13px; font-weight:750; text-align:left; }
+    .dash-link span:first-child { width:34px; height:34px; display:grid; place-items:center; border-radius:11px; background:#f5ebdd; color:#7a4d20; font-size:17px; flex-shrink:0; }
+  </style>
+</head>
+<body class="pb-10 flex flex-col min-h-screen">
+
+  <!-- CABEÇALHO -->
+  <header class="bg-[#2A180E] text-[#F9F6F0] p-4 shadow-md flex justify-between items-center border-b-2 border-[#D4AF37]">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-full bg-[#D4AF37] flex items-center justify-center text-[#2A180E] font-bold">A</div>
+      <h1 class="text-xl font-bold tracking-wide text-[#D4AF37]">AGDA Semijoias</h1>
+    </div>
+    <span id="mod-label" class="text-xs bg-[#3D2314] px-2 py-1 rounded text-[#EFE6D8] border border-[#D4AF37]">Painel Proprietária</span>
+  </header>
+
+  <!-- BANNER DE INSTALAÇÃO DO APP -->
+  <div class="bg-[#3D2314] text-[#F9F6F0] p-3 text-center text-xs flex justify-between items-center px-4 border-b border-[#D4AF37]">
+    <span>📱 Instalar App na Tela Inicial:</span>
+    <button type="button" onclick="instalarAppPWA()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded shadow animate-pulse">📲 Baixar App</button>
+  </div>
+
+
+  <div role="note" class="max-w-2xl mx-auto mx-4 mt-4 px-4 py-3 rounded-lg border border-amber-400 bg-amber-50 text-amber-900 text-sm">
+    <strong>Modo demonstração:</strong> os dados ficam somente neste navegador/aparelho. Esta página ainda não está conectada ao Tiny ERP, não possui login seguro e não sincroniza entre proprietária e revendedoras.
+  </div>
+\n  <!-- NAVEGAÇÃO ENTRE PAINÉIS -->
+  <div class="p-4 max-w-2xl mx-auto flex gap-2 w-full">
+    <button type="button" onclick="mudarModo('proprietaria')" id="btn-prop" class="flex-1 py-3 px-3 rounded-lg text-sm font-bold bg-[#3D2314] text-[#D4AF37] border border-[#D4AF37]">
+      Painel Proprietária
+    </button>
+    <button type="button" onclick="mudarModo('revendedora')" id="btn-rev" class="flex-1 py-3 px-3 rounded-lg text-sm font-bold bg-[#EFE6D8] text-[#3D2314]">
+      App Revendedora
+    </button>
+  </div>
+
+  <main class="max-w-2xl mx-auto px-4 flex-grow w-full space-y-6">
+    
+    <!-- PAINEL PROPRIETÁRIA -->
+    <div id="view-proprietaria" style="display: block;">
+
+      <!-- DASHBOARD EXECUTIVO -->
+      <section class="dashboard-hero">
+        <p class="text-xs uppercase tracking-[.22em] text-[#E8C96A] font-bold">AGDA SEMIJOIAS · GESTÃO</p>
+        <div class="mt-3 flex flex-wrap items-end justify-between gap-3 relative z-10">
+          <div><h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Visão geral</h2><p class="text-sm text-[#F0E2CF] mt-2">Seu negócio em um só lugar.</p></div>
+          <button type="button" onclick="carregarTudo()" class="rounded-xl bg-[#D4AF37] text-[#2A180E] font-extrabold text-xs px-4 py-3 shadow">↻ Atualizar painel</button>
+        </div>
+        <div class="mt-5 flex flex-wrap gap-2 relative z-10"><span class="rounded-full border border-[#9d7b37] bg-black/15 px-3 py-1.5 text-xs text-[#F9EAC0]">✦ Painel da proprietária</span><span id="dashboard-data" class="rounded-full bg-white/10 px-3 py-1.5 text-xs text-white">Resumo atualizado ao abrir</span></div>
+      </section>
+
+      <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5" aria-label="Indicadores do negócio">
+        <div class="dash-kpi"><div class="flex items-center justify-between gap-2"><span class="dash-label">Produtos</span><span class="text-lg">✧</span></div><div id="dash-produtos" class="dash-value">0</div><p class="text-xs text-gray-500 mt-2">Modelos cadastrados</p></div>
+        <div class="dash-kpi"><div class="flex items-center justify-between gap-2"><span class="dash-label">Estoque geral</span><span class="text-lg">◇</span></div><div id="dash-estoque" class="dash-value">0</div><p class="text-xs text-gray-500 mt-2">Unidades disponíveis</p></div>
+        <div class="dash-kpi"><div class="flex items-center justify-between gap-2"><span class="dash-label">Revendedoras</span><span class="text-lg">♧</span></div><div id="dash-revendedoras" class="dash-value">0</div><p class="text-xs text-gray-500 mt-2">Cadastros ativos</p></div>
+        <div class="dash-kpi"><div class="flex items-center justify-between gap-2"><span class="dash-label">Vendas registradas</span><span class="text-lg">↗</span></div><div id="dash-vendas" class="dash-value">R$ 0,00</div><p id="dash-vendas-qtd" class="text-xs text-gray-500 mt-2">0 vendas no aparelho</p></div>
+      </section>
+
+      <section class="card !p-4 sm:!p-5">
+        <div class="flex items-center justify-between gap-3 mb-4"><div><h3 class="text-base font-extrabold text-[#3D2314]">Acesso rápido</h3><p class="text-xs text-gray-500 mt-1">Atalhos para as tarefas do dia.</p></div><span class="text-xs font-bold text-[#9B782E]">AGDA</span></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <button type="button" onclick="document.getElementById('prod-codigo').scrollIntoView({behavior:'smooth',block:'center'});document.getElementById('prod-codigo').focus({preventScroll:true})" class="dash-link"><span>＋</span><span>Cadastrar uma peça</span></button>
+          <button type="button" onclick="document.getElementById('maleta-revendedora').scrollIntoView({behavior:'smooth',block:'center'})" class="dash-link"><span>▣</span><span>Montar maleta</span></button>
+          <button type="button" onclick="document.getElementById('filtro-estoque').scrollIntoView({behavior:'smooth',block:'center'});document.getElementById('filtro-estoque').focus({preventScroll:true})" class="dash-link"><span>⌕</span><span>Consultar estoque</span></button>
+          <button type="button" onclick="document.getElementById('rev-cad-nome').scrollIntoView({behavior:'smooth',block:'center'});document.getElementById('rev-cad-nome').focus({preventScroll:true})" class="dash-link"><span>♙</span><span>Cadastrar revendedora</span></button>
+        </div>
+        <div class="mt-4 rounded-xl border border-[#E4D2B7] bg-[#FFFCF7] p-3 flex items-start gap-3"><span class="text-xl">🎂</span><div><p class="text-sm font-bold text-[#3D2314]">Aniversariante em destaque</p><p class="text-xs text-gray-600 mt-1">Aline · 29 de outubro</p></div><button type="button" onclick="document.getElementById('aniv-nome').scrollIntoView({behavior:'smooth',block:'center'})" class="ml-auto text-xs font-bold text-[#7A4D20] underline">Ver lista</button></div>
+      </section>
+      
+      <!-- CADASTRAR PEÇA / TINY ERP -->
+      <div class="card">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-lg font-bold text-[#3D2314]">Cadastrar Peça / Planilha Tiny</h2>
+          <button type="button" onclick="abrirLeitorCodigo()" class="cursor-pointer text-xs bg-[#D4AF37] text-[#2A180E] px-3 py-1.5 rounded-lg font-bold shadow">📷 Ler código pela câmera</button>
+        </div>
+
+        <div class="flex gap-2 mb-3">
+          <label class="flex-1 text-center cursor-pointer btn-sub">
+            📂 Importar Excel/CSV
+            <input type="file" accept=".xlsx,.xls,.csv,.txt" class="hidden" onchange="importarPlanilhaCSV(event, 'cadastro')">
+          </label>
+          <button type="button" onclick="exportarPlanilhaCSV()" class="flex-1 bg-[#EFE6D8] text-[#3D2314] text-xs font-bold py-2 px-3 rounded border border-[#3D2314]">
+            📥 Exportar Excel (.xlsx)
+          </button>
+        </div>
+
+        <form onsubmit="salvarProduto(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-[#3D2314]">Código / SKU</label>
+            <input type="text" id="prod-codigo" required class="input-field" placeholder="Digite ou use a câmera SKU">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#3D2314]">Nome da Peça</label>
+            <input type="text" id="prod-nome" required class="input-field" placeholder="Ex: Colar Coração Banhado">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-bold text-[#3D2314]">Custo (R$)</label>
+              <input type="number" step="0.01" id="prod-custo" class="input-field" placeholder="15.00">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#3D2314]">Preço Venda (R$)</label>
+              <input type="number" step="0.01" id="prod-venda" required class="input-field" placeholder="35.00">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#3D2314]">Estoque Inicial</label>
+            <input type="number" id="prod-estoque" required class="input-field" placeholder="10">
+          </div>
+          <button type="submit" class="btn-main mt-2">
+            Salvar Peça no Estoque
+          </button>
+        </form>
+        <div id="leitor-camera" class="hidden mt-4 rounded-lg border border-[#D4AF37] bg-[#F9F6F0] p-3">
+          <p class="text-sm font-bold mb-2">Aponte a câmera para o código de barras</p>
+          <video id="video-codigo" class="w-full rounded-lg bg-black" autoplay muted playsinline></video>
+          <p id="camera-status" class="text-xs mt-2 text-gray-600">Preparando câmera…</p>
+          <button type="button" onclick="fecharLeitorCodigo()" class="btn-sub w-full mt-3">Fechar câmera</button>
+        </div>
+      </div>
+
+      <!-- MONTAGEM DE MALETAS / CONSIGNAÇÃO -->
+      <div class="card">
+          <div class="flex justify-between items-center gap-2 mb-3">
+            <h2 class="text-lg font-bold text-[#3D2314]">💼 Montagem de Maleta (Consignação)</h2>
+            <button type="button" onclick="abrirLeitorCodigo('maleta')" class="cursor-pointer text-xs bg-[#D4AF37] text-[#2A180E] px-3 py-1.5 rounded-lg font-bold shadow">📷 Ler peça</button>
+          </div>
+        <form onsubmit="salvarMaleta(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-[#3D2314]">Selecionar Revendedora</label>
+            <select id="maleta-revendedora" required class="input-field">
+              <option value="">Selecione a Revendedora...</option>
+            </select>
+          </div>
+          <div class="rounded-lg border border-[#E4D2B7] p-3 bg-[#FFFCF7]">
+            <label for="busca-maleta" class="block text-xs font-bold text-[#3D2314]">🔎 Buscar peças por nome ou código</label>
+            <input type="search" id="busca-maleta" oninput="carregarListaSelecaoMaleta()" class="input-field" placeholder="Ex.: colar, brinco ou SKU">
+            <div class="grid grid-cols-2 gap-2 mt-3">
+              <label class="text-center cursor-pointer btn-sub">📂 Importar itens Excel/CSV<input type="file" accept=".xlsx,.xls,.csv,.txt" class="hidden" onchange="importarCSVMaleta(event)"></label>
+              <button type="button" onclick="exportarCSVMaleta()" class="bg-[#EFE6D8] text-[#3D2314] text-xs font-bold py-2 px-3 rounded border border-[#3D2314]">📥 Exportar seleção Excel</button>
+            </div>
+            <p class="text-xs text-gray-600 mt-2">Marque as peças e informe a quantidade de cada uma. O app mostra preço e saldo disponível.</p>
+            <div id="lista-selecao-maleta" class="mt-2 max-h-72 overflow-y-auto divide-y divide-[#EFE6D8]"></div>
+          </div>
+          <button type="submit" class="btn-main mt-2">✓ Confirmar peças selecionadas</button>
+        </form>
+        <div id="leitor-camera-maleta" class="hidden mt-4 rounded-lg border border-[#D4AF37] bg-[#F9F6F0] p-3">
+          <p class="text-sm font-bold mb-2">Leia o código da peça para adicioná-la à maleta</p>
+          <video id="video-codigo-maleta" class="w-full rounded-lg bg-black" autoplay muted playsinline></video>
+          <p id="camera-status-maleta" class="text-xs mt-2 text-gray-600">Preparando câmera…</p>
+          <button type="button" onclick="fecharLeitorCodigo()" class="btn-sub w-full mt-3">Fechar câmera</button>
+        </div>
+        <div class="mt-4">
+          <h3 class="font-bold text-[#3D2314] text-sm mb-2">Maletas Ativas</h3>
+          <div id="lista-maletas" class="divide-y divide-[#EFE6D8] text-xs max-h-40 overflow-y-auto">
+            <p class="text-gray-500 py-2 text-center">Nenhuma peça consignada no momento.</p>
+          </div>
+        </div>
+        <div class="mt-4 border-t border-[#EFE6D8] pt-4">
+          <h3 class="font-bold text-[#3D2314] text-sm mb-2">📩 Fechamentos enviados pelas revendedoras</h3>
+          <div id="lista-fechamentos-maleta" class="divide-y divide-[#EFE6D8] text-xs max-h-64 overflow-y-auto">
+            <p class="text-gray-500 py-2">Nenhum fechamento recebido nesta demonstração.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- CADASTRAR REVENDEDORA -->
+      <div class="card">
+        <h2 class="text-lg font-bold text-[#3D2314] mb-3">Cadastrar Revendedora</h2>
+        <form onsubmit="salvarRevendedora(event)" class="space-y-3">
+          <input type="text" id="rev-cad-nome" required class="input-field" placeholder="Nome Completo">
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" id="rev-cad-cpf" required class="input-field" placeholder="CPF">
+            <input type="text" id="rev-cad-whats" required class="input-field" placeholder="WhatsApp">
+          </div>
+          <button type="submit" class="btn-sub w-full py-3 mt-2">
+            Cadastrar Revendedora
+          </button>
+        </form>
+      </div>
+
+      <!-- ANIVERSARIANTES DO MÊS -->
+      <div class="card">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="font-bold text-[#3D2314] text-md">🎉 Aniversariantes do Mês (Clientes)</h3>
+          <button type="button" onclick="carregarAniversariantes()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
+        </div>
+        <form onsubmit="salvarAniversarianteManual(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3 rounded-xl bg-[#FFFCF7] border border-[#E4D2B7] p-3">
+          <input id="aniv-nome" type="text" required class="input-field mt-0" placeholder="Nome da aniversariante">
+          <input id="aniv-data" type="date" required class="input-field mt-0" aria-label="Data de nascimento">
+          <button type="submit" class="btn-sub">＋ Adicionar aniversariante</button>
+        </form>
+        <p class="text-xs text-gray-500 mb-2">Aline — aniversário em 29/10/2026. Você pode cadastrar outras clientes abaixo; a lista considera aniversários do mês atual.</p>
+        <div class="mb-3 rounded-xl border border-[#D4AF37] bg-[#F5EBDD] p-3 flex items-center justify-between gap-3"><div><span class="block text-xs font-bold text-[#3D2314]">🎂 Aline</span><span class="block text-sm text-[#3D2314]">29 de outubro</span></div><span class="text-xs font-bold text-[#3D2314]">Aniversariante de outubro</span></div>
+        <div id="lista-aniversariantes" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
+          <p class="text-gray-500 py-2 text-center">Nenhuma aniversariante identificada neste mês.</p>
+        </div>
+      </div>
+
+      <!-- ESTOQUE GERAL -->
+      <div class="card !p-0 overflow-hidden">
+        <div class="bg-[#2A180E] text-[#F9F6F0] p-4 border-b-2 border-[#D4AF37]">
+          <div class="flex justify-between items-center gap-3">
+            <div><p class="text-[10px] uppercase tracking-[.18em] text-[#D4AF37] font-bold">Controle de produtos</p><h3 class="text-lg font-bold">Estoque Geral</h3></div>
+            <button type="button" onclick="carregarEstoque()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-2 rounded-lg">↻ Atualizar</button>
+          </div>
+          <p class="text-xs text-[#EFE6D8] mt-1">Pesquise por nome, código de barras ou SKU e filtre por faixa de preço.</p>
+        </div>
+        <div class="p-3">
+          <div class="flex gap-2 mb-3">
+          <label class="flex-1 text-center cursor-pointer btn-sub">📂 Importar Excel/CSV<input type="file" accept=".xlsx,.xls,.csv,.txt" class="hidden" onchange="importarPlanilhaCSV(event, 'estoque')"></label>
+            <button type="button" onclick="exportarPlanilhaCSV()" class="flex-1 bg-[#EFE6D8] text-[#3D2314] text-xs font-bold py-2 px-3 rounded border border-[#3D2314]">📥 Exportar estoque Excel</button>
+          </div>
+          <div class="stock-filter-panel">
+            <label for="filtro-estoque" class="block text-xs font-bold text-[#3D2314]">🔎 Buscar peça</label>
+            <input id="filtro-estoque" type="search" class="input-field mb-3" placeholder="Nome, código de barras ou SKU" oninput="carregarEstoque()" autocomplete="off">
+            <div class="grid grid-cols-2 gap-3">
+              <div><label for="estoque-preco-min" class="block text-xs font-bold text-[#3D2314]">Preço mínimo (R$)</label><input id="estoque-preco-min" type="number" min="0" step="0.01" class="input-field" placeholder="0,00" oninput="carregarEstoque()"></div>
+              <div><label for="estoque-preco-max" class="block text-xs font-bold text-[#3D2314]">Preço máximo (R$)</label><input id="estoque-preco-max" type="number" min="0" step="0.01" class="input-field" placeholder="Sem limite" oninput="carregarEstoque()"></div>
+            </div>
+            <button type="button" onclick="limparFiltrosEstoque()" class="mt-3 text-xs font-bold text-[#3D2314] underline">Limpar filtros</button>
+          </div>
+          <div id="resumo-estoque" class="stock-summary" style="display:none"><div><span class="block text-xs text-[#EFE6D8]">Peças encontradas</span><strong id="estoque-total-unidades">0</strong><span class="text-xs text-[#EFE6D8]"> unidades disponíveis</span></div><span id="estoque-total-modelos" class="text-xs font-semibold">0 produtos</span></div>
+          <div id="lista-estoque" class="divide-y divide-[#EFE6D8] text-xs max-h-72 overflow-y-auto rounded-lg border border-[#EFE6D8] mt-3">
+            <p class="text-gray-500 py-4 text-center">Digite uma busca ou informe uma faixa de preço para visualizar o estoque.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- REVENDEDORAS CADASTRADAS -->
+      <div class="card">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="font-bold text-[#3D2314] text-md">Revendedoras Cadastradas</h3>
+          <button type="button" onclick="carregarRevendedoras()" class="text-xs bg-[#D4AF37] text-[#2A180E] font-bold px-3 py-1 rounded">Atualizar</button>
+        </div>
+        <div id="lista-revendedoras" class="divide-y divide-[#EFE6D8] text-xs max-h-48 overflow-y-auto">
+          <p class="text-gray-500 py-2 text-center">Nenhuma revendedora cadastrada.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- APP REVENDEDORA -->
+    <div id="view-revendedora" style="display: none;">
+      <div class="bg-[#2A180E] text-[#F9F6F0] p-4 rounded-xl shadow border border-[#D4AF37] space-y-3 mb-4">
+        <p class="text-xs text-[#D4AF37] font-bold">Identificação da Revendedora</p>
+        <div class="flex gap-2">
+          <input type="text" id="rev-nome-input" class="w-full p-2.5 rounded text-[#2A180E] font-bold text-sm bg-white" placeholder="Digite seu Nome Cadastrado">
+          <button type="button" onclick="acessarRevendedora()" class="bg-[#D4AF37] text-[#2A180E] font-bold px-4 py-2 rounded text-xs">Acessar</button>
+        </div>
+        <p id="rev-status-txt" class="text-xs text-yellow-300 font-bold hidden"></p>
+      </div>
+
+      <div class="card">
+        <h3 class="font-bold text-[#3D2314] text-md mb-2">Cadastro de nova revendedora</h3>
+        <p class="text-xs text-gray-600 mb-3">Envie seus dados e aguarde a aprovação da proprietária.</p>
+        <form onsubmit="solicitarCadastroRevendedora(event)" class="space-y-2">
+          <input id="solicita-nome" type="text" required class="input-field" placeholder="Nome completo">
+          <input id="solicita-cpf" type="text" required class="input-field" placeholder="CPF">
+          <input id="solicita-whats" type="tel" required class="input-field" placeholder="WhatsApp">
+          <button type="submit" class="btn-main">Enviar cadastro para aprovação</button>
+        </form>
+        <div id="status-cadastro-rev" class="text-sm mt-3" aria-live="polite"></div>
+      </div>
+
+      <div class="card">
+        <h3 class="font-bold text-[#3D2314] text-md mb-2">Painel da Revendedora</h3>
+        <div id="painel-revendedora" class="space-y-3">
+          <p class="text-xs text-gray-600">Digite seu nome acima para verificar suas informações e vendas.</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="text-center py-6 text-xs text-gray-500 mt-auto">
+    App criado por Julia Agda
+  </footer>
+
+  <script>
+    function instalarAppPWA() {
+      alert("✨ Para instalar o App na sua Tela Inicial:\n\n1. No Android (Chrome): Toque nos 3 pontinhos (canto superior direito) e selecione 'Adicionar à tela inicial' ou 'Instalar aplicativo'.\n2. No iPhone (Safari): Toque no botão de partilha e selecione 'Adicionar à Tela de Início'.");
+    }
+
+    function mudarModo(modo) {
+      var prop = document.getElementById('view-proprietaria');
+      var rev = document.getElementById('view-revendedora');
+      var label = document.getElementById('mod-label');
+      var btnP = document.getElementById('btn-prop');
+      var btnR = document.getElementById('btn-rev');
+
+      if (modo === 'proprietaria') {
+        prop.style.display = 'block';
+        rev.style.display = 'none';
+        label.innerText = 'Painel Proprietária';
+        btnP.style.background = '#3D2314';
+        btnP.style.color = '#D4AF37';
+        btnR.style.background = '#EFE6D8';
+        btnR.style.color = '#3D2314';
+        carregarTudo();
+      } else {
+        prop.style.display = 'none';
+        rev.style.display = 'block';
+        label.innerText = 'App Revendedora';
+        btnR.style.background = '#3D2314';
+        btnR.style.color = '#D4AF37';
+        btnP.style.background = '#EFE6D8';
+        btnP.style.color = '#3D2314';
+      }
+    }
+
+    function salvarProduto(e) {
+      e.preventDefault();
+      var codigo = document.getElementById('prod-codigo').value.trim();
+      var nome = document.getElementById('prod-nome').value.trim();
+      var custo = parseFloat(document.getElementById('prod-custo').value || 0);
+      var venda = parseFloat(document.getElementById('prod-venda').value);
+      var estoque = parseInt(document.getElementById('prod-estoque').value);
+
+      if (!codigo || !nome || !Number.isFinite(venda) || venda <= 0 || !Number.isInteger(estoque) || estoque < 0 || custo < 0) {
+        alert('Confira os dados: preço de venda deve ser maior que zero e estoque deve ser um número inteiro igual ou maior que zero.');
+        return;
+      }
+      var produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+      if (produtos.some(function(p) { return String(p.codigo_barras).toLowerCase() === codigo.toLowerCase(); })) {
+        alert('Já existe uma peça cadastrada com esse código/SKU. Use um código único.');
+        return;
+      }
+      produtos.unshift({ id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random(), codigo_barras: codigo, nome: nome, preco_custo: custo, preco_venda: venda, estoque_geral: estoque });
+      localStorage.setItem('agda_produtos', JSON.stringify(produtos));
+
+      alert('Peça salva com sucesso!');
+      e.target.reset();
+      carregarTudo();
+    }
+
+    function salvarRevendedora(e) {
+      e.preventDefault();
+      var nome = document.getElementById('rev-cad-nome').value.trim();
+      var cpf = document.getElementById('rev-cad-cpf').value.trim();
+      var whats = document.getElementById('rev-cad-whats').value.trim();
+
+      if (!nome || !cpf || !whats) {
+        alert('Preencha nome, CPF e WhatsApp.');
+        return;
+      }
+      var revendedoras = JSON.parse(localStorage.getItem('agda_revendedoras') || '[]');
+      if (revendedoras.some(function(r) { return String(r.cpf).replace(/\\D/g, '') === cpf.replace(/\\D/g, ''); })) {
+        alert('Já existe uma revendedora cadastrada com esse CPF.');
+        return;
+      }
+      revendedoras.unshift({ id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random(), nome: nome, cpf: cpf, whatsapp: whats, ativo: true });
+      localStorage.setItem('agda_revendedoras', JSON.stringify(revendedoras));
+
+      alert('Revendedora cadastrada com sucesso!');
+      e.target.reset();
+      carregarTudo();
+    }
+
+    function solicitarCadastroRevendedora(e) {
+      e.preventDefault();
+      var nome = document.getElementById('solicita-nome').value.trim();
+      var cpf = document.getElementById('solicita-cpf').value.trim();
+      var whatsapp = document.getElementById('solicita-whats').value.trim();
+      var cpfLimpo = cpf.replace(/\D/g, '');
+      if (!nome || !cpfLimpo || !whatsapp) { alert('Preencha nome, CPF e WhatsApp.'); return; }
+      var pendentes = JSON.parse(localStorage.getItem('agda_revendedoras_pendentes') || '[]');
+      var ativas = JSON.parse(localStorage.getItem('agda_revendedoras') || '[]');
+      if (pendentes.some(function(r) { return String(r.cpf).replace(/\D/g, '') === cpfLimpo; }) || ativas.some(function(r) { return String(r.cpf).replace(/\D/g, '') === cpfLimpo; })) {
+        document.getElementById('status-cadastro-rev').textContent = 'Já existe um cadastro com esse CPF. Se você já se cadastrou, aguarde a análise da proprietária.';
+        return;
+      }
+      pendentes.unshift({ id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random(), nome: nome, cpf: cpf, whatsapp: whatsapp, status: 'pendente', data_cadastro: new Date().toISOString() });
+      localStorage.setItem('agda_revendedoras_pendentes', JSON.stringify(pendentes));
+      e.target.reset();
+      document.getElementById('status-cadastro-rev').textContent = 'Cadastro enviado nesta demonstração. Aguarde a aprovação da proprietária neste mesmo navegador/aparelho.';
+      carregarRevendedoras();
+    }
+
+    function aprovarCadastroRevendedora(id) {
+      var pendentes = JSON.parse(localStorage.getItem('agda_revendedoras_pendentes') || '[]');
+      var rev = pendentes.find(function(r) { return r.id === id; });
+      if (!rev) { alert('Cadastro pendente não encontrado. Atualize a lista.'); return; }
+      var ativas = JSON.parse(localStorage.getItem('agda_revendedoras') || '[]');
+      if (ativas.some(function(r) { return String(r.cpf).replace(/\D/g, '') === String(rev.cpf).replace(/\D/g, ''); })) { alert('Esse CPF já está cadastrado.'); return; }
+      rev.ativo = true;
+      ativas.unshift({ id: rev.id, nome: rev.nome, cpf: rev.cpf, whatsapp: rev.whatsapp, ativo: true });
+      localStorage.setItem('agda_revendedoras', JSON.stringify(ativas));
+      localStorage.setItem('agda_revendedoras_pendentes', JSON.stringify(pendentes.filter(function(r) { return r.id !== id; })));
+      carregarTudo();
+      alert('Cadastro aprovado nesta demonstração.');
+    }
+
+    function salvarMaleta(e) {
+      e.preventDefault();
+      var rev = document.getElementById('maleta-revendedora').value;
+      if (!rev) { alert('Selecione a revendedora.'); return; }
+      var selecionados = Array.from(document.querySelectorAll('.maleta-item-check:checked')).map(function(check) {
+        var linha = check.closest('[data-produto]');
+        return { codigo: check.value, quantidade: parseInt(linha.querySelector('.maleta-item-qtd').value, 10) };
+      });
+      if (!selecionados.length) { alert('Marque pelo menos uma peça para a maleta.'); return; }
+      var produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+      for (var s = 0; s < selecionados.length; s++) {
+        var item = selecionados[s];
+        var p = produtos.find(function(x) { return String(x.codigo_barras) === String(item.codigo); });
+        if (!p || !Number.isInteger(item.quantidade) || item.quantidade < 1 || Number(p.estoque_geral || 0) < item.quantidade) {
+          alert('Confira a quantidade de ' + (p ? p.nome : item.codigo) + '. O estoque disponível pode ser insuficiente.'); return;
+        }
+      }
+      var maletas = JSON.parse(localStorage.getItem('agda_maletas') || '[]');
+      selecionados.forEach(function(item) {
+        var produto = produtos.find(function(p) { return String(p.codigo_barras) === String(item.codigo); });
+        var existente = maletas.find(function(m) { return m.revendedora === rev && String(m.produto) === String(item.codigo) && m.status !== 'encerrada'; });
+        produto.estoque_geral = Number(produto.estoque_geral || 0) - item.quantidade;
+        if (existente) { existente.quantidade = Number(existente.quantidade || 0) + item.quantidade; existente.quantidade_inicial = Number(existente.quantidade_inicial || 0) + item.quantidade; }
+        else maletas.unshift({ id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random(), revendedora: rev, produto: item.codigo, produto_nome: produto.nome, quantidade: item.quantidade, quantidade_inicial: item.quantidade, data_envio: new Date().toISOString(), status: 'ativa' });
+      });
+      localStorage.setItem('agda_produtos', JSON.stringify(produtos));
+      localStorage.setItem('agda_maletas', JSON.stringify(maletas));
+      alert(selecionados.length + ' tipo(s) de peça adicionado(s) à maleta. Estoque local atualizado.');
+      e.target.reset();
+      carregarTudo();
+    }
+
+    var cameraStream = null;
+    var detectorCodigo = null;
+    var leitorZXing = null;
+    var controleLeituraZXing = null;
+    var leituraAtiva = false;
+    var destinoLeitorCodigo = 'cadastro';
+    function processarCodigoLido(codigoLido) {
+      if (!leituraAtiva || !codigoLido) return;
+      leituraAtiva = false;
+      if (destinoLeitorCodigo === 'maleta') {
+        var produtosMaleta = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+        var produtoLido = produtosMaleta.find(function(p) { return String(p.codigo_barras) === String(codigoLido); });
+        if (!produtoLido) {
+          document.getElementById('camera-status-maleta').textContent = 'Código ' + codigoLido + ' não está cadastrado no estoque. Cadastre ou importe a peça primeiro.';
+          leituraAtiva = true;
+          return;
+        }
+        document.getElementById('busca-maleta').value = codigoLido;
+        carregarListaSelecaoMaleta();
+        var checkLido = document.querySelector('.maleta-item-check[value="' + CSS.escape(String(codigoLido)) + '"]');
+        if (checkLido) checkLido.checked = true;
+        document.getElementById('camera-status-maleta').textContent = 'Peça selecionada: ' + produtoLido.nome + ' — confira a quantidade e confirme a maleta.';
+        fecharLeitorCodigo();
+        var quantidadeLida = document.querySelector('[data-produto] .maleta-item-qtd');
+        if (quantidadeLida) quantidadeLida.focus();
+        return;
+      }
+      document.getElementById('prod-codigo').value = codigoLido;
+      document.getElementById('camera-status').textContent = 'Código lido: ' + codigoLido;
+      fecharLeitorCodigo();
+      document.getElementById('prod-nome').focus();
+    }
+    async function abrirLeitorCodigo(destino) {
+      destinoLeitorCodigo = destino || 'cadastro';
+      var sufixo = destinoLeitorCodigo === 'maleta' ? '-maleta' : '';
+      var caixa = document.getElementById('leitor-camera' + sufixo);
+      var video = document.getElementById('video-codigo' + sufixo);
+      var status = document.getElementById('camera-status' + sufixo);
+      caixa.classList.remove('hidden');
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        status.textContent = 'A câmera exige HTTPS e permissão do navegador. Abra este app pelo link seguro e autorize a câmera.';
+        return;
+      }
+      leituraAtiva = true;
+      status.textContent = 'Solicitando acesso à câmera…';
+      try {
+        if (window.ZXing && window.ZXing.BrowserMultiFormatReader) {
+          leitorZXing = new window.ZXing.BrowserMultiFormatReader();
+          status.textContent = 'Leitor de código carregado. Aproxime e mantenha o código nítido dentro da imagem.';
+          controleLeituraZXing = await leitorZXing.decodeFromVideoDevice(undefined, video, function(resultado, erro) {
+            if (resultado && resultado.getText) processarCodigoLido(resultado.getText());
+          });
+        } else if ('BarcodeDetector' in window) {
+          detectorCodigo = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'itf', 'qr_code'] });
+          cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+          video.srcObject = cameraStream;
+          await video.play();
+          status.textContent = 'Câmera ativa. Aponte para o código de barras.';
+          procurarCodigoNaCamera(video);
+        } else {
+          leituraAtiva = false;
+          status.textContent = 'Não foi possível carregar o leitor alternativo. Verifique a internet e recarregue a página.';
+        }
+      } catch (err) {
+        leituraAtiva = false;
+        status.textContent = 'Não foi possível abrir a câmera. Autorize o acesso nas configurações do navegador e tente novamente.';
+      }
+    }
+    async function procurarCodigoNaCamera(video) {
+      if (!leituraAtiva || !detectorCodigo || !video || video.readyState < 2) {
+        if (leituraAtiva) requestAnimationFrame(function() { procurarCodigoNaCamera(video); });
+        return;
+      }
+      try {
+        var codigos = await detectorCodigo.detect(video);
+        if (codigos && codigos.length && codigos[0].rawValue) {
+          processarCodigoLido(codigos[0].rawValue);
+          return;
+        }
+      } catch (err) {}
+      if (leituraAtiva) requestAnimationFrame(function() { procurarCodigoNaCamera(video); });
+    }
+    function fecharLeitorCodigo() {
+      leituraAtiva = false;
+      if (controleLeituraZXing && controleLeituraZXing.stop) controleLeituraZXing.stop();
+      controleLeituraZXing = null;
+      if (leitorZXing && leitorZXing.reset) leitorZXing.reset();
+      leitorZXing = null;
+      if (cameraStream) cameraStream.getTracks().forEach(function(track) { track.stop(); });
+      cameraStream = null;
+      var sufixo = destinoLeitorCodigo === 'maleta' ? '-maleta' : '';
+      var video = document.getElementById('video-codigo' + sufixo);
+      if (video) video.srcObject = null;
+      var caixa = document.getElementById('leitor-camera' + sufixo);
+      if (caixa) caixa.classList.add('hidden');
+    }
+
+    function importarPlanilhaCSV(e, origem) {
+      var file = e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        var text = event.target.result;
+        var linhas = text.split('\n');
+        var produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+        var contador = 0;
+        for (var i = 1; i < linhas.length; i++) {
+          var linha = linhas[i].trim();
+          if (!linha) continue;
+          var delimitador = linha.indexOf(';') >= 0 ? ';' : ',';
+          var colunas = linha.split(delimitador).map(function(c) { return c.replace(/^\\s*["']|["']\\s*$/g, '').trim(); });
+          if (colunas.length >= 4 && colunas[0] && colunas[1]) {
+            var custoCSV = Number(String(colunas[2]).replace(/\\./g, '').replace(',', '.'));
+            var vendaCSV = Number(String(colunas[3]).replace(/\\./g, '').replace(',', '.'));
+            var estoqueCSV = colunas.length >= 5 ? parseInt(colunas[4], 10) : 0;
+            var codigoCSV = colunas[0];
+            if (produtos.some(function(p) { return String(p.codigo_barras) === codigoCSV; })) continue;
+            produtos.unshift({
+              id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random(),
+              codigo_barras: codigoCSV,
+              nome: colunas[1],
+              preco_custo: Number.isFinite(custoCSV) ? custoCSV : 0,
+              preco_venda: Number.isFinite(vendaCSV) ? vendaCSV : 0,
+              estoque_geral: Number.isInteger(estoqueCSV) && estoqueCSV >= 0 ? estoqueCSV : 0
+            });
+            contador++;
+          }
+        }
+        localStorage.setItem('agda_produtos', JSON.stringify(produtos));
+        alert(contador + ' peças importadas para o cadastro/estoque local. Códigos já existentes foram ignorados; confira os dados antes de usar.');
+        carregarTudo();
+        e.target.value = '';
+      };
+      reader.readAsText(file);
+    }
+
+    function importarCSVMaleta(e) {
+      var file = e.target.files && e.target.files[0];
+      if (!file) return;
+      function processarItens(linhas) {
+        var codigos = [];
+        if (!linhas || linhas.length < 2) { alert('Planilha vazia. Use as colunas Codigo e Quantidade.'); e.target.value = ''; return; }
+        var cab = linhas[0].map(agdaCabecalho), iCod = cab.findIndex(function(c) { return ['codigo','sku','codigobarras','barcode','referencia'].indexOf(c) >= 0; }), iQtd = cab.findIndex(function(c) { return ['quantidade','qtd','estoque','quantity'].indexOf(c) >= 0; });
+        if (iCod < 0) { iCod = 0; iQtd = 1; }
+        for (var i = 1; i < linhas.length; i++) {
+          var cols = linhas[i];
+          if (cols && cols[iCod] != null && String(cols[iCod]).trim()) codigos.push({ codigo: String(cols[iCod]).trim(), quantidade: Math.max(1, parseInt(cols[iQtd >= 0 ? iQtd : 1] || '1', 10) || 1) });
+        }
+        document.getElementById('busca-maleta').value = '';
+        carregarListaSelecaoMaleta();
+        var encontrados = 0;
+        codigos.forEach(function(item) {
+          var linha = Array.from(document.querySelectorAll('[data-produto]')).find(function(el) { return el.getAttribute('data-produto') === item.codigo; });
+          if (!linha) return;
+          var check = linha.querySelector('.maleta-item-check');
+          var qtd = linha.querySelector('.maleta-item-qtd');
+          if (check && !check.disabled) {
+            check.checked = true;
+            qtd.value = Math.min(item.quantidade, Number(qtd.max || item.quantidade));
+            encontrados++;
+          }
+        });
+        alert(encontrados + ' tipo(s) de peça selecionado(s) para a maleta. Revise as quantidades e confirme. Formato: Código;Quantidade.');
+        e.target.value = '';
+      }
+      var reader = new FileReader(), excel = /\.(xlsx|xls)$/i.test(file.name || '');
+      reader.onload = function(event) {
+        try {
+          if (excel) {
+            if (!window.XLSX) throw new Error('A biblioteca Excel não carregou. Verifique a internet.');
+            var wb = XLSX.read(event.target.result, { type: 'array' });
+            processarItens(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' }));
+          } else processarItens(agdaLerCSV(event.target.result).linhas);
+        } catch (err) { alert('Não foi possível ler a planilha. ' + (err.message || '')); e.target.value = ''; }
+      };
+      reader.onerror = function() { alert('Não foi possível ler a planilha.'); e.target.value = ''; };
+      if (excel) reader.readAsArrayBuffer(file); else reader.readAsText(file, 'UTF-8');
+    }
+
+    function exportarCSVMaleta() {
+      var selecionados = Array.from(document.querySelectorAll('.maleta-item-check:checked')).map(function(check) {
+        var linha = check.closest('[data-produto]');
+        var produto = JSON.parse(localStorage.getItem('agda_produtos') || '[]').find(function(p) { return String(p.codigo_barras) === String(check.value); });
+        return { codigo: check.value, nome: produto ? produto.nome : check.value, valor: Number((produto || {}).preco_venda || 0), quantidade: parseInt(linha.querySelector('.maleta-item-qtd').value, 10) || 1 };
+      });
+      if (!selecionados.length) { alert('Marque as peças que deseja exportar.'); return; }
+      var dados = [['Codigo','Nome','Valor','Quantidade']].concat(selecionados.map(function(p) { return [String(p.codigo), String(p.nome), p.valor, p.quantidade]; }));
+      if (window.XLSX) { var wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(dados), 'Seleção Maleta'); XLSX.writeFile(wb, 'agda-selecao-maleta.xlsx'); return; }
+      var csv = dados.map(function(l) { return l.map(function(v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(';'); }).join('\r\n');
+      var url = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })); var a = document.createElement('a'); a.href = url; a.download = 'agda-selecao-maleta.csv'; a.click(); setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+    }
+
+    function exportarPlanilhaCSV() {
+      var produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+      if (produtos.length === 0) {
+        alert('Sem peças para exportar.');
+        return;
+      }
+      var csv = 'Codigo;Nome;Custo;Venda;Estoque\n';
+      for (var i = 0; i < produtos.length; i++) {
+        var p = produtos[i];
+        var nomeCSV = String(p.nome || '').replace(/"/g, '""');
+        csv += '"' + String(p.codigo_barras || '').replace(/"/g, '""') + '";"' + nomeCSV + '";' + Number(p.preco_custo || 0).toFixed(2).replace('.', ',') + ';' + Number(p.preco_venda || 0).toFixed(2).replace('.', ',') + ';' + Number(p.estoque_geral || 0) + '\n';
+      }
+      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'estoque_tiny_agda.csv';
+      a.click();
+      setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+    }
+
+    function carregarTudo() {
+      atualizarDashboard();
+      carregarEstoque();
+      carregarRevendedoras();
+      carregarAniversariantes();
+      carregarMaletas();
+      carregarSelectsMaleta();
+      carregarFechamentosMaleta();
+    }
+
+    function atualizarDashboard() {
+      var produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+      var revendedoras = JSON.parse(localStorage.getItem('agda_revendedoras') || '[]').filter(function(r) { return r.ativo !== false; });
+      var vendas = JSON.parse(localStorage.getItem('agda_vendas') || '[]');
+      var unidades = produtos.reduce(function(total, p) { return total + Math.max(0, Number(p.estoque_geral || 0)); }, 0);
+      var totalVendas = vendas.reduce(function(total, v) { return total + Math.max(0, Number(v.total || 0)); }, 0);
+      document.getElementById('dash-produtos').textContent = produtos.length.toLocaleString('pt-BR');
+      document.getElementById('dash-estoque').textContent = unidades.toLocaleString('pt-BR');
+      document.getElementById('dash-revendedoras').textContent = revendedoras.length.toLocaleString('pt-BR');
+      document.getElementById('dash-vendas').textContent = totalVendas.toLocaleString('pt-BR', { style:'currency', currency:'BRL', maximumFractionDigits:2 });
+      document.getElementById('dash-vendas-qtd').textContent = vendas.length + (vendas.length === 1 ? ' venda registrada no aparelho' : ' vendas registradas no aparelho');
+      document.getElementById('dashboard-data').textContent = 'Atualizado às ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+    }
+
+    function escaparHTML(valor) {
+      return String(valor == null ? '' : valor).replace(/[&<>"']/g, function(c) {
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);
+      });
+    }
+
+    function limparFiltrosEstoque() {
+      document.getElementById('filtro-estoque').value = '';
+      document.getElementById('estoque-preco-min').value = '';
+      document.getElementById('estoque-preco-max').value = '';
+      carregarEstoque();
+    }
+
+    function carregarEstoque() {
+      var container = document.getElementById('lista-estoque');
+      if (!container) return;
+      var produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+      var filtroEl = document.getElementById('filtro-estoque');
+      var filtro = filtroEl ? filtroEl.value.trim().toLocaleLowerCase('pt-BR') : '';
+      var minEl = document.getElementById('estoque-preco-min');
+      var maxEl = document.getElementById('estoque-preco-max');
+      var minimo = minEl && minEl.value !== '' ? Number(minEl.value) : null;
+      var maximo = maxEl && maxEl.value !== '' ? Number(maxEl.value) : null;
+      var resumo = document.getElementById('resumo-estoque');
+      if (minimo !== null && maximo !== null && minimo > maximo) {
+        resumo.style.display = 'none';
+        container.innerHTML = '<p class="text-amber-800 py-4 text-center">O preço mínimo não pode ser maior que o preço máximo.</p>';
+        return;
+      }
+      if (!filtro && minimo === null && maximo === null) {
+        resumo.style.display = 'none';
+        container.innerHTML = '<p class="text-gray-500 py-4 text-center">Use a busca ou os filtros de preço para visualizar as peças.</p>';
+        return;
+      }
+      produtos = produtos.filter(function(p) {
+        var nome = String(p.nome || '').toLocaleLowerCase('pt-BR');
+        var codigo = String(p.codigo_barras || '').toLocaleLowerCase('pt-BR');
+        var sku = String(p.sku || p.codigo_sku || p.codigo || p.codigo_barras || '').toLocaleLowerCase('pt-BR');
+        var preco = Number(p.preco_venda || 0);
+        var correspondeBusca = !filtro || nome.includes(filtro) || codigo.includes(filtro) || sku.includes(filtro);
+        return correspondeBusca && (minimo === null || preco >= minimo) && (maximo === null || preco <= maximo);
+      });
+      var totalUnidades = produtos.reduce(function(total, p) { return total + Math.max(0, Number(p.estoque_geral || 0)); }, 0);
+      resumo.style.display = 'flex';
+      document.getElementById('estoque-total-unidades').textContent = totalUnidades.toLocaleString('pt-BR');
+      document.getElementById('estoque-total-modelos').textContent = produtos.length + (produtos.length === 1 ? ' produto' : ' produtos');
+      if (produtos.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 py-4 text-center">Nenhuma peça encontrada com esses filtros.</p>';
+        return;
+      }
+      var html = '';
+      for (var i = 0; i < produtos.length; i++) {
+        var p = produtos[i];
+        var quantidade = Math.max(0, Number(p.estoque_geral || 0));
+        var skuMostrar = p.sku || p.codigo_sku || p.codigo || p.codigo_barras;
+        html += '<div class="stock-item"><div class="min-w-0 flex-1"><span class="font-bold text-sm text-[#3D2314] block">' + escaparHTML(p.nome) + '</span><span class="text-gray-500 block text-[11px] mt-1">SKU: ' + escaparHTML(skuMostrar) + ' · Código: ' + escaparHTML(p.codigo_barras) + '</span><span class="inline-flex items-center gap-1 mt-2 rounded-full bg-[#F5EBDD] px-2 py-1 text-[11px] font-bold text-[#3D2314]">Disponíveis: ' + quantidade + ' peças</span></div><div class="text-right shrink-0"><span class="block text-[10px] text-gray-500">Preço</span><span class="font-bold text-sm text-[#2A180E]">R$ ' + Number(p.preco_venda || 0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</span></div></div>';
+      }
+      container.innerHTML = html;
+    }
+
+    function carregarRevendedoras() {
+      var container = document.getElementById('lista-revendedoras');
+      if (!container) return;
+      var revendedoras = JSON.parse(localStorage.getItem('agda_revendedoras') || '[]');
+      var pendentes = JSON.parse(localStorage.getItem('agda_revendedoras_pendentes') || '[]');
+      var html = '';
+      if (pendentes.length) {
+        html += '<p class="font-bold text-amber-800 py-2">Cadastros aguardando aprovação (' + pendentes.length + ')</p>';
+        for (var k = 0; k < pendentes.length; k++) {
+          var p = pendentes[k];
+          html += '<div class="py-2 border-b border-[#EFE6D8]"><div class="font-bold text-[#3D2314]">' + escaparHTML(p.nome) + '</div><div class="text-gray-500 text-xs">WhatsApp: ' + escaparHTML(p.whatsapp) + ' | CPF: ' + escaparHTML(p.cpf) + '</div><button type="button" class="btn-sub mt-2" onclick="aprovarCadastroRevendedora(' + JSON.stringify(p.id).replace(/</g, '\\u003c') + ')">Aprovar cadastro</button></div>';
+        }
+      }
+      if (revendedoras.length === 0 && pendentes.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhuma revendedora cadastrada ou aguardando aprovação.</p>';
+        return;
+      }
+      if (revendedoras.length) html += '<p class="font-bold text-[#3D2314] py-2">Revendedoras aprovadas</p>';
+      for (var i = 0; i < revendedoras.length; i++) {
+        var r = revendedoras[i];
+        html += '<div class="py-2 flex justify-between items-center border-b border-[#EFE6D8]"><div><span class="font-bold text-[#3D2314]">' + escaparHTML(r.nome) + '</span><span class="text-gray-500 block text-xs">WhatsApp: ' + escaparHTML(r.whatsapp) + ' | CPF: ' + escaparHTML(r.cpf) + '</span></div></div>';
+      }
+      container.innerHTML = html;
+    }
+
+    function carregarMaletas() {
+      var container = document.getElementById('lista-maletas');
+      if (!container) return;
+      var maletas = JSON.parse(localStorage.getItem('agda_maletas') || '[]').filter(function(m) { return m.status !== 'encerrada'; });
+      if (maletas.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 py-2 text-center">Nenhuma peça consignada no momento.</p>';
+        return;
+      }
+      var html = '';
+      for (var i = 0; i < maletas.length; i++) {
+        var m = maletas[i];
+        html += '<div class="py-2 flex justify-between items-center gap-2 border-b border-[#EFE6D8]"><div><span class="font-bold text-[#3D2314]">Revendedora: ' + escaparHTML(m.revendedora) + '</span><span class="text-gray-500 block text-xs">Peça: ' + escaparHTML(m.produto_nome || m.produto) + ' | Código: ' + escaparHTML(m.produto) + ' | Qtd. restante: ' + m.quantidade + '</span></div><button type="button" class="btn-sub" onclick="encerrarMaleta(\'' + escaparHTML(m.id) + '\')">Fechar e devolver</button></div>';
+      }
+      container.innerHTML = html;
+    }
+
+    function encerrarMaleta(maletaId) {
+      var maletas = JSON.parse(localStorage.getItem('agda_maletas') || '[]');
+      var maleta = maletas.find(function(m) { return m.id === maletaId && m.status !== 'encerrada'; });
+      if (!maleta) { alert('Maleta não encontrada ou já encerrada.'); return; }
+      var qtdRestante = Number(maleta.quantidade || 0);
+      var produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+      var produto = produtos.find(function(p) { return p.codigo_barras === maleta.produto; });
+      if (qtdRestante > 0 && !produto) { alert('Não foi possível devolver as peças: produto não encontrado.'); return; }
+      if (produto) produto.estoque_geral = Number(produto.estoque_geral || 0) + qtdRestante;
+      maleta.quantidade = 0;
+      maleta.status = 'encerrada';
+      maleta.data_fechamento = new Date().toISOString();
+      localStorage.setItem('agda_produtos', JSON.stringify(produtos));
+      localStorage.setItem('agda_maletas', JSON.stringify(maletas));
+      alert(qtdRestante + ' unidade(s) devolvida(s) ao estoque geral. Maleta encerrada.');
+      carregarTudo();
+      var revInput = document.getElementById('rev-nome-input').value.trim();
+      if (revInput) acessarRevendedora();
+    }
+
+    function carregarSelectsMaleta() {
+      var selRev = document.getElementById('maleta-revendedora');
+      if(!selRev) return;
+
+      var revendedoras = JSON.parse(localStorage.getItem('agda_revendedoras') || '[]');
+      var produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+
+      var htmlRev = '<option value="">Selecione a Revendedora...</option>';
+      for(var i=0; i<revendedoras.length; i++) {
+        htmlRev += '<option value="' + escaparHTML(revendedoras[i].id) + '">' + escaparHTML(revendedoras[i].nome) + '</option>';
+      }
+      selRev.innerHTML = htmlRev;
+
+      carregarListaSelecaoMaleta();
+    }
+
+    function carregarListaSelecaoMaleta() {
+      var container = document.getElementById('lista-selecao-maleta');
+      if (!container) return;
+      var produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+      var busca = (document.getElementById('busca-maleta') || {}).value || '';
+      busca = busca.trim().toLocaleLowerCase('pt-BR');
+      produtos = produtos.filter(function(p) { return !busca || String(p.nome || '').toLocaleLowerCase('pt-BR').includes(busca) || String(p.codigo_barras || '').toLocaleLowerCase('pt-BR').includes(busca); });
+      if (!produtos.length) { container.innerHTML = '<p class="text-xs text-gray-500 py-3 text-center">Nenhuma peça encontrada. Cadastre ou importe um CSV primeiro.</p>'; return; }
+      container.innerHTML = produtos.map(function(p) {
+        var saldo = Math.max(0, Number(p.estoque_geral || 0));
+        var preco = Number(p.preco_venda || 0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+        return '<div data-produto="' + escaparHTML(p.codigo_barras) + '" class="py-3 flex items-center gap-3"><input type="checkbox" class="maleta-item-check h-5 w-5 accent-[#3D2314]" value="' + escaparHTML(p.codigo_barras) + '" ' + (saldo < 1 ? 'disabled' : '') + '><div class="min-w-0 flex-1"><span class="block font-bold text-sm text-[#3D2314]">' + escaparHTML(p.nome) + '</span><span class="block text-xs text-gray-500">SKU: ' + escaparHTML(p.codigo_barras) + ' · Disponível: ' + saldo + '</span><span class="block text-sm font-bold text-[#2A180E]">R$ ' + preco + ' cada</span></div><div class="w-20"><label class="block text-[10px] text-gray-500">Quantidade</label><input type="number" min="1" max="' + saldo + '" value="1" class="maleta-item-qtd input-field mt-1" ' + (saldo < 1 ? 'disabled' : '') + '></div></div>';
+      }).join('');
+    }
+
+    function salvarAniversarianteManual(e) {
+      e.preventDefault();
+      var nome = document.getElementById('aniv-nome').value.trim();
+      var data = document.getElementById('aniv-data').value;
+      if (!nome || !data) { alert('Informe o nome e a data de nascimento.'); return; }
+      var lista = JSON.parse(localStorage.getItem('agda_aniversariantes') || '[]');
+      lista = lista.filter(function(a) { return !(String(a.nome).toLocaleLowerCase('pt-BR') === nome.toLocaleLowerCase('pt-BR') && a.data === data); });
+      lista.push({ id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()), nome: nome, data: data });
+      localStorage.setItem('agda_aniversariantes', JSON.stringify(lista));
+      e.target.reset();
+      carregarAniversariantes();
+    }
+
+    function carregarAniversariantes() {
+      var container = document.getElementById('lista-aniversariantes');
+      if (!container) return;
+      var vendas = JSON.parse(localStorage.getItem('agda_vendas') || '[]');
+      var cadastrados = JSON.parse(localStorage.getItem('agda_aniversariantes') || '[]');
+      var mesAtual = new Date().getMonth() + 1;
+      var mapa = {};
+      function adicionar(nome, data, revendedora) {
+        if (!data) return;
+        var partes = String(data).trim().split(/[\/.-]/);
+        var dia, mes, ano;
+        if (partes.length !== 3) return;
+        if (partes[0].length === 4) { ano = partes[0]; mes = partes[1]; dia = partes[2]; }
+        else { dia = partes[0]; mes = partes[1]; ano = partes[2]; }
+        if (parseInt(mes, 10) !== mesAtual || !parseInt(dia, 10) || parseInt(dia, 10) > 31) return;
+        var chave = String(nome || 'Cliente').trim().toLocaleLowerCase('pt-BR') + '-' + dia + '-' + mes;
+        mapa[chave] = { nomeCliente: String(nome || 'Cliente').trim(), nomeRevendedora: revendedora || '', dataNasc: String(dia).padStart(2, '0') + '/' + String(mes).padStart(2, '0') + (ano ? '/' + ano : '') };
+      }
+      cadastrados.forEach(function(a) { adicionar(a.nome, a.data, ''); });
+      vendas.forEach(function(v) { adicionar(v.cliente_nome, v.cliente_nascimento, v.revendedora_nome); });
+      var aniversariantes = Object.keys(mapa).map(function(k) { return mapa[k]; });
+      aniversariantes.sort(function(a, b) { return a.dataNasc.localeCompare(b.dataNasc); });
+      if (aniversariantes.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 py-3 text-center">Nenhuma aniversariante cadastrada para este mês. Use o formulário acima para incluir a Aline.</p>';
+        return;
+      }
+      container.innerHTML = aniversariantes.map(function(an) {
+        return '<div class="py-3 flex justify-between items-center gap-3 border-b border-[#EFE6D8]"><div><span class="font-bold text-sm text-[#3D2314]">' + escaparHTML(an.nomeCliente) + ' — ' + escaparHTML(an.dataNasc) + '</span>' + (an.nomeRevendedora ? '<span class="text-gray-500 block text-xs mt-1">Revendedora: ' + escaparHTML(an.nomeRevendedora) + '</span>' : '') + '</div><span class="text-xs bg-[#F5EBDD] border border-[#D4AF37] text-[#2A180E] font-bold px-3 py-1.5 rounded-full">🎂 Aniversário</span></div>';
+      }).join('');
+    }
+
+    function acessarRevendedora() {
+      var nome = document.getElementById('rev-nome-input').value.trim();
+      var statusTxt = document.getElementById('rev-status-txt');
+      var painel = document.getElementById('painel-revendedora');
+      if (!nome) {
+        alert('Digite o seu nome.');
+        return;
+      }
+      var revendedoras = JSON.parse(localStorage.getItem('agda_revendedoras') || '[]');
+      var rev = revendedoras.find(function(r) { return r.nome.toLowerCase() === nome.toLowerCase() && r.ativo !== false; });
+      if (!rev) {
+        statusTxt.innerText = 'Não encontramos uma revendedora ativa com esse nome. Confira com a proprietária.';
+        statusTxt.classList.remove('hidden');
+        painel.innerHTML = '<p class="text-sm text-red-700">Acesso não localizado. Cadastre a revendedora no painel da proprietária primeiro.</p>';
+        return;
+      }
+      statusTxt.innerText = 'Demonstração local: bem-vinda, ' + rev.nome + '!';
+      statusTxt.classList.remove('hidden');
+      renderizarPainelRevendedora(rev);
+    }
+
+    function renderizarPainelRevendedora(rev) {
+      var painel = document.getElementById('painel-revendedora');
+      var maletas = JSON.parse(localStorage.getItem('agda_maletas') || '[]').filter(function(m) { return m.revendedora === rev.id && m.status !== 'encerrada'; });
+      var vendas = JSON.parse(localStorage.getItem('agda_vendas') || '[]').filter(function(v) { return v.revendedora_id === rev.id; });
+      var total = vendas.reduce(function(s, v) { return s + Number(v.total || 0); }, 0);
+      var comissao = vendas.reduce(function(s, v) { return s + Number(v.comissao || 0); }, 0);
+      var html = '<div class="grid grid-cols-2 gap-2"><div class="rounded-lg bg-[#F9F6F0] p-3"><span class="text-xs text-gray-600">Total vendido</span><p class="font-bold text-lg">R$ ' + total.toFixed(2).replace('.', ',') + '</p></div><div class="rounded-lg bg-[#F9F6F0] p-3"><span class="text-xs text-gray-600">Comissão (30%)</span><p class="font-bold text-lg">R$ ' + comissao.toFixed(2).replace('.', ',') + '</p></div></div>';
+      html += '<p class="text-xs text-gray-500">Os valores acima consideram as vendas registradas nesta demonstração.</p>';
+      html += '<h4 class="font-bold text-lg text-[#3D2314] mb-3">Minha maleta</h4>';
+      if (!maletas.length) html += '<p class="text-sm text-gray-500">Nenhuma peça consignada para esta revendedora.</p>';
+      maletas.forEach(function(m) {
+        var prod = JSON.parse(localStorage.getItem('agda_produtos') || '[]').find(function(p) { return p.codigo_barras === m.produto; });
+        var disponivel = Number(m.quantidade || 0);
+        html += '<div class="border border-[#EFE6D8] rounded-xl p-3 mb-3 bg-white shadow-sm space-y-2"><div class="w-full h-36 rounded-lg bg-[#F9F6F0] flex items-center justify-center overflow-hidden"><img src="' + escaparHTML((prod || {}).imagem_url || (prod || {}).foto_url || '') + '" alt="' + escaparHTML(m.produto_nome || m.produto) + '" class="w-full h-full object-contain" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><div style="display:none" class="w-full h-full items-center justify-center text-4xl text-[#D4AF37]">✦</div></div><label class="block text-center text-xs font-bold text-[#3D2314] border border-dashed border-[#D4AF37] rounded-lg p-2">📷 Adicionar/alterar foto da peça<input type="file" accept="image/*" class="block w-full text-xs mt-2" onchange="enviarFotoPeca(event,\'' + escaparHTML(m.produto) + '\',\'' + escaparHTML(rev.id) + '\')"></label><div class="font-bold text-base text-[#3D2314]">' + escaparHTML(m.produto_nome || m.produto) + '</div><div class="text-xs text-gray-600">Código: ' + escaparHTML(m.produto) + ' · ' + disponivel + (disponivel === 1 ? ' peça disponível' : ' peças disponíveis') + '</div><div class="text-lg font-bold text-[#2A180E]">R$ ' + Number((prod || {}).preco_venda || 0).toLocaleString("pt-BR", {minimumFractionDigits:2, maximumFractionDigits:2}) + ' cada</div><button type="button" class="btn-sub w-full" ' + (disponivel < 1 ? 'disabled' : '') + ' onclick="registrarVenda(\'' + escaparHTML(m.id) + '\',\'' + escaparHTML(rev.id) + '\')">Registrar venda</button></div>';
+      });
+      var produtosAtuais = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+      var valorPecasRestantes = maletas.reduce(function(s, m) {
+        var p = produtosAtuais.find(function(item) { return item.codigo_barras === m.produto; });
+        return s + Number(m.quantidade || 0) * Number((p || {}).preco_venda || 0);
+      }, 0);
+      var vendasDaMaleta = vendas.filter(function(v) { return maletas.some(function(m) { return m.id === v.maleta_id; }); });
+      var totalVendidoMaleta = vendasDaMaleta.reduce(function(s, v) { return s + Number(v.total || 0); }, 0);
+      var comissaoMaleta = vendasDaMaleta.reduce(function(s, v) { return s + Number(v.comissao || 0); }, 0);
+      html += '<div class="mt-4 rounded-xl border-2 border-[#D4AF37] bg-[#2A180E] text-white p-4"><h4 class="font-bold text-[#D4AF37] mb-4">Resumo financeiro</h4><div class="grid grid-cols-2 gap-3"><div class="rounded-lg bg-[#3D2314] p-3"><span class="block text-xs text-[#EFE6D8]">Total vendido</span><strong class="block text-xl mt-2">R$ ' + totalVendidoMaleta.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</strong></div><div class="rounded-lg bg-[#3D2314] p-3"><span class="block text-xs text-[#EFE6D8]">Sua comissão (30%)</span><strong class="block text-xl text-[#D4AF37] mt-2">R$ ' + comissaoMaleta.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</strong></div></div><div class="flex justify-between items-center gap-3 pt-3 mt-3 border-t border-[#6B513D] text-xs text-[#EFE6D8]"><span>Valor das peças ainda disponíveis</span><span>R$ ' + valorPecasRestantes.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</span></div></div>';
+      if (maletas.length) html += '<div id="fechamento-maleta" class="mt-4 rounded-xl border-2 border-[#D4AF37] bg-[#F9F6F0] p-4 shadow-lg"><p class="font-bold text-base text-[#3D2314] mb-2">📩 Fechamento da maleta</p><p class="text-sm text-gray-700 mb-3">Quando terminar suas vendas, use o botão abaixo para preparar o resumo de vendas, comissão de 30% e peças restantes.</p><button type="button" class="btn-main block mt-2 shadow-lg" style="min-height:72px;font-size:16px;border-width:2px;box-shadow:0 4px 12px rgba(42,24,14,.25);white-space:normal" onclick="solicitarFechamentoMaleta(\'' + escaparHTML(rev.id) + '\')">📩 FECHAR MALETA E ENVIAR À PROPRIETÁRIA</button><p class="text-xs text-gray-600 mt-3">O WhatsApp será aberto para você enviar o resumo. Nesta demonstração, o envio e a sincronização não são automáticos.</p></div>';
+      html += '<h4 class="font-bold mt-4">Minhas vendas</h4>';
+      if (!vendas.length) html += '<p class="text-sm text-gray-500">Nenhuma venda registrada.</p>';
+      vendas.slice().reverse().forEach(function(v) { html += '<div class="border-b py-2 text-sm"><b>' + escaparHTML(v.cliente_nome) + '</b> — R$ ' + Number(v.total).toFixed(2).replace('.', ',') + '<div class="text-xs text-gray-500">' + escaparHTML(v.data || '') + ' · ' + escaparHTML(v.pagamento || '') + '</div></div>'; });
+      painel.innerHTML = html;
+    }
+
+    function enviarFotoPeca(event, codigoProduto, revId) {
+      var arquivo = event.target.files && event.target.files[0];
+      if (!arquivo) return;
+      if (!arquivo.type || !arquivo.type.startsWith('image/')) { alert('Escolha um arquivo de imagem.'); event.target.value = ''; return; }
+      if (arquivo.size > 12 * 1024 * 1024) { alert('A foto deve ter até 12 MB.'); event.target.value = ''; return; }
+      var leitor = new FileReader();
+      leitor.onload = function() {
+        var imagem = new Image();
+        imagem.onload = function() {
+          var escala = Math.min(1, 900 / Math.max(imagem.width, imagem.height));
+          var canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(imagem.width * escala));
+          canvas.height = Math.max(1, Math.round(imagem.height * escala));
+          canvas.getContext('2d').drawImage(imagem, 0, 0, canvas.width, canvas.height);
+          var fotoCompactada = canvas.toDataURL('image/jpeg', 0.72);
+          var produtos = JSON.parse(localStorage.getItem('agda_produtos') || '[]');
+          var produto = produtos.find(function(p) { return String(p.codigo_barras) === String(codigoProduto); });
+          if (!produto) { alert('Peça não encontrada neste aparelho.'); return; }
+          produto.imagem_url = fotoCompactada;
+          try {
+            localStorage.setItem('agda_produtos', JSON.stringify(produtos));
+            alert('Foto adicionada à peça nesta demonstração. Ela fica salva somente neste navegador/aparelho e ainda não é enviada à Tiny nem aos outros celulares.');
+            var rev = JSON.parse(localStorage.getItem('agda_revendedoras') || '[]').find(function(r) { return r.id === revId; });
+            if (rev) renderizarPainelRevendedora(rev);
+            carregarEstoque();
+          } catch (erro) {
+            alert('Não foi possível salvar a foto: o armazenamento deste navegador está cheio. Tente uma imagem menor.');
+          }
+        };
+        imagem.onerror = function() { alert('Não foi possível abrir essa imagem. Tente outra foto.'); };
+        imagem.src = leitor.result;
+      };
+      leitor.readAsDataURL(arquivo);
+    }
+
+    function solicitarFechamentoMaleta(revId) {
+      var rev = JSON.parse(localStorage.getItem('agda_revendedoras') || '[]').find(function(r) { return r.id === revId; });
+      if (!rev) { alert('Revendedora não encontrada.'); return; }
+      var maletas = JSON.parse(localStorage.getItem('agda_maletas') || '[]').filter(function(m) { return m.revendedora === revId && m.status !== 'encerrada'; });
+      if (!maletas.length) { alert('Não há maleta ativa para fechar.'); return; }
+      var vendas = JSON.parse(localStorage.getItem('agda_vendas') || '[]').filter(function(v) { return v.revendedora_id === revId; });
+      var totalVendido = vendas.reduce(function(s, v) { return s + Number(v.total || 0); }, 0);
+      var totalComissao = vendas.reduce(function(s, v) { return s + Number(v.comissao || 0); }, 0);
+      var itens = maletas.map(function(m) { return { produto: m.produto_nome || m.produto, codigo: m.produto, quantidade_nao_vendida: Number(m.quantidade || 0) }; });
+      var resumo = { id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()), revendedora_id: revId, revendedora_nome: rev.nome, data: new Date().toISOString(), total_vendido: totalVendido, comissao: totalComissao, itens: itens, status: 'aguardando_conferencia' };
+      var fechamentos = JSON.parse(localStorage.getItem('agda_fechamentos_maleta') || '[]');
+      fechamentos.unshift(resumo);
+      localStorage.setItem('agda_fechamentos_maleta', JSON.stringify(fechamentos));
+      var linhas = itens.map(function(i) { return '- ' + i.produto + ' (SKU ' + i.codigo + '): ' + i.quantidade_nao_vendida + ' não vendida(s)'; }).join('\n');
+      var mensagem = 'FECHAMENTO DE MALETA - AGDA SEMIJOIAS\nRevendedora: ' + rev.nome + '\nData: ' + new Date().toLocaleString('pt-BR') + '\nTotal vendido: R$ ' + totalVendido.toFixed(2).replace('.', ',') + '\nComissão (30%): R$ ' + totalComissao.toFixed(2).replace('.', ',') + '\nPeças não vendidas para conferência:\n' + linhas + '\n\nStatus: aguardando conferência da proprietária.';
+      renderizarPainelRevendedora(rev);
+      carregarFechamentosMaleta();
