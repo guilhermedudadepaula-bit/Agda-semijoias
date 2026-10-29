@@ -34,7 +34,7 @@ window.addEventListener("load",()=>{setTimeout(()=>{agdaInstallCsvButtons();agda
 </section></main>
 <script>
 const SUPABASE_URL='https://atrbkrrkwsebfgeslmok.supabase.co';
-const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0cmJrcnJrd3NlYmZnZXNsbW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwODMwNjksImV4cCI6MjEwODY1OTA2OX0.LaEbT9NGaaF9zZCqaW-n6xf2gNdthnKi8hzsA6Mk7Ds';
+const SUPABASE_KEY='sb_publishable_m22hGgPEDKfV8ysDzs90cw_cGbGTzru';
 const db=window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY) : null;
 let user=null,profile=null,products=[],resellers=[],installPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installPrompt=e;$("installBtn").classList.remove("hidden");$("installHelp").classList.add("hidden")});
