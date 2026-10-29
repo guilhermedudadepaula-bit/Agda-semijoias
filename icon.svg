@@ -1,1 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#2A180E"/><circle cx="256" cy="256" r="190" fill="none" stroke="#D4AF37" stroke-width="12"/><path d="M140 350 220 150h42l110 200h-52l-24-48H207l-18 48zm83-90h52l-28-57z" fill="#D4AF37"/><text x="256" y="410" font-family="Arial,sans-serif" font-weight="700" font-size="42" fill="#D4AF37" text-anchor="middle" letter-spacing="8">AGDA</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="100" fill="#4B2D1B"/>
+  <g fill="none" stroke="#D8B66D" stroke-width="19" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M158 207 128 128l88 53 40-76 40 76 88-53-30 79H158Z"/>
+    <path d="M158 207h196"/>
+    <circle cx="128" cy="125" r="9" fill="#D8B66D" stroke="none"/>
+    <circle cx="256" cy="101" r="9" fill="#D8B66D" stroke="none"/>
+    <circle cx="384" cy="125" r="9" fill="#D8B66D" stroke="none"/>
+  </g>
+  <text x="256" y="340" font-family="Arial,Helvetica,sans-serif" font-size="78" font-weight="700" text-anchor="middle" fill="#F2E4CF" letter-spacing="-3">AGDA</text>
+</svg>
