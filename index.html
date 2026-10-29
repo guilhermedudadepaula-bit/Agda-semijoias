@@ -20,11 +20,90 @@ html{background:var(--agda-cream);scroll-behavior:smooth}body{background:linear-
 @media(min-width:900px){#owner,#reseller{padding:28px 34px!important}#owner .card,#reseller .card{padding:22px 24px!important}#owner .main,#reseller .main{width:auto}#replenishmentRequests>div,#closureRequests>div{padding:18px 4px}#owner .overflow-x-auto,#reseller .overflow-x-auto{border-radius:14px}}
 @media(max-width:700px){body{font-size:14px}#owner,#reseller{padding:10px!important;padding-bottom:calc(20px + env(safe-area-inset-bottom))!important}#owner .card,#reseller .card{border-radius:17px!important;padding:15px!important;margin-bottom:12px!important}#owner h1,#reseller h1{font-size:1.35rem;line-height:1.25}#owner h2,#reseller h2{font-size:1.05rem;line-height:1.35}#owner button,#reseller button{max-width:100%;overflow-wrap:anywhere}#replenishmentRequests>div,#closureRequests>div{padding:12px 0}#replenishmentRequests .flex,#closureRequests .flex{flex-wrap:wrap}#replenishmentRequests .flex button,#closureRequests .flex button{flex:1 1 125px}table{font-size:12px}td,th{padding:8px 9px}#login{padding:16px!important}#login>div,.login-card{border-radius:23px!important;padding:23px 18px!important}input,select,textarea{font-size:16px!important}button,.main,.sub{min-height:42px}#myKit .flex{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* AGDA entrance redesign — UI only; keeps existing auth and app functions */
+body:has(#login:not(.hidden))>header,body:has(#login:not(.hidden)) #installBar{display:none!important}
+body:has(#login:not(.hidden))>main{max-width:none!important;width:100%;padding:0!important;margin:0!important}
+body:has(#login:not(.hidden)) #notice{position:fixed;z-index:50;left:50%;bottom:14px;transform:translateX(-50%);width:min(92vw,520px);margin:0;background:#fffdf9;border:1px solid #d8c2a7;box-shadow:0 10px 30px #2a180e24}
+.agda-login-shell#login{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(360px,.84fr);gap:0;align-items:stretch;width:min(1120px,calc(100% - 48px));min-height:min(760px,calc(100svh - 48px));margin:24px auto!important;padding:0!important;overflow:hidden;border:1px solid #e5d4c0!important;border-radius:28px!important;background:#fffaf4!important;box-shadow:0 26px 75px #4b2d1b20!important}
+.agda-login-shell#login.hidden{display:none!important}
+.agda-login-photo{position:relative;display:flex;min-height:650px;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;color:#f8e7c4;background:#5b3924 url('https://sanuroaurum.com/cdn/shop/articles/20260116_1806_Image_Generation_remix_01kf3ejh0be73s8hkc47gsr4ay.png?v=1768569438') center 35%/cover no-repeat}
+.agda-photo-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(36,20,12,.08) 10%,rgba(36,20,12,.1) 42%,rgba(36,20,12,.88) 100%)}
+.agda-brand-lockup{position:absolute;z-index:1;left:20px;right:20px;bottom:112px;text-align:center;color:#e6c17c;text-shadow:0 2px 12px #21120780}
+.agda-crown{width:48px;height:32px;margin:0 auto 8px}
+.agda-wordmark{font-family:Georgia,'Times New Roman',serif;font-size:clamp(42px,5vw,64px);font-weight:400;line-height:1;letter-spacing:.02em;color:#b98a45}
+.agda-wordmark-sub{font-size:10px;letter-spacing:.28em;margin-top:7px;color:#a67a43}
+.agda-tagline{font-family:Georgia,serif;font-size:17px;font-style:italic;line-height:1.55;margin-top:22px;color:#f4dfbd}
+.agda-photo-actions{position:absolute;z-index:2;bottom:24px;left:24px;right:24px;display:grid;gap:12px;text-align:center}
+.agda-photo-enter{width:100%;background:linear-gradient(120deg,#4a2a18,#70482d)!important;color:#fff6e9!important;border:1px solid #c59a5a!important;border-radius:999px!important}
+.agda-photo-actions span{font-size:10px;letter-spacing:.08em;color:#f5e6d1}
+.agda-login-form{display:flex;flex-direction:column;justify-content:center;padding:clamp(28px,4vw,62px);background:linear-gradient(160deg,#fffdf9,#f8eee2)}
+.agda-form-brand{text-align:center;margin:0 auto 34px}
+.agda-form-brand svg{width:32px;height:22px;margin:0 auto 8px;color:#b98a45}
+.agda-form-brand .agda-wordmark{font-size:43px}
+.agda-form-brand .agda-wordmark-sub{font-size:9px}
+.agda-eyebrow{font-size:10px;letter-spacing:.2em;font-weight:800;color:#a77a43;margin-bottom:8px}
+.agda-login-form h1{font-family:Georgia,'Times New Roman',serif;font-size:clamp(26px,3vw,36px);font-weight:400;line-height:1.15;color:#4b2d1b;letter-spacing:-.025em;margin-bottom:10px}
+.agda-form-intro{font-size:13px;color:#887464;margin-bottom:24px}
+.agda-login-form label{display:block;font-size:12px;font-weight:650;color:#6a4a34;margin-top:8px}
+.agda-login-form input{margin:6px 0 10px!important;min-height:47px!important;border-radius:11px!important;background:#fffdf9!important}
+.agda-login-submit{margin-top:12px;min-height:48px;border-radius:999px!important}
+.agda-register-separator{display:flex;align-items:center;gap:12px;margin:20px 0;color:#b4a08c;font-size:10px;letter-spacing:.14em}
+.agda-register-separator:before,.agda-register-separator:after{content:"";height:1px;background:#e7d8c7;flex:1}
+.agda-register{border:1px solid #d8c1a7;border-radius:12px;background:#fffaf4;overflow:hidden}
+.agda-register summary{padding:13px 15px;cursor:pointer;list-style:none;text-align:center;font-size:12px;font-weight:700;color:#67442b}
+.agda-register summary::-webkit-details-marker{display:none}
+.agda-register summary:after{content:"＋";float:right;color:#a77a43}
+.agda-register[open] summary:after{content:"−"}
+.agda-register-fields{padding:0 16px 16px;border-top:1px solid #eee0d0}
+.agda-register-fields>p{margin:12px 0;color:#887464}
+.agda-register-fields input{margin-bottom:7px!important}
+.agda-register-fields button{margin-top:8px}
+.agda-login-foot{text-align:center;margin-top:22px;color:#9a8777;font-size:10px;letter-spacing:.06em}
+@media(max-width:760px){
+ body:has(#login:not(.hidden)){background:#f3e5d4!important}
+ .agda-login-shell#login{grid-template-columns:1fr;width:min(440px,calc(100% - 24px));min-height:0;margin:12px auto!important;border-radius:24px!important}
+ .agda-login-photo{min-height:300px;height:40svh;max-height:390px;background-position:center 30%}
+ .agda-brand-lockup{bottom:68px}
+ .agda-crown{width:34px;height:23px;margin-bottom:4px}
+ .agda-brand-lockup .agda-wordmark{font-size:43px}
+ .agda-tagline{font-size:13px;margin-top:10px}
+ .agda-photo-actions{left:18px;right:18px;bottom:12px;gap:0}
+ .agda-photo-enter{display:none!important}
+ .agda-photo-actions span{font-size:9px}
+ .agda-login-form{padding:25px 22px 22px}
+ .agda-form-brand{margin-bottom:20px}
+ .agda-form-brand .agda-wordmark{font-size:38px}
+ .agda-login-form h1{font-size:27px}
+ .agda-form-intro{margin-bottom:15px}
+ .agda-register-separator{margin:14px 0}
+}
+@media(max-width:380px){.agda-login-photo{height:280px;min-height:280px}.agda-login-form{padding:20px 16px}.agda-brand-lockup{bottom:56px}}
 </style></head>
 <body><header class="bg-[#2A180E] text-[#D4AF37] p-4 border-b-2 border-[#D4AF37] flex justify-between"><strong class="text-xl">AGDA Semijoias</strong><button id="logout" class="sub hidden" onclick="sair()">Sair</button></header>
 <div id="installBar" class="mx-auto max-w-3xl px-4 pt-3"><button id="installBtn" class="main w-full hidden" onclick="instalarAGDA()">📲 Instalar AGDA na tela do celular</button><p id="installHelp" class="text-xs text-center text-gray-600 mt-2">Para instalar: no menu do navegador escolha “Adicionar à tela inicial”.</p></div><main class="max-w-3xl mx-auto p-4">
 <div id="notice" class="card">Conectando ao sistema seguro AGDA…</div>
-<section id="login" class="card hidden"><h1 class="text-xl font-bold mb-3">Entrar no AGDA</h1><label>E-mail</label><input id="email" type="email" autocomplete="username" placeholder="seu@email.com"><label>Senha</label><input id="password" type="password" autocomplete="current-password" placeholder="Sua senha"><button class="main w-full" onclick="entrar()">Entrar</button><hr class="my-4"><h2 class="font-bold">Solicitar acesso de revendedora</h2><input id="nome" placeholder="Nome completo"><input id="cpf" placeholder="CPF"><input id="whats" placeholder="WhatsApp"><input id="emailNovo" type="email" placeholder="E-mail"><input id="senhaNova" type="password" minlength="8" placeholder="Criar senha (mínimo 8 caracteres)"><button class="sub w-full" onclick="cadastrar()">Solicitar cadastro</button><p class="text-xs mt-2">O acesso de revendedora depende da aprovação da proprietária.</p></section>
+<section id="login" class="hidden agda-login-shell">
+  <div class="agda-login-photo" role="img" aria-label="Modelo usando semijoias douradas em cenário bege">
+    <div class="agda-photo-shade"></div>
+    <div class="agda-brand-lockup">
+      <svg class="agda-crown" viewBox="0 0 64 40" aria-hidden="true"><path d="M8 31 3 9l15 11L31 3l13 17L61 9l-5 22H8Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M10 36h44" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="3" cy="7" r="2.5" fill="currentColor"/><circle cx="31" cy="3" r="2.5" fill="currentColor"/><circle cx="61" cy="7" r="2.5" fill="currentColor"/></svg>
+      <div class="agda-wordmark">AGDA</div><div class="agda-wordmark-sub">S E M I J O I A S</div>
+      <p class="agda-tagline">Beleza que te acompanha<br>em todos os momentos</p>
+    </div>
+    <div class="agda-photo-actions"><button type="button" class="agda-photo-enter" onclick="document.getElementById('email').focus()">Entrar</button><span>AGDA Semijoias · Revendedoras</span></div>
+  </div>
+  <div class="agda-login-form">
+    <div class="agda-form-brand"><svg viewBox="0 0 64 40" aria-hidden="true"><path d="M8 31 3 9l15 11L31 3l13 17L61 9l-5 22H8Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M10 36h44" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><div class="agda-wordmark">AGDA</div><div class="agda-wordmark-sub">S E M I J O I A S</div></div>
+    <p class="agda-eyebrow">BEM-VINDA À AGDA</p><h1>Entre no seu universo de beleza</h1><p class="agda-form-intro">Acesse sua conta para acompanhar suas peças e vendas.</p>
+    <label for="email">E-mail</label><input id="email" type="email" autocomplete="username" placeholder="seu@email.com">
+    <label for="password">Senha</label><input id="password" type="password" autocomplete="current-password" placeholder="Sua senha">
+    <button class="main w-full agda-login-submit" onclick="entrar()">Entrar</button>
+    <div class="agda-register-separator"><span>OU</span></div>
+    <details class="agda-register"><summary>Solicitar cadastro de revendedora</summary><div class="agda-register-fields"><p class="text-sm">Preencha os dados para solicitar acesso. A proprietária precisa aprovar seu cadastro.</p><label for="nome">Nome completo</label><input id="nome" placeholder="Seu nome completo" autocomplete="name"><label for="cpf">CPF</label><input id="cpf" placeholder="CPF" inputmode="numeric"><label for="whats">WhatsApp</label><input id="whats" placeholder="(DDD) 99999-9999" autocomplete="tel"><label for="emailNovo">E-mail</label><input id="emailNovo" type="email" placeholder="seu@email.com" autocomplete="email"><label for="senhaNova">Criar senha</label><input id="senhaNova" type="password" minlength="8" placeholder="Mínimo de 8 caracteres" autocomplete="new-password"><button class="sub w-full" onclick="cadastrar()">Solicitar cadastro</button></div></details>
+    <p class="agda-login-foot">Acesso seguro · AGDA Semijoias</p>
+  </div>
+</section>
 <section id="app" class="hidden"><div class="card"><div class="flex justify-between items-center"><div><p class="text-sm text-gray-500">Bem-vinda(o)</p><h1 id="welcome" class="text-xl font-bold">AGDA</h1></div><span id="role" class="gold font-bold"></span></div><p id="status" class="text-sm mt-2"></p></div>
 <div id="owner" class="hidden">\n<div id="ownerDashboard">
 <section class="dashboard-hero"><p class="text-xs uppercase tracking-widest text-[#E8C96A] font-bold">AGDA SEMIJOIAS · GESTÃO</p><div class="flex flex-wrap items-end justify-between gap-3 mt-2 relative z-10"><div><h2 class="text-2xl font-extrabold">Visão geral</h2><p class="text-sm text-[#F0E2CF] mt-1">Seu negócio em um só lugar.</p></div><button type="button" class="bg-[#D4AF37] text-[#2A180E] text-xs font-extrabold" onclick="carregarOwner()">↻ Atualizar painel</button></div><p id="dashboardUpdated" class="text-xs text-[#F9EAC0] mt-3">Resumo do banco compartilhado</p></section>
