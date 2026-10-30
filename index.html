@@ -250,7 +250,7 @@ function atualizarDashboard(sales){const now=new Date(),ym=now.getFullYear()+'-'
 function renderizarRanking(sales){const now=new Date(),ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0'),totals={};sales.forEach(v=>{if(String(v.sold_at||'').slice(0,7)!==ym)return;const id=v.reseller_id||'unknown';if(!totals[id])totals[id]={name:v.profiles?.full_name||'Revendedora',total:0,qty:0};totals[id].total+=Number(v.unit_price||0)*Number(v.quantity||0);totals[id].qty+=Number(v.quantity||0)});const ranked=Object.values(totals).sort((x,y)=>y.total-x.total);$('salesRanking').innerHTML=ranked.length?ranked.map((r,i)=>'<div class="flex justify-between gap-3 border-b py-2"><span><b>'+(i+1)+'. '+esc(r.name)+'</b><span class="block text-xs text-gray-500">'+r.qty+' peça(s) vendida(s)</span></span><b>'+money(r.total)+'</b></div>').join(''):'Ainda não há vendas neste mês.'}
 
 async function carregarClientesReseller(){
- const {data,error}=await db.from('customers').select('id,name,cpf,whatsapp,birthday').order('name');
+ const {data,error}=await db.from('customers').select('id,name,cpf,whatsapp,birthday').eq('created_by',user.id).order('name');
  if(error){msg('Não foi possível carregar clientes: '+error.message,true);return}
  window.agdaCustomers=data||[];
  const select=$('saleCustomerSelect');
