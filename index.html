@@ -382,7 +382,7 @@ async function registrarVendaSelecionadas(){
  const receipt='✨ *AGDA SEMIJOIAS — RECIBO DE VENDA*\n\nOlá, '+customer.name+'! 💛\n\n'+lines.join('\n')+'\n\n*Total: '+money(total)+'*\nPagamento: '+payment+'\nData: '+date+'\n\n*Cuidados com sua biju:* evite contato com água, perfume, cremes e produtos químicos. Guarde sua peça seca, separada e protegida.\n\nInformamos que nossas bijuterias não possuem garantia.\n\nFoi ótimo ter você como cliente! Obrigada pela confiança e até a próxima! 💕\n*AGDA SEMIJOIAS*';
  await carregarReseller();
  if(customer.whatsapp){
-  const phone=String(customer.whatsapp).replace(/\\D/g,'');
+  const phone=String(customer.whatsapp).replace(/\D/g,'');
   const full=phone.startsWith('55')?phone:'55'+phone;
   window.open('https://wa.me/'+full+'?text='+encodeURIComponent(receipt),'_blank','noopener');
   msg('Venda registrada! Confira o recibo no WhatsApp e toque em Enviar.');
