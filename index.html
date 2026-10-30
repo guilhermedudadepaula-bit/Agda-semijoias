@@ -400,7 +400,7 @@ async function agdaGerarImagemRecibo(p){
  const wrap=(txt,max)=>{const words=String(txt).split(' '),out=[];let line='';for(const word of words){const test=line?line+' '+word:word;if(ctx.measureText(test).width>max&&line){out.push(line);line=word}else line=test}if(line)out.push(line);return out};
  ctx.font='26px Arial';const itemLines=p.items.map(x=>({x,lines:wrap(x.name,500)}));
  ctx.font='23px Arial';const care=wrap('Evite água, perfume, cremes, álcool e produtos químicos. Retire antes do banho, piscina e atividades físicas. Após usar, limpe delicadamente com flanela seca e guarde separada, em local seco.',w-pad*2);
- const height=390+itemLines.reduce((n,v)=>n+Math.max(1,v.lines.length)*38+30,0)+care.length*34+210;
+ const height=840+itemLines.reduce((n,v)=>n+Math.max(1,v.lines.length)*36+66,0)+care.length*34;
  canvas.width=w;canvas.height=height;
  const g=ctx.createLinearGradient(0,0,w,260);g.addColorStop(0,'#2a180e');g.addColorStop(1,'#67442c');ctx.fillStyle='#fffaf2';ctx.fillRect(0,0,w,height);ctx.fillStyle=g;ctx.fillRect(0,0,w,250);
  ctx.textAlign='center';ctx.fillStyle='#e4c994';ctx.font='bold 25px Arial';ctx.fillText('AGDA SEMIJOIAS',w/2,78);ctx.fillStyle='#fffaf2';ctx.font='bold 43px Arial';ctx.fillText('RECIBO DE VENDA',w/2,145);ctx.font='24px Arial';ctx.fillText('Obrigada por escolher a AGDA ✨',w/2,195);
@@ -434,7 +434,7 @@ async function registrarVendaSelecionadas(){
 }
 async function agdaConfirmarVendaEWhatsApp(){
  const p=agdaPendingSale;if(!p)return;
- const waWindow=p.customer.whatsapp?window.open('about:blank','_blank'):null;
+ const waWindow=null;
  const button=$('receiptConfirmButton');if(button){button.disabled=true;button.textContent='Registrando venda…'}
  for(const item of p.items){
   const {error}=await db.rpc('register_reseller_sale',{p_kit_item_id:item.id,p_customer_name:p.customer.name,p_customer_whatsapp:p.customer.whatsapp||'',p_customer_cpf:p.customer.cpf||'',p_customer_birthday:p.customer.birthday||null,p_payment_method:p.payment,p_quantity:item.qty,p_customer_id:p.customer.id});
@@ -444,7 +444,7 @@ async function agdaConfirmarVendaEWhatsApp(){
  if(p.customer.whatsapp){
   const file=new File([imageBlob],'recibo-agda-'+Date.now()+'.png',{type:'image/png'});
   if(navigator.canShare?.({files:[file]})&&navigator.share){try{await navigator.share({files:[file],title:'Recibo AGDA Semijoias',text:'Olá, '+p.customer.name+'! Segue seu recibo. 💛'});msg('Venda registrada. Compartilhe a imagem pelo WhatsApp.')}catch(e){if(e?.name!=='AbortError'){const a=document.createElement('a');a.href=URL.createObjectURL(imageBlob);a.download=file.name;a.click();msg('Venda registrada. Recibo em imagem baixado; anexe-o à conversa no WhatsApp.')}}}
-  else{const a=document.createElement('a');a.href=URL.createObjectURL(imageBlob);a.download=file.name;a.click();const phone=String(p.customer.whatsapp).replace(/\\D/g,'');const full=phone.startsWith('55')?phone:'55'+phone;if(waWindow)waWindow.location.href='https://wa.me/'+full+'?text='+encodeURIComponent('Olá, '+p.customer.name+'! Segue seu recibo. 💛');else window.open('https://wa.me/'+full+'?text='+encodeURIComponent('Olá, '+p.customer.name+'! Segue seu recibo. 💛'),'_blank');msg('Venda registrada. A imagem foi baixada; anexe o arquivo à conversa no WhatsApp.')}
+  else{const a=document.createElement('a');a.href=URL.createObjectURL(imageBlob);a.download=file.name;a.click();const phone=String(p.customer.whatsapp).replace(/\\D/g,'');const full=phone.startsWith('55')?phone:'55'+phone;window.open('https://wa.me/'+full+'?text='+encodeURIComponent('Olá, '+p.customer.name+'! Segue seu recibo. 💛'),'_blank');msg('Venda registrada. A imagem foi baixada; anexe o arquivo à conversa no WhatsApp.')}
  }else{const a=document.createElement('a');a.href=URL.createObjectURL(imageBlob);a.download=file.name;a.click();msg('Venda registrada. Recibo em imagem baixado; cliente sem WhatsApp cadastrado.') }
  $('receiptPreviewModal').classList.add('hidden');agdaPendingSale=null;await carregarReseller();
 }
