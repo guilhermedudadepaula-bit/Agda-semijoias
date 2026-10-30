@@ -232,7 +232,10 @@ async function carregarClientesReseller(){
  const select=$('saleCustomerSelect');
  if(select){const current=select.value;select.innerHTML='<option value="">Selecione uma cliente</option>'+window.agdaCustomers.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name)+(c.whatsapp?' · '+esc(c.whatsapp):'')+'</option>').join('');if(window.agdaCustomers.some(c=>c.id===current))select.value=current;}
  const box=$('resellerCustomerList');
- if(box)box.innerHTML=window.agdaCustomers.length?window.agdaCustomers.map(c=>'<div class="border-b py-2"><b>'+esc(c.name)+'</b><p class="text-xs text-gray-500">'+esc(c.whatsapp||'Sem WhatsApp')+(c.birthday?' · Nascimento: '+new Date(c.birthday+'T12:00:00').toLocaleDateString('pt-BR'):'')+'</p><button type="button" class="text-xs underline mt-1" onclick="$('saleCustomerSelect').value=\''+c.id+'\';msg(\'Cliente selecionada para a venda.\')">Selecionar para venda</button></div>').join(''):'Nenhuma cliente cadastrada ainda.';
+ if(box){
+  box.innerHTML=window.agdaCustomers.length?window.agdaCustomers.map(c=>'<div class="border-b py-2"><b>'+esc(c.name)+'</b><p class="text-xs text-gray-500">'+esc(c.whatsapp||'Sem WhatsApp')+(c.birthday?' · Nascimento: '+new Date(c.birthday+'T12:00:00').toLocaleDateString('pt-BR'):'')+'</p><button type="button" class="text-xs underline mt-1" data-customer-select="'+esc(c.id)+'">Selecionar para venda</button></div>').join(''):'Nenhuma cliente cadastrada ainda.';
+  box.querySelectorAll('[data-customer-select]').forEach(button=>button.addEventListener('click',()=>{if(select)select.value=button.dataset.customerSelect;msg('Cliente selecionada para a venda.');}));
+ }
 }
 async function salvarClienteReseller(){
  const name=$('newCustomerName').value.trim(),whatsapp=$('newCustomerWhatsapp').value.trim(),cpf=$('newCustomerCpf').value.trim(),birthday=$('newCustomerBirthday').value||null;
