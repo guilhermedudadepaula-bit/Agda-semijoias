@@ -381,34 +381,49 @@ function agdaAtualizarTotalVenda(){
  const total=selected.reduce((sum,c)=>sum+Number(c.dataset.price||0)*Number($('qty-'+c.dataset.itemId)?.value||0),0);
  if($('salePreviewTotal'))$('salePreviewTotal').textContent=money(total);
 }
+let agdaPendingSale=null;
+function agdaMontarTextoRecibo(p){
+ const date=new Date().toLocaleDateString('pt-BR');
+ const lines=p.items.map(x=>'• '+x.name+' — '+x.qty+' x '+money(x.unit)+' = '+money(x.qty*x.unit));
+ return '✨ *AGDA SEMIJOIAS — RECIBO DE VENDA*\\n\\nOlá, '+p.customer.name+'! 💛\\n\\n'+lines.join('\\n')+'\\n\\n*Total: '+money(p.total)+'*\\nPagamento: '+p.payment+'\\nData: '+date+'\\n\\n*Um mimo para você:* obrigada por escolher a AGDA! Seu carinho é muito especial para nós. 💝\\n\\n*Cuidados com sua biju:* evite contato com água, perfume, cremes, álcool e produtos químicos. Retire antes do banho, piscina e atividades físicas. Após usar, limpe delicadamente com flanela seca e guarde separada, em local seco.\\n\\n*Informação importante:* nossas bijuterias não possuem garantia.\\n\\nFoi ótimo ter você como cliente! Obrigada pela confiança e até a próxima! 💕\\n*AGDA SEMIJOIAS*';
+}
+function agdaFecharPreviewRecibo(){if($('receiptPreviewModal'))$('receiptPreviewModal').classList.add('hidden');agdaPendingSale=null}
+function agdaAbrirPreviewRecibo(p){
+ agdaPendingSale=p;$('receiptPreviewText').textContent=agdaMontarTextoRecibo(p);
+ $('receiptPreviewCustomer').textContent='Cliente: '+p.customer.name+' · '+money(p.total);
+ $('receiptPreviewModal').classList.remove('hidden');
+}
 async function registrarVendaSelecionadas(){
  const selected=[...document.querySelectorAll('.kit-sale-check:checked')];
  if(!selected.length){msg('Marque pelo menos uma peça para registrar a venda.',true);return}
- const chosen=selected.map(c=>({id:c.dataset.itemId,qty:Number($('qty-'+c.dataset.itemId)?.value||0),max:Number($('qty-'+c.dataset.itemId)?.max||0),name:c.closest('.kit-product-row')?.querySelector('b')?.textContent||'Peça',unit:Number(c.dataset.price||0),sku:c.closest('.kit-product-row')?.dataset.kitSearch||''}));
+ const chosen=selected.map(c=>({id:c.dataset.itemId,qty:Number($('qty-'+c.dataset.itemId)?.value||0),max:Number($('qty-'+c.dataset.itemId)?.max||0),name:c.closest('.kit-product-row')?.querySelector('b')?.textContent||'Peça',unit:Number(c.dataset.price||0)}));
  if(chosen.some(x=>!Number.isInteger(x.qty)||x.qty<1||x.qty>x.max)){msg('Confira a quantidade de cada peça selecionada.',true);return}
  const customerId=$('saleCustomerSelect')?.value||'';
  const customer=(window.agdaCustomers||[]).find(c=>c.id===customerId);
  if(!customer){msg('Selecione uma cliente cadastrada ou cadastre uma nova.',true);agdaAbrirFluxoVenda();return}
  const payment=$('salePaymentMethod')?.value||'Pix';
  const total=chosen.reduce((n,x)=>n+x.unit*x.qty,0);
- if(!confirm('Finalizar venda para '+customer.name+'?\nItens: '+chosen.length+' tipo(s) de peça\nTotal: '+money(total)+'\nPagamento: '+payment)){return}
- for(const item of chosen){
-  const {error}=await db.rpc('register_reseller_sale',{p_kit_item_id:item.id,p_customer_name:customer.name,p_customer_whatsapp:customer.whatsapp||'',p_customer_cpf:customer.cpf||'',p_customer_birthday:customer.birthday||null,p_payment_method:payment,p_quantity:item.qty,p_customer_id:customer.id});
-  if(error){msg('Não foi possível concluir todos os itens: '+error.message+'. Confira Minhas vendas antes de tentar novamente.',true);await carregarReseller();return}
+ agdaAbrirPreviewRecibo({items:chosen,customer,payment,total});
+}
+async function agdaConfirmarVendaEWhatsApp(){
+ const p=agdaPendingSale;if(!p)return;
+ const waWindow=p.customer.whatsapp?window.open('about:blank','_blank'):null;
+ const button=$('receiptConfirmButton');if(button){button.disabled=true;button.textContent='Registrando venda…'}
+ for(const item of p.items){
+  const {error}=await db.rpc('register_reseller_sale',{p_kit_item_id:item.id,p_customer_name:p.customer.name,p_customer_whatsapp:p.customer.whatsapp||'',p_customer_cpf:p.customer.cpf||'',p_customer_birthday:p.customer.birthday||null,p_payment_method:p.payment,p_quantity:item.qty,p_customer_id:p.customer.id});
+  if(error){if(waWindow)waWindow.close();if(button){button.disabled=false;button.textContent='Confirmar venda e abrir WhatsApp'}msg('Não foi possível concluir todos os itens: '+error.message+'. Confira Minhas vendas antes de tentar novamente.',true);await carregarReseller();return}
  }
- const date=new Date().toLocaleDateString('pt-BR');
- const lines=chosen.map(x=>'• '+x.name+' — '+x.qty+' x '+money(x.unit)+' = '+money(x.qty*x.unit));
- const receipt='✨ *AGDA SEMIJOIAS — RECIBO DE VENDA*\n\nOlá, '+customer.name+'! 💛\n\n'+lines.join('\n')+'\n\n*Total: '+money(total)+'*\nPagamento: '+payment+'\nData: '+date+'\n\n*Cuidados com sua biju:* evite contato com água, perfume, cremes e produtos químicos. Guarde sua peça seca, separada e protegida.\n\nInformamos que nossas bijuterias não possuem garantia.\n\nFoi ótimo ter você como cliente! Obrigada pela confiança e até a próxima! 💕\n*AGDA SEMIJOIAS*';
- await carregarReseller();
- if(customer.whatsapp){
-  const phone=String(customer.whatsapp).replace(/\D/g,'');
-  const full=phone.startsWith('55')?phone:'55'+phone;
-  window.open('https://wa.me/'+full+'?text='+encodeURIComponent(receipt),'_blank','noopener');
-  msg('Venda registrada! Confira o recibo no WhatsApp e toque em Enviar.');
+ const receipt=agdaMontarTextoRecibo(p);
+ if(p.customer.whatsapp){
+  const phone=String(p.customer.whatsapp).replace(/\\D/g,'');const full=phone.startsWith('55')?phone:'55'+phone;
+  const url='https://wa.me/'+full+'?text='+encodeURIComponent(receipt);
+  if(waWindow)waWindow.location.href=url;else window.open(url,'_blank');
+  msg('Venda registrada. Confira o WhatsApp e toque em Enviar para a cliente.');
  }else{
   await navigator.clipboard?.writeText(receipt).catch(()=>{});
-  msg('Venda registrada. A cliente não tem WhatsApp cadastrado; o recibo foi copiado se o navegador permitiu. Cadastre o telefone para enviar pelo WhatsApp.');
+  msg('Venda registrada. Cliente sem WhatsApp cadastrado: o recibo foi copiado se permitido pelo navegador.');
  }
+ $('receiptPreviewModal').classList.add('hidden');agdaPendingSale=null;await carregarReseller();
 }
 async function carregarMaletasOwner(){const box=$('activeKits');if(!box)return;const {data,error}=await db.from('kits').select('id,created_at,profiles:reseller_id(full_name),kit_items(quantity_available,products(name,sku))').eq('status','active').order('created_at',{ascending:false});if(error){box.textContent='Erro ao carregar maletas: '+error.message;return}box.innerHTML=(data||[]).length?(data||[]).map(k=>{const remaining=(k.kit_items||[]).reduce((n,i)=>n+Number(i.quantity_available||0),0);const details=(k.kit_items||[]).map(i=>esc(i.products?.name||'Peça')+' · SKU '+esc(i.products?.sku||'—')+' · '+Number(i.quantity_available||0)+' restante(s)').join('<br>');return '<div class="border-b py-3"><b>'+esc(k.profiles?.full_name||'Revendedora')+'</b><p class="text-xs my-2">'+details+'</p><p class="text-xs text-gray-600 mb-2">Devolução prevista: '+remaining+' peça(s)</p><button class="main" onclick="fecharMaletaOwner(\''+k.id+'\')">Confirmar fechamento e devolver estoque</button></div>'}).join(''):'Nenhuma maleta ativa.'}
 async function fecharMaletaOwner(kitId){if(!confirm('Confirmar o fechamento? Todas as peças ainda disponíveis nesta maleta voltarão ao estoque geral e serão lançadas como entrada na Tiny.'))return;const {data,error}=await db.rpc('close_reseller_kit',{p_kit_id:kitId});if(error){msg('Não foi possível fechar a maleta: '+error.message,true);return}msg('Maleta encerrada. '+Number(data||0)+' peça(s) devolvida(s) ao estoque geral. Enviando devolução para a Tiny…');await carregarOwner();await sincronizarMovimentosTiny()}
@@ -418,4 +433,14 @@ async function prepararFechamentoMaleta(){if(!user){msg('Entre no sistema para p
 function normalizarDataNascimento(valor){const s=String(valor||'').trim();if(!s)return null;let ano,mes,dia;let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);if(m){ano=Number(m[1]);mes=Number(m[2]);dia=Number(m[3])}else{m=s.match(/^(\d{2})[\/.-]?(\d{2})[\/.-]?(\d{4})$/);if(!m)return false;dia=Number(m[1]);mes=Number(m[2]);ano=Number(m[3])}const d=new Date(Date.UTC(ano,mes-1,dia));if(d.getUTCFullYear()!==ano||d.getUTCMonth()!==mes-1||d.getUTCDate()!==dia||ano<1900||ano>new Date().getFullYear())return false;return String(ano).padStart(4,'0')+'-'+String(mes).padStart(2,'0')+'-'+String(dia).padStart(2,'0')}
 
 if(!db){$('login').classList.remove('hidden');msg('Não foi possível carregar o módulo de conexão. Confira a internet e recarregue a página. Se continuar, tente abrir no Chrome atualizado.',true)}else{db.auth.getSession().then(async({data})=>{if(data.session)await iniciar(data.session.user);else{$('login').classList.remove('hidden');$('notice').classList.add('hidden')}}).catch(e=>{$('login').classList.remove('hidden');msg('Falha ao iniciar conexão: '+(e?.message||'verifique a internet e recarregue a página.'),true)})}
-</script></body></html>
+</script><div id="receiptPreviewModal" class="hidden" style="position:fixed;inset:0;z-index:10000;background:rgba(30,18,10,.72);padding:16px;overflow:auto">
+ <div style="max-width:560px;margin:4vh auto;background:#fffaf2;border:1px solid #D4AF37;border-radius:18px;padding:20px;color:#3D2314;box-shadow:0 20px 60px #0005">
+  <div class="flex justify-between items-center gap-3"><h2 class="text-xl font-bold">Prévia do recibo</h2><button type="button" class="secondary" onclick="agdaFecharPreviewRecibo()">Fechar ✕</button></div>
+  <p id="receiptPreviewCustomer" class="text-sm font-semibold mt-2"></p>
+  <p class="text-xs text-gray-600 mt-1 mb-3">Confira os itens, valores e a mensagem antes de enviar.</p>
+  <pre id="receiptPreviewText" style="white-space:pre-wrap;overflow-wrap:anywhere;background:#fff;border:1px solid #eadfcf;border-radius:12px;padding:14px;font:14px/1.55 system-ui;max-height:48vh;overflow:auto"></pre>
+  <button id="receiptConfirmButton" type="button" class="main w-full mt-3" onclick="agdaConfirmarVendaEWhatsApp()">✓ Confirmar venda e abrir WhatsApp</button>
+  <p class="text-xs text-gray-600 mt-2">O aplicativo não envia mensagens sozinho. O WhatsApp será aberto com o texto preenchido; você confirma o envio tocando em Enviar.</p>
+ </div>
+</div>
+</body></html>
